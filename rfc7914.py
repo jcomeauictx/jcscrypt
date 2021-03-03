@@ -7,7 +7,7 @@ N=1024, r=1, p=1, dkLen=32
 # pylint: disable=invalid-name, too-many-arguments
 import sys, os, logging, ctypes  # pylint: disable=multiple-imports
 from hashlib import pbkdf2_hmac
-from collections import OrderedDict
+from collections import OrderedDict  # pylint: disable=unused-import
 
 logging.basicConfig(level=logging.DEBUG if __debug__ else logging.WARN)
 
