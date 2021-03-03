@@ -4,9 +4,13 @@ minimalist implementation of rfc7914 optimized for litecoin-style scrypt hash
 
 N=1024, r=1, p=1, dkLen=32
 '''
-import logging, ctypes  # pylint: disable=multiple-imports
+import sys, os, logging, ctypes  # pylint: disable=multiple-imports
 
 logging.basicConfig(level=logging.DEBUG if __debug__ else logging.WARN)
+
+SCRIPT_DIR, PROGRAM = os.path.split(sys.argv[0])
+COMMAND = os.path.splitext(PROGRAM)[0]
+logging.debug('SCRIPT_DIR: %s, COMMAND: %s', SCRIPT_DIR, COMMAND)
 
 LIBRARY = ctypes.cdll.LoadLibrary('./rfc7914.so')
 SALSA = LIBRARY.salsa20_word_specification
