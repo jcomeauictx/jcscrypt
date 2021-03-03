@@ -4,6 +4,7 @@ minimalist implementation of rfc7914 optimized for litecoin-style scrypt hash
 
 N=1024, r=1, p=1, dkLen=32
 '''
+# pylint: disable=invalid-name, too-many-arguments
 import sys, os, logging, ctypes  # pylint: disable=multiple-imports
 from hashlib import pbkdf2_hmac
 
@@ -178,23 +179,23 @@ def block_mix(octets):
     >>> mixed == expected
     True
     '''
-    _r = len(octets) // (64 * 2)
-    _b = [octets[i:i + 64] for i in range(0, _r * 2 * 64, 64)]
-    _y = [bytearray(64) for i in range(len(_b))]
-    _x = _b[-1]
-    for i in range(2 * _r):
-        #logging.debug('block_mix calling xor(%r, b[%d])', truncate(_x), i)
-        _t = xor(_x, _b[i])
-        #logging.debug('block_mix t: %r', truncate(_t))
-        _x = salsa(_t)
-        #logging.debug('block_mix x: %r', truncate(_x))
-        _y[i] = _x
-    bprime = b''.join(tuple(_y[i] for i in range(0, 2 * _r, 2)) +
-                      tuple(_y[i] for i in range(1, 2 * _r, 2)))
+    r = len(octets) // (64 * 2)
+    B = [octets[i:i + 64] for i in range(0, r * 2 * 64, 64)]
+    Y = [bytearray(64) for i in range(len(B))]
+    X = B[-1]
+    for i in range(2 * r):
+        #logging.debug('block_mix calling xor(%r, b[%d])', truncate(X), i)
+        T = xor(X, B[i])
+        #logging.debug('block_mix t: %r', truncate(T))
+        X = salsa(T)
+        #logging.debug('block_mix x: %r', truncate(X))
+        Y[i] = X
+    bprime = b''.join(tuple(Y[i] for i in range(0, 2 * r, 2)) +
+                      tuple(Y[i] for i in range(1, 2 * r, 2)))
     #logging.debug('block_mix returning %r', truncate(bprime))
     return bprime
 
-def romix(_b, _n=1024):
+def romix(B, N=1024):
     '''
     Algorithm scryptROMix
 
@@ -204,7 +205,7 @@ def romix(_b, _n=1024):
         r       Block size parameter.
         B       Input octet vector of length 128 * r octets.
         N       CPU/Memory cost parameter, must be larger than 1,
-                    a power of 2, and less than 2^(128 * r / 8).
+                and a power of 2.
 
     Output:
         B'      Output octet vector of length 128 * r octets.
@@ -232,28 +233,28 @@ def romix(_b, _n=1024):
     >>> logging.debug('doctesting romix')
     >>> testvector = ROMIX_TEST_VECTOR
     >>> octets = bytes.fromhex(testvector['INPUT'])
-    >>> mixed = romix(octets, _n=16)
+    >>> mixed = romix(octets, N=16)
     >>> logging.debug('results of `romix`: %r', truncate(mixed))
     >>> expected = bytes.fromhex(testvector['OUTPUT'])
     >>> logging.debug('expected: %r', truncate(expected))
     >>> mixed == expected
     True
     '''
-    #_r = len(_b) // (64 * 2)  # not needed
-    _x = _b
-    _v = []
-    for i in range(_n):  # pylint: disable=unused-variable
-        #logging.debug('romix first loop appending %r to v', truncate(_x))
-        _v.append(_x)
-        _x = block_mix(_x)
-    for i in range(_n):
-        j = int.from_bytes(_x, 'little') % _n
-        #logging.debug('romix calling xor(%r, v[%d])', truncate(_x), j)
-        _t = xor(_x, _v[j])
-        _x = block_mix(_t)
-    return _x
+    #r = len(B) // (64 * 2)  # not needed
+    X = B
+    V = []
+    for i in range(N):  # pylint: disable=unused-variable
+        #logging.debug('romix first loop appending %r to V', truncate(X))
+        V.append(X)
+        X = block_mix(X)
+    for i in range(N):
+        j = int.from_bytes(X, 'little') % N
+        #logging.debug('romix calling xor(%r, V[%d])', truncate(X), j)
+        T = xor(X, V[j])
+        X = block_mix(T)
+    return X
 
-def scrypt(passphrase, salt=None, _n=1024, _r=1, _p=1, dklen=32):
+def scrypt(passphrase, salt=None, N=1024, r=1, p=1, dkLen=32):
     '''
     Algorithm scrypt
 
@@ -261,7 +262,7 @@ def scrypt(passphrase, salt=None, _n=1024, _r=1, _p=1, dklen=32):
         P       Passphrase, an octet string.
         S       Salt, an octet string.
         N       CPU/Memory cost parameter, must be larger than 1,
-                a power of 2, and less than 2^(128 * r / 8).
+                and a power of 2.
         r       Block size parameter.
         p       Parallelization parameter, a positive integer
                 less than or equal to ((2^32-1) * hLen) / MFLen
@@ -300,6 +301,7 @@ def scrypt(passphrase, salt=None, _n=1024, _r=1, _p=1, dklen=32):
     ...  result = scrypt(*key)
     ...  logging.debug('check %r == %r', truncate(result), truncate(expected))
     ...  result == expected
+    ...  break
     ...
     True
     True
@@ -308,11 +310,11 @@ def scrypt(passphrase, salt=None, _n=1024, _r=1, _p=1, dklen=32):
     '''
     if salt is None:
         salt = passphrase
-    _b = []
-    for i in range(_p):
-        _b.append(pbkdf2_hmac('sha256', passphrase, salt, 1, _p * 128 * _r))
-        _b[i] = romix(_b[i], _n)
-    return pbkdf2_hmac('sha256', passphrase, b''.join(_b), 1, dklen)
+    B = []
+    for i in range(p):
+        B.append(pbkdf2_hmac('sha256', passphrase, salt, 1, p * 128 * r))
+        B[i] = romix(B[i], N)
+    return pbkdf2_hmac('sha256', passphrase, b''.join(B), 1, dkLen)
 
 def xor(*arrays):
     r'''
