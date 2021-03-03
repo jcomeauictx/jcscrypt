@@ -327,9 +327,11 @@ def scrypt(passphrase, salt=None, N=1024, r=1, p=1, dkLen=32):
     '''
     if salt is None:
         salt = passphrase
-    hashed = pbkdf2_hmac('sha256', passphrase, salt, 1, 128 * r)
-    mixed = romix(hashed, N)
-    B = [mixed] * p
+    blocksize = 128 * r
+    hashed = pbkdf2_hmac('sha256', passphrase, salt, 1, blocksize * p)
+    B = [hashed[i:i + blocksize] for i in range(0, p * blocksize, blocksize)]
+    for i in range(p):
+        B[i] = romix(B[i], N)
     return pbkdf2_hmac('sha256', passphrase, b''.join(B), 1, dkLen)
 
 def xor(*arrays):
