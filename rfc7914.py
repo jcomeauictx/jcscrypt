@@ -7,6 +7,7 @@ N=1024, r=1, p=1, dkLen=32
 # pylint: disable=invalid-name, too-many-arguments
 import sys, os, logging, ctypes  # pylint: disable=multiple-imports
 from hashlib import pbkdf2_hmac
+from collections import OrderedDict
 
 logging.basicConfig(level=logging.DEBUG if __debug__ else logging.WARN)
 
@@ -79,17 +80,13 @@ ROMIX_TEST_VECTOR = {
 }
 
 PBKDF2_TEST_VECTORS = {
-    # PBKDF2-HMAC-SHA-256 (P="passwd", S="salt",
-    #                      c=1, dkLen=64)
-    (b'passwd', b'salt', 1, 64):
+    (('P', b'passwd'), ('S', b'salt'), ('c', 1), ('dklen', 64)):
         '55 ac 04 6e 56 e3 08 9f ec 16 91 c2 25 44 b6 05'
         'f9 41 85 21 6d de 04 65 e6 8b 9d 57 c2 0d ac bc'
         '49 ca 9c cc f1 79 b6 45 99 16 64 b3 9d 77 ef 31'
         '7c 71 b8 45 b1 e3 0b d5 09 11 20 41 d3 a1 97 83',
 
-    # PBKDF2-HMAC-SHA-256 (P="Password", S="NaCl",
-    #                      c=80000, dkLen=64) =
-    (b'Password', b'NaCl', 80000, 64):
+    (('P', b'Password'), ('S', b'NaCl'), ('c', 80000), ('dkLen', 64)):
         '4d dc d8 f6 0b 98 be 21 83 0c ee 5e f2 27 01 f9'
         '64 1a 44 18 d0 4c 04 14 ae ff 08 87 6b 34 ab 56'
         'a1 d4 25 a1 22 58 33 54 9a db 84 1b 51 c9 b3 17'
@@ -290,7 +287,7 @@ def scrypt(passphrase, salt=None, N=1024, r=1, p=1, dkLen=32):
 
     >>> for key in PBKDF2_TEST_VECTORS:
     ...  expected = bytes.fromhex(PBKDF2_TEST_VECTORS[key])
-    ...  pbkdf2_hmac('sha256', *key) == expected
+    ...  pbkdf2_hmac('sha256', OrderedDict(key).values()) == expected
     ...
     True
     True
