@@ -191,7 +191,7 @@ def block_mix(octets):
         _y[i] = _x
     bprime = b''.join(tuple(_y[i] for i in range(0, 2 * _r, 2)) +
                       tuple(_y[i] for i in range(1, 2 * _r, 2)))
-    logging.debug('block_mix returning %r', truncate(bprime))
+    #logging.debug('block_mix returning %r', truncate(bprime))
     return bprime
 
 def romix(_b, _n=1024):
@@ -248,7 +248,7 @@ def romix(_b, _n=1024):
         _x = block_mix(_x)
     for i in range(_n):
         j = int.from_bytes(_x, 'little') % _n
-        logging.debug('romix calling xor(%r, v[%d])', truncate(_x), j)
+        #logging.debug('romix calling xor(%r, v[%d])', truncate(_x), j)
         _t = xor(_x, _v[j])
         _x = block_mix(_t)
     return _x
@@ -296,17 +296,22 @@ def scrypt(passphrase, salt=None, _n=1024, _r=1, _p=1, dklen=32):
 
     >>> for key in SCRYPT_TEST_VECTORS:
     ...  expected = bytes.fromhex(SCRYPT_TEST_VECTORS[key])
-    ...  scrypt(*key) == expected
+    ...  logging.debug('calculating scrypt hash for parameters %s', key)
+    ...  result = scrypt(*key)
+    ...  logging.debug('check %r == %r', truncate(result), truncate(expected))
+    ...  result == expected
     ...
+    True
+    True
+    True
     True
     '''
     if salt is None:
         salt = passphrase
     _b = []
-    for i in range(128 * _r):
-        _b.append(pbkdf2_hmac('sha256', passphrase, salt, 1, _p * 128 * _r))
     for i in range(_p):
-        _b[i] = romix(_r, _b[i], _n)
+        _b.append(pbkdf2_hmac('sha256', passphrase, salt, 1, _p * 128 * _r))
+        _b[i] = romix(_b[i], _n)
     return pbkdf2_hmac('sha256', passphrase, b''.join(_b), 1, dklen)
 
 def xor(*arrays):
@@ -317,6 +322,7 @@ def xor(*arrays):
     >>> xor(b'\x55\x55\x55\x55', b'\xaa\xaa\xaa\xaa')
     bytearray(b'\xff\xff\xff\xff')
     '''
+    assert len(set(map(len, arrays))) == 1  # must all be the same length
     result = bytearray(arrays[0])
     for i in range(1, len(arrays)):
         #logging.debug('xor %r with %r', truncate(result), truncate(arrays[i]))
