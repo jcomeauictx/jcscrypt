@@ -181,7 +181,7 @@ def romix(_b, _n=1024):
     True
     '''
     #_r = len(_b) // (64 * 2)  # not needed
-    _x = bytearray(_b)
+    _x = _b
     _v = []
     for i in range(_n):  # pylint: disable=unused-variable
         #logging.debug('romix first loop appending %r to v', truncate(_x))
