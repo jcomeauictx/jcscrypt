@@ -5,6 +5,7 @@ minimalist implementation of rfc7914 optimized for litecoin-style scrypt hash
 N=1024, r=1, p=1, dkLen=32
 '''
 import sys, os, logging, ctypes  # pylint: disable=multiple-imports
+from hashlib import pbkdf2_hmac
 
 logging.basicConfig(level=logging.DEBUG if __debug__ else logging.WARN)
 
@@ -197,6 +198,48 @@ def romix(_b, _n=1024):
         _t = xor(_x, _v[j])
         _x = block_mix(_t)
     return _x
+
+def scrypt(passphrase, salt=None, _n=1024, _r=1, _p=1, dklen=32):
+    '''
+    Algorithm scrypt
+
+    Input:
+        P       Passphrase, an octet string.
+        S       Salt, an octet string.
+        N       CPU/Memory cost parameter, must be larger than 1,
+                a power of 2, and less than 2^(128 * r / 8).
+        r       Block size parameter.
+        p       Parallelization parameter, a positive integer
+                less than or equal to ((2^32-1) * hLen) / MFLen
+                where hLen is 32 and MFlen is 128 * r.
+        dkLen   Intended output length in octets of the derived
+                key; a positive integer less than or equal to
+                (2^32 - 1) * hLen where hLen is 32.
+
+    Output:
+        DK      Derived key, of length dkLen octets.
+
+    Steps:
+
+        1. Initialize an array B consisting of p blocks of 128 * r octets
+           each:
+            B[0] || B[1] || ... || B[p - 1] =
+             PBKDF2-HMAC-SHA256 (P, S, 1, p * 128 * r)
+
+        2. for i = 0 to p - 1 do
+            B[i] = scryptROMix (r, B[i], N)
+           end for
+
+        3. DK = PBKDF2-HMAC-SHA256 (P, B[0] || B[1] || ... || B[p - 1],
+                                    1, dkLen)
+
+    '''
+    _b = []
+    for i in range(128 * r):
+        _b.append(pbkdf2_hmac('sha256', password, salt, 1, _p * 128 * _r))
+    for i in range(_p):
+        _b[i] = romix(_r, _b[i], _n)
+    return pbkdf2_hmac('sha256', password, b''.join(_b), 1, dklen)
 
 def xor(*arrays):
     r'''
