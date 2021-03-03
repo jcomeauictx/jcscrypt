@@ -319,7 +319,6 @@ def scrypt(passphrase, salt=None, N=1024, r=1, p=1, dkLen=32):
     ...  result = scrypt(*OrderedDict(key).values())
     ...  logging.debug('check %r == %r', truncate(result), truncate(expected))
     ...  result == expected
-    ...  break
     ...
     True
     True
@@ -330,8 +329,10 @@ def scrypt(passphrase, salt=None, N=1024, r=1, p=1, dkLen=32):
         salt = passphrase
     B = []
     for i in range(p):
+        logging.debug('running scrypt loop %d', i)
         B.append(pbkdf2_hmac('sha256', passphrase, salt, 1, p * 128 * r))
         B[i] = romix(B[i], N)
+    assert len(set(B)) == 1  # they would all be the same?!
     return pbkdf2_hmac('sha256', passphrase, b''.join(B), 1, dkLen)
 
 def xor(*arrays):
