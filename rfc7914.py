@@ -252,9 +252,9 @@ def romix(B, N=1024):
     >>> testvector = ROMIX_TEST_VECTOR
     >>> octets = bytes.fromhex(testvector['INPUT'])
     >>> mixed = romix(octets, N=16)
-    >>> logging.debug('results of `romix`: %r', truncate(mixed))
+    >>> logging.debug('results of `romix`: %r', mixed)
     >>> expected = bytes.fromhex(testvector['OUTPUT'])
-    >>> logging.debug('expected: %r', truncate(expected))
+    >>> logging.debug('expected: %r', expected)
     >>> mixed == expected
     True
     '''
