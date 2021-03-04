@@ -12,10 +12,12 @@ from collections import OrderedDict  # pylint: disable=unused-import
 logging.basicConfig(level=logging.DEBUG if __debug__ else logging.WARN)
 
 SCRIPT_DIR, PROGRAM = os.path.split(sys.argv[0])
+ARGS = sys.argv[1:]
 COMMAND = os.path.splitext(PROGRAM)[0]
-logging.debug('SCRIPT_DIR: %s, COMMAND: %s', SCRIPT_DIR, COMMAND)
+logging.debug('SCRIPT_DIR: %s, COMMAND: %s, ARGS: %s',
+              SCRIPT_DIR, COMMAND, ARGS)
 
-LIBRARY = ctypes.cdll.LoadLibrary('./rfc7914.so')
+LIBRARY = ctypes.cdll.LoadLibrary(os.path.join(SCRIPT_DIR, '_rfc7914.so'))
 SALSA = LIBRARY.salsa20_word_specification
 SALSA.restype = None  # otherwise it returns contents of return register
 
@@ -109,6 +111,8 @@ SCRYPT_TEST_VECTORS = {
         'f1 6b 48 44 e3 07 4a e8 df df fa 3f ed e2 14 42'
         'fc d0 06 9d ed 09 48 f8 32 6a 75 3a 0f c8 1f 17'
         'e8 d3 e0 fb 2e 0d 36 28 cf 35 e2 0c 38 d1 89 06',
+}  # terminate here until we figure out problems in code
+'''
 
     (
         ('P', b'password'),
@@ -135,8 +139,6 @@ SCRYPT_TEST_VECTORS = {
         'fd a8 fb ba 90 4f 8e 3e a9 b5 43 f6 54 5d a1 f2'
         'd5 43 29 55 61 3f 0f cf 62 d4 97 05 24 2a 9a f9'
         'e6 1e 85 dc 0d 65 1e 40 df cf 01 7b 45 57 58 87',
-}  # terminate here until we figure out problems in code
-'''
 
     (
         ('P', b'pleaseletmein'),

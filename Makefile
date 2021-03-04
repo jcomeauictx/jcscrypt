@@ -1,7 +1,7 @@
 PY_SOURCES := $(wildcard *.py)
-default: rfc7914.py rfc7914.so
+default: rfc7914.py _rfc7914.so
 	./$<
-%.so: %.cpp
+_%.so: %.cpp
 	g++ -shared $(OPTIMIZE) -fpic $(ARCH) -lm -o $@ $(EXTRALIBS) $<
 %.pylint: %.py
 	pylint3 $<
