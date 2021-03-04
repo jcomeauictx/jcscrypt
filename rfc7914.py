@@ -17,10 +17,6 @@ COMMAND = os.path.splitext(PROGRAM)[0]
 logging.debug('SCRIPT_DIR: %s, COMMAND: %s, ARGS: %s',
               SCRIPT_DIR, COMMAND, ARGS)
 
-LIBRARY = ctypes.cdll.LoadLibrary(os.path.join(SCRIPT_DIR, '_rfc7914.so'))
-SALSA = LIBRARY.salsa20_word_specification
-SALSA.restype = None  # otherwise it returns contents of return register
-
 SALSA_TEST_VECTOR = {
     'INPUT':
         '7e 87 9a 21 4f 3e c9 86 7c a9 40 e6 41 71 8f 26'
@@ -374,6 +370,9 @@ def truncate(bytestring):
     return bytestring[:5] + b'...' + bytestring[-5:]
 
 if __name__ == '__main__':
+    LIBRARY = ctypes.cdll.LoadLibrary(os.path.join(SCRIPT_DIR, '_rfc7914.so'))
+    SALSA = LIBRARY.salsa20_word_specification
+    SALSA.restype = None  # otherwise it returns contents of return register
     import doctest
     doctest.testmod()
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
