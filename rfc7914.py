@@ -352,13 +352,14 @@ def integerify(octets, endianness='little'):
     Colin Percival emailed me that B[0] ... B[2 * r - 1] are 64-octet chunks,
     and that the low 4 bytes of the highest chunk are to be used.
 
-    >>> hex(integerify(b'\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99'))
+    >>> hex(integerify(b'\x00\x11\x22\x33' + bytes(60)))
     '0x33221100'
     '''
     chunk = octets[-64:-60]
+    logging.debug('chunk: %r', chunk)
     integer = struct.unpack('<L', chunk)[0]
-    #logging.debug('integerify taking %r from %r and returning %s',
-    #              chunk, octets, hex(integer))
+    logging.debug('integerify taking %r from %r and returning %s',
+                  chunk, octets, hex(integer))
     return integer
 
 def xor(*arrays):
@@ -392,6 +393,6 @@ if __name__ == '__main__' or COMMAND == 'doctest':
     SALSA.restype = None  # otherwise it returns contents of return register
 if __name__ == '__main__':
     import doctest
-    doctest.testmod()
-    #doctest.run_docstring_examples(romix, globals())
+    doctest.testmod(verbose=True)
+    #doctest.run_docstring_examples(integerify, globals(), verbose=True)
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
