@@ -5,7 +5,7 @@ minimalist implementation of rfc7914 optimized for litecoin-style scrypt hash
 N=1024, r=1, p=1, dkLen=32
 '''
 # pylint: disable=invalid-name, too-many-arguments
-import sys, os, logging, ctypes  # pylint: disable=multiple-imports
+import sys, os, logging, ctypes, struct  # pylint: disable=multiple-imports
 from hashlib import pbkdf2_hmac
 from collections import OrderedDict  # pylint: disable=unused-import
 
@@ -244,7 +244,7 @@ def romix(B, N=1024):
             j = Integerify (X) mod N
                 where Integerify (B[0] ... B[2 * r - 1]) is defined
                 as the result of interpreting B[2 * r - 1] as a
-                little-endian integer.
+                little-endian integer. [WRONG, see `integerify` below]
             T = X xor V[j]
             X = scryptBlockMix (T)
            end for
@@ -261,7 +261,8 @@ def romix(B, N=1024):
     >>> mixed == expected
     True
     '''
-    #r = len(B) // (64 * 2)  # not needed
+    r = len(B) // (64 * 2)  # not needed
+    logging.debug('r: %d', r)
     X = B
     V = []
     for i in range(N):  # pylint: disable=unused-variable
@@ -271,7 +272,7 @@ def romix(B, N=1024):
     logging.debug('V: %s', V)
     for i in range(N):
         j = integerify(X) % N
-        #logging.debug('romix calling xor(%r, V[%d])', truncate(X), j)
+        logging.debug('romix calling xor(%r, V[%d])', X, j)
         T = xor(X, V[j])
         X = block_mix(T)
     return X
@@ -342,10 +343,26 @@ def integerify(octets, endianness='little'):
     r'''
     Return octet bytestring as an integer with given endianness
 
-    >>> hex(integerify(b'\x00\x11\x22\x33\x44\x55\x66\x77\x88'))
-    '0x887766554433221100'
+    The RFC states "... Integerify (B[0] ... B[2 * r - 1]) is defined
+    as the result of interpreting B[2 * r - 1] as a little-endian integer."
+
+    This, assuming 2 * r is the length of the byte array, means to interpret
+    a single byte (the final byte of the array) as an integer. This does not
+    give results which match the test vectors.
+
+    Instead, I found github.com/ricmoo/pyscrypt uses the 4 bytes midway
+    through the octet string (B[r:r + 4] using the above terminology), and it
+    produces the desired results.
+
+    >>> hex(integerify(b'\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99'))
+    '0x44332211'
     '''
-    return int.from_bytes(octets, endianness)
+    r = len(octets) // 2
+    chunk = octets[r:r + 4]
+    integer = struct.unpack('<L', chunk)[0]
+    logging.debug('integerify taking %r from %r and returning %s',
+                  chunk, octets, hex(integer))
+    return integer
 
 def xor(*arrays):
     r'''
@@ -378,5 +395,6 @@ if __name__ == '__main__' or COMMAND == 'doctest':
     SALSA.restype = None  # otherwise it returns contents of return register
 if __name__ == '__main__':
     import doctest
-    doctest.testmod()
+    #doctest.testmod()
+    doctest.run_docstring_examples(romix, globals())
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
