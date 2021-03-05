@@ -135,8 +135,7 @@ SCRYPT_TEST_VECTORS = {
         'fd a8 fb ba 90 4f 8e 3e a9 b5 43 f6 54 5d a1 f2'
         'd5 43 29 55 61 3f 0f cf 62 d4 97 05 24 2a 9a f9'
         'e6 1e 85 dc 0d 65 1e 40 df cf 01 7b 45 57 58 87',
-}
-'''
+
     (
         ('P', b'pleaseletmein'),
         ('S', b'SodiumChloride'),
@@ -150,7 +149,6 @@ SCRYPT_TEST_VECTORS = {
         '8e 56 fd 8f 4b a5 d0 9f fa 1c 6d 92 7c 40 f4 c3'
         '37 30 40 49 e8 a9 52 fb cb f4 5c 6f a7 7a 41 a4'
 }
-'''
 
 def salsa(octets):
     '''
@@ -243,7 +241,7 @@ def romix(B, N=1024):
             j = Integerify (X) mod N
                 where Integerify (B[0] ... B[2 * r - 1]) is defined
                 as the result of interpreting B[2 * r - 1] as a
-                little-endian integer. [WRONG, see `integerify` below]
+                little-endian integer. [WRONG, see `integerify` definition]
             T = X xor V[j]
             X = scryptBlockMix (T)
            end for
