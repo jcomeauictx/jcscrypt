@@ -135,7 +135,8 @@ SCRYPT_TEST_VECTORS = {
         'fd a8 fb ba 90 4f 8e 3e a9 b5 43 f6 54 5d a1 f2'
         'd5 43 29 55 61 3f 0f cf 62 d4 97 05 24 2a 9a f9'
         'e6 1e 85 dc 0d 65 1e 40 df cf 01 7b 45 57 58 87',
-
+}
+'''
     (
         ('P', b'pleaseletmein'),
         ('S', b'SodiumChloride'),
@@ -149,6 +150,7 @@ SCRYPT_TEST_VECTORS = {
         '8e 56 fd 8f 4b a5 d0 9f fa 1c 6d 92 7c 40 f4 c3'
         '37 30 40 49 e8 a9 52 fb cb f4 5c 6f a7 7a 41 a4'
 }
+'''
 
 def salsa(octets):
     '''
@@ -347,15 +349,15 @@ def integerify(octets, endianness='little'):
     a single byte (the final byte of the array) as an integer. This does not
     give results which match the test vectors.
 
-    Instead, I found github.com/ricmoo/pyscrypt uses the 4 bytes midway
-    through the octet string (B[r:r + 4] using the above terminology), and it
-    produces the desired results.
+    Neither does treating the entire string as a long integer.
+
+    Colin Percival emailed me that B[0] ... B[2 * r - 1] are 64-octet chunks,
+    and that the low 4 bytes of the highest chunk are to be used.
 
     >>> hex(integerify(b'\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99'))
-    '0x88776655'
+    '0x33221100'
     '''
-    r = len(octets) // 2
-    chunk = octets[r:r + 4]
+    chunk = octets[-64:-60]
     integer = struct.unpack('<L', chunk)[0]
     #logging.debug('integerify taking %r from %r and returning %s',
     #              chunk, octets, hex(integer))
