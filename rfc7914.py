@@ -109,8 +109,6 @@ SCRYPT_TEST_VECTORS = {
         'f1 6b 48 44 e3 07 4a e8 df df fa 3f ed e2 14 42'
         'fc d0 06 9d ed 09 48 f8 32 6a 75 3a 0f c8 1f 17'
         'e8 d3 e0 fb 2e 0d 36 28 cf 35 e2 0c 38 d1 89 06',
-}  # terminate here until we figure out problems in code
-'''
 
     (
         ('P', b'password'),
@@ -151,7 +149,6 @@ SCRYPT_TEST_VECTORS = {
         '8e 56 fd 8f 4b a5 d0 9f fa 1c 6d 92 7c 40 f4 c3'
         '37 30 40 49 e8 a9 52 fb cb f4 5c 6f a7 7a 41 a4'
 }
-'''
 
 def salsa(octets):
     '''
@@ -269,10 +266,10 @@ def romix(B, N=1024):
         #logging.debug('romix first loop appending %r to V', truncate(X))
         V.append(X)
         X = block_mix(X)
-    logging.debug('V: %s', V)
+    #logging.debug('V: %s', V)
     for i in range(N):
         j = integerify(X) % N
-        logging.debug('romix calling xor(%r, V[%d])', X, j)
+        #logging.debug('romix calling xor(%r, V[%d])', X, j)
         T = xor(X, V[j])
         X = block_mix(T)
     return X
@@ -355,13 +352,13 @@ def integerify(octets, endianness='little'):
     produces the desired results.
 
     >>> hex(integerify(b'\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99'))
-    '0x44332211'
+    '0x88776655'
     '''
     r = len(octets) // 2
     chunk = octets[r:r + 4]
     integer = struct.unpack('<L', chunk)[0]
-    logging.debug('integerify taking %r from %r and returning %s',
-                  chunk, octets, hex(integer))
+    #logging.debug('integerify taking %r from %r and returning %s',
+    #              chunk, octets, hex(integer))
     return integer
 
 def xor(*arrays):
@@ -395,6 +392,6 @@ if __name__ == '__main__' or COMMAND == 'doctest':
     SALSA.restype = None  # otherwise it returns contents of return register
 if __name__ == '__main__':
     import doctest
-    #doctest.testmod()
-    doctest.run_docstring_examples(romix, globals())
+    doctest.testmod()
+    #doctest.run_docstring_examples(romix, globals())
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
