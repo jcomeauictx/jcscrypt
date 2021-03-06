@@ -216,11 +216,11 @@ def block_mix(octets):
     '''
     r = len(octets) // (64 * 2)
     B = [octets[i:i + 64] for i in range(0, r * 2 * 64, 64)]
-    Y = [bytearray(64) for i in range(len(B))]
+    Y = [bytes(64) for i in range(len(B))]
     X = B[-1]
     for i in range(2 * r):
         #logging.debug('block_mix calling xor(%r, b[%d])', truncate(X), i)
-        T = xor(X, B[i])
+        T = xor(X, bytes(B[i]))
         #logging.debug('block_mix t: %r', truncate(T))
         X = salsa(T)
         #logging.debug('block_mix x: %r', truncate(X))
@@ -399,12 +399,13 @@ def xor(*arrays):
         outarray = (ctypes.c_char * length).from_buffer(result)
         #inbytes = bytearray(arrays[1])
         #inarray = (ctypes.c_char * 64).from_buffer(inbytes)
-        XOR(outarray, arrays[1], length)
-        return bytearray(outarray.raw)
-    else:  # for octet lengths other than 64
-        DOCTESTDEBUG('using slow Python xor routine for %d octets', length)
-        for i in range(len(result)):
-            result[i] ^= arrays[1][i]
+        try:
+            XOR(outarray, arrays[1], length)
+        except ctypes.ArgumentError:
+            logging.error('Bad args %r and %r', outarray, arrays[1])
+            raise
+            for i in range(len(result)):
+                result[i] ^= arrays[1][i]
     #logging.debug('xor result: %r', truncate(bytes(result)))
     return result
 
@@ -435,6 +436,6 @@ if __name__ == '__main__':
         import doctest
         DOCTESTDEBUG = logging.debug
         logging.debug('DOCTESTDEBUG enabled')
-        #doctest.testmod(verbose=True)
-        doctest.run_docstring_examples(xor, globals(), verbose=True)
+        doctest.testmod(verbose=True)
+        #doctest.run_docstring_examples(xor, globals(), verbose=True)
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
