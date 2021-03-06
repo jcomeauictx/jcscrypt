@@ -396,8 +396,22 @@ def truncate(bytestring):
     '''
     return bytestring[:5] + b'...' + bytestring[-5:]
 
+def profile():
+    '''
+    Get an idea of where this program spends most of its time
+    '''
+    import cProfile
+    testvectors = SCRYPT_TEST_VECTORS
+    # pylint: disable=unused-variable
+    testvector = [t for t in testvectors if ('N', 16384) in t][0]
+    logging.debug('testvector: %s', dict(testvector))
+    cProfile.run('scrypt(*%s)' % repr(tuple(OrderedDict(testvector).values())))
+
 if __name__ == '__main__':
-    import doctest
-    doctest.testmod(verbose=True)
+    if ARGS and ARGS[0] in globals():
+        print(eval(ARGS[0])(*ARGS[1:]))  # pylint: disable=eval-used
+    else:
+        import doctest
+        doctest.testmod(verbose=True)
     #doctest.run_docstring_examples(integerify, globals(), verbose=True)
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
