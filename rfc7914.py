@@ -24,6 +24,8 @@ try:
     LIBRARY = ctypes.cdll.LoadLibrary(os.path.join(SCRIPT_DIR, '_rfc7914.so'))
     SALSA = LIBRARY.salsa20_word_specification
     SALSA.restype = None  # otherwise it returns contents of return register
+    XOR = LIBRARY.array_xor
+    XOR.restype = None
 except RuntimeError:
     logging.error('Cannot load shared library, aborting')
     raise
@@ -384,8 +386,15 @@ def xor(*arrays):
     assert len(lengths) == 1  # must all be the same length
     result = bytearray(arrays[0])
     #logging.debug('xor %r with %r', truncate(result), truncate(arrays[1]))
-    for i in range(1, len(result)):
-        result[i] ^= arrays[1][i]
+    if lengths.pop() == 64:  # i.e., from block_mix
+        outarray = (ctypes.c_char * 64).from_buffer(result)
+        inbytes = bytearray(64)
+        inarray = (ctypes.c_char * 64).from_buffer(inbytes)
+        XOR(outarray, inarray)
+        return bytearray(outarray.raw)
+    else:  # for above doctest
+        for i in range(1, len(result)):
+            result[i] ^= arrays[1][i]
     #logging.debug('xor result: %r', truncate(bytes(result)))
     return result
 
