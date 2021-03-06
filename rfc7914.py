@@ -383,17 +383,17 @@ def xor(*arrays):
     '''
     assert len(arrays) == 2  # let's limit it to two for our needs
     lengths = set(map(len, arrays))
-    assert len(lengths) == 1  # must all be the same length
+    assert len(lengths) == 1  # must be the same length
     result = bytearray(arrays[0])
     #logging.debug('xor %r with %r', truncate(result), truncate(arrays[1]))
-    if lengths.pop() == 64:  # i.e., from block_mix
+    if False and lengths.pop() == 64:  # i.e., from block_mix
         #logging.info('using C++ array_xor routine')
         outarray = (ctypes.c_char * 64).from_buffer(result)
         inbytes = bytearray(64)
         inarray = (ctypes.c_char * 64).from_buffer(inbytes)
         XOR(outarray, inarray)
         return bytearray(outarray.raw)
-    else:  # for above doctest
+    else:  # for octet lengths other than 64
         for i in range(1, len(result)):
             result[i] ^= arrays[1][i]
     #logging.debug('xor result: %r', truncate(bytes(result)))
