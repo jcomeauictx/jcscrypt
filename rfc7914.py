@@ -442,7 +442,7 @@ def compare():
         pip_scrypt = None
     sys.path.insert(0, '../pyscrypt')
     try:
-        import pyscrypt
+        from pyscrypt import hash as pyscrypt
     except ImportError:
         pyscrypt = None
     testvectors = SCRYPT_TEST_VECTORS
