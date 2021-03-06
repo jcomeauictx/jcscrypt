@@ -6,6 +6,7 @@ N=1024, r=1, p=1, dkLen=32
 '''
 # pylint: disable=invalid-name, too-many-arguments
 import sys, os, logging, ctypes  # pylint: disable=multiple-imports
+from datetime import datetime
 from hashlib import pbkdf2_hmac
 from collections import OrderedDict  # pylint: disable=unused-import
 
@@ -415,7 +416,7 @@ def truncate(bytestring):
 
 def profile():
     '''
-    Get an idea of where this program spends most of its time
+    get an idea of where this program spends most of its time
     '''
     import cProfile
     testvectors = SCRYPT_TEST_VECTORS
@@ -423,6 +424,34 @@ def profile():
     testvector = [t for t in testvectors if ('N', 16384) in t][0]
     logging.debug('testvector: %s', dict(testvector))
     cProfile.run('scrypt(*%s)' % repr(tuple(OrderedDict(testvector).values())))
+
+def compare():
+    '''
+    see how this script performs against others
+    '''
+    from hashlib import scrypt as hashlib_scrypt
+    from timeit import Timer
+    try:
+        from scrypt import hash as pip_scrypt
+    except ImportError:
+        pip_scrypt = None
+    sys.path.insert(0, '../pyscrypt')
+    try:
+        import pyscrypt
+    except ImportError:
+        pyscrypt = None
+    testvectors = SCRYPT_TEST_VECTORS
+    testvector = [t for t in testvectors if ('N', 16384) in t][0]
+    for implementation in 'scrypt', 'pip_scrypt', 'hashlib_scrypt', 'pyscrypt':
+        try:
+            logging.info('starting run of %s', implementation)
+            # pylint: disable=eval-used
+            start = datetime.now()
+            eval(implementation)(*tuple(OrderedDict(testvector).values()))
+            end = datetime.now()
+            logging.info('%s runtime: %s', implementation, end - start)
+        except(RuntimeError) as problem:
+            logging.exception(problem, exc_info=True)
 
 if __name__ == '__main__':
     if ARGS and ARGS[0] in globals():
