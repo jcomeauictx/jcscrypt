@@ -336,7 +336,7 @@ def scrypt(passphrase, salt=None, N=1024, r=1, p=1, dkLen=32):
         B[i] = romix(B[i], N)
     return pbkdf2_hmac('sha256', passphrase, b''.join(B), 1, dkLen)
 
-def integerify(octets, endianness='little'):
+def integerify(octets, endianness='little'):  # pylint: disable=unused-argument
     r'''
     Return octet bytestring as an integer with given endianness
 
