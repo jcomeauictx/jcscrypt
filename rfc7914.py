@@ -327,6 +327,8 @@ def scrypt(passphrase, salt=None, N=1024, r=1, p=1, dkLen=32):
     True
 
     >>> for key in SCRYPT_TEST_VECTORS:
+    ...  if ('N', 1048576) in key:
+    ...   continue  # takes too long
     ...  expected = bytes.fromhex(SCRYPT_TEST_VECTORS[key])
     ...  logging.debug('calculating scrypt hash for parameters %s', key)
     ...  result = scrypt(*OrderedDict(key).values())
