@@ -387,7 +387,7 @@ def xor(*arrays):
 
     >>> logging.debug('doctesting xor')
     >>> truncate(xor(bytes([0x55] * 64), bytes([0xaa] * 64)))
-    b'\xff\xff\xff\xff...\xff\xff\xff\xff'
+    bytearray(b'\xff\xff\xff\xff\xff...\xff\xff\xff\xff\xff')
     '''
     assert len(arrays) == 2  # let's limit it to two for our needs
     lengths = set(map(len, arrays))
@@ -395,9 +395,9 @@ def xor(*arrays):
     result = bytearray(arrays[0])
     #logging.debug('xor %r with %r', truncate(result), truncate(arrays[1]))
     if lengths.pop() == 64:  # i.e., from block_mix
-        DOCTESTDEBUG('using C++ array_xor routine')
+        #DOCTESTDEBUG('using C++ array_xor routine')
         outarray = (ctypes.c_char * 64).from_buffer(result)
-        inbytes = bytearray(64)
+        inbytes = bytearray(arrays[1])
         inarray = (ctypes.c_char * 64).from_buffer(inbytes)
         XOR(outarray, inarray)
         return bytearray(outarray.raw)
@@ -434,6 +434,6 @@ if __name__ == '__main__':
         import doctest
         DOCTESTDEBUG = logging.debug
         logging.debug('DOCTESTDEBUG enabled')
-        #doctest.testmod(verbose=True)
-        doctest.run_docstring_examples(xor, globals(), verbose=True)
+        doctest.testmod(verbose=True)
+        #doctest.run_docstring_examples(xor, globals(), verbose=True)
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
