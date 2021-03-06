@@ -5,10 +5,10 @@ using namespace std;
 #define R(a,b) (((a) << (b)) | ((a) >> (32 - (b))))
 typedef uint32_t uint32;  // for code copied from spec
 extern "C" {  // prevents name mangling
-    void array_xor(uint32 first[16], uint32 second[16])
+    void array_xor(uint32 *first, uint32 *second, int length)
     {
         int i;
-        for (i = 0; i < 16; i++) first[i] ^= second[i];
+        for (i = 0; i < length; i += 4) first[i] ^= second[i];
     }
     void salsa20_word_specification(uint32 out[16],uint32 in[16])
     {
