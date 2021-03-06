@@ -392,18 +392,16 @@ def xor(*arrays):
     bytearray(b'\xff\xff\xff\xff\xff...\xff\xff\xff\xff\xff')
     '''
     assert len(arrays) == 2  # let's limit it to two for our needs
-    lengths = set(map(len, arrays))
-    assert len(lengths) == 1  # must be the same length
-    length = lengths.pop()
+    length = len(arrays[0])
+    assert length == len(arrays[1])  # must be the same length
     #logging.debug('xor %r with %r', truncate(result), truncate(arrays[1]))
-    if True or length == 64:  # i.e., from block_mix
-        outarray = ctypes.create_string_buffer(bytes(arrays[0]), length)
-        try:
-            XOR(outarray, arrays[1], length)
-            return bytearray(outarray.raw)
-        except ctypes.ArgumentError:
-            logging.error('Bad args %r and %r', outarray, arrays[1])
-            raise
+    outarray = ctypes.create_string_buffer(bytes(arrays[0]), length)
+    try:
+        XOR(outarray, arrays[1], length)
+        return bytearray(outarray.raw)
+    except ctypes.ArgumentError:
+        logging.error('Bad args %r and %r', outarray, arrays[1])
+        raise
 
 def truncate(bytestring):
     r'''
@@ -472,6 +470,9 @@ if __name__ == '__main__':
         import doctest
         DOCTESTDEBUG = logging.debug
         logging.debug('DOCTESTDEBUG enabled')
+        start = datetime.now()
         doctest.testmod(verbose=True)
         #doctest.run_docstring_examples(xor, globals(), verbose=True)
+        end = datetime.now()
+        logging.info('runtime: %s', end - start)
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
