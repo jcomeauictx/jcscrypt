@@ -383,9 +383,10 @@ def xor(*arrays):
     result = bytearray(arrays[0])
     for i in range(1, len(arrays)):
         #logging.debug('xor %r with %r', truncate(result), truncate(arrays[i]))
-        result = [result[j] ^ arrays[i][j] for j in range(len(result))]
+        for j in range(len(result)):
+            result[j] ^= arrays[i][j]
     #logging.debug('xor result: %r', truncate(bytes(result)))
-    return bytearray(result)
+    return result
 
 def truncate(bytestring):
     r'''
