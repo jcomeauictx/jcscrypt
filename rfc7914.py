@@ -387,6 +387,7 @@ def xor(*arrays):
     result = bytearray(arrays[0])
     #logging.debug('xor %r with %r', truncate(result), truncate(arrays[1]))
     if lengths.pop() == 64:  # i.e., from block_mix
+        #logging.info('using C++ array_xor routine')
         outarray = (ctypes.c_char * 64).from_buffer(result)
         inbytes = bytearray(64)
         inarray = (ctypes.c_char * 64).from_buffer(inbytes)
