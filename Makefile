@@ -16,3 +16,5 @@ _%.so: %.cpp Makefile
 pylint: $(PY_SOURCES:.py=.pylint)
 env:
 	$@
+profile: rfc7914.py
+	time ./$< $@
