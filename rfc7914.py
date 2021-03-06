@@ -447,17 +447,24 @@ def compare():
         pyscrypt = None
     testvectors = SCRYPT_TEST_VECTORS
     testvector = [t for t in testvectors if ('N', 16384) in t][0]
-    for implementation in 'scrypt', 'pip_scrypt', 'hashlib_scrypt', 'pyscrypt':
+    expected = bytes.fromhex(testvectors[testvector])
+    for function in 'scrypt', 'pip_scrypt', 'hashlib_scrypt', 'pyscrypt':
+        got = None
         try:
-            logging.info('starting run of %s', implementation)
-            # pylint: disable=eval-used
+            logging.info('starting run of %s', function)
             start = datetime.now()
-            eval(implementation)(*tuple(OrderedDict(testvector).values()))
+            # pylint: disable=eval-used
+            got = eval(function)(*tuple(OrderedDict(testvector).values()))
             end = datetime.now()
-            logging.info('%s runtime: %s', implementation, end - start)
+            logging.info('%s runtime: %s', function, end - start)
         except(RuntimeError) as problem:
             logging.exception(problem, exc_info=True)
-
+        try:
+            assert(got == expected)
+            logging.info('got %r as expected', truncate(got))
+        except AssertionError:
+            logging.error('wrong result from %s: %r != %r',
+                          function, got, expected)
 if __name__ == '__main__':
     if ARGS and ARGS[0] in globals():
         print(eval(ARGS[0])(*ARGS[1:]))  # pylint: disable=eval-used

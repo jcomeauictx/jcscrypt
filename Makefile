@@ -18,3 +18,5 @@ env:
 	$@
 profile: rfc7914.py _rfc7914.so
 	time ./$< $@
+compare: rfc7914.py _rfc7914.so
+	./$< $@
