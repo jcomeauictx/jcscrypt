@@ -14,6 +14,12 @@ logging.basicConfig(level=logging.DEBUG if __debug__ else logging.WARN)
 SCRIPT_DIR, PROGRAM = os.path.split(sys.argv[0])
 ARGS = sys.argv[1:]
 COMMAND = os.path.splitext(PROGRAM)[0]
+if COMMAND == 'doctest':
+    DOCTESTDEBUG = logging.debug
+    logging.debug('DOCTESTDEBUG enabled')
+else:
+    DOCTESTDEBUG = lambda *args, **kwargs: None
+    logging.debug('DOCTESTDEBUG disabled')
 if COMMAND in ('doctest', 'pydoc'):
     SCRIPT_DIR, PROGRAM = os.path.split(os.path.abspath(ARGS[0]))
 if not SCRIPT_DIR:
@@ -380,16 +386,16 @@ def xor(*arrays):
     xor corresponding elements of each array of bytes and return bytearray
 
     >>> logging.debug('doctesting xor')
-    >>> xor(b'\x55\x55\x55\x55', b'\xaa\xaa\xaa\xaa')
-    bytearray(b'\xff\xff\xff\xff')
+    >>> truncate(xor(bytes([0x55] * 64), bytes([0xaa] * 64)))
+    b'\xff\xff\xff\xff...\xff\xff\xff\xff'
     '''
     assert len(arrays) == 2  # let's limit it to two for our needs
     lengths = set(map(len, arrays))
     assert len(lengths) == 1  # must be the same length
     result = bytearray(arrays[0])
     #logging.debug('xor %r with %r', truncate(result), truncate(arrays[1]))
-    if False and lengths.pop() == 64:  # i.e., from block_mix
-        #logging.info('using C++ array_xor routine')
+    if lengths.pop() == 64:  # i.e., from block_mix
+        DOCTESTDEBUG('using C++ array_xor routine')
         outarray = (ctypes.c_char * 64).from_buffer(result)
         inbytes = bytearray(64)
         inarray = (ctypes.c_char * 64).from_buffer(inbytes)
@@ -426,6 +432,8 @@ if __name__ == '__main__':
         print(eval(ARGS[0])(*ARGS[1:]))  # pylint: disable=eval-used
     else:
         import doctest
-        doctest.testmod(verbose=True)
-    #doctest.run_docstring_examples(integerify, globals(), verbose=True)
+        DOCTESTDEBUG = logging.debug
+        logging.debug('DOCTESTDEBUG enabled')
+        #doctest.testmod(verbose=True)
+        doctest.run_docstring_examples(xor, globals(), verbose=True)
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4

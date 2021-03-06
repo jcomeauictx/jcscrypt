@@ -8,7 +8,8 @@ extern "C" {  // prevents name mangling
     void array_xor(uint32 first[16], uint32 second[16])
     {
         int i;
-        for (i = 0; i < 16; i++) first[i] ^= second[i];
+        //for (i = 0; i < 16; i++) first[i] ^= second[i];
+        for (i = 0; i < 16; i++) first[i] = second[i];  // just a test
     }
     void salsa20_word_specification(uint32 out[16],uint32 in[16])
     {
