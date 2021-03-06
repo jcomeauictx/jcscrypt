@@ -12,8 +12,8 @@ extern "C" {  // prevents name mangling
     }
     void salsa20_word_specification(uint32 out[16],uint32 in[16])
     {
+        uint32 *x = out;
         int i;
-        uint32 x[16];
         for (i = 0;i < 16;++i) x[i] = in[i];
         for (i = 8;i > 0;i -= 2) {
             x[ 4] ^= R(x[ 0]+x[12], 7);  x[ 8] ^= R(x[ 4]+x[ 0], 9);
@@ -33,7 +33,7 @@ extern "C" {  // prevents name mangling
             x[12] ^= R(x[15]+x[14], 7);  x[13] ^= R(x[12]+x[15], 9);
             x[14] ^= R(x[13]+x[12],13);  x[15] ^= R(x[14]+x[13],18);
         }
-        for (i = 0;i < 16;++i) out[i] = x[i] + in[i];
+        for (i = 0;i < 16;++i) x[i] += in[i];
     }
 }
 /* vim: set tabstop=4 expandtab shiftwidth=4 softtabstop=4: */
