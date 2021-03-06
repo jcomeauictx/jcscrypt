@@ -177,17 +177,16 @@ def salsa(octets):
     >>> testvector = SALSA_TEST_VECTOR
     >>> octets = bytearray.fromhex(testvector['INPUT'])
     >>> shaken = salsa(octets)
-    >>> logging.debug('result of `salsa`: %r', truncate(shaken))
+    >>> logging.debug('result of `salsa`: %r', shaken)
     >>> expected = bytes.fromhex(testvector['OUTPUT'])
-    >>> logging.debug('expected: %r', truncate(expected))
+    >>> logging.debug('expected: %r', expected)
     >>> shaken == expected
     True
     '''
     inarray = (ctypes.c_char * len(octets)).from_buffer(octets)
-    outbytes = bytearray(64)
-    outarray = (ctypes.c_char * len(outbytes)).from_buffer(outbytes)
-    SALSA(outarray, inarray)
-    return outbytes
+    outbytes = ctypes.create_string_buffer(64)
+    SALSA(outbytes, inarray)
+    return outbytes.raw
 
 def block_mix(octets):
     '''
