@@ -429,7 +429,12 @@ def compare():
     '''
     see how this script performs against others
     '''
-    from hashlib import scrypt as hashlib_scrypt
+    try:
+        from hashlib import scrypt as scrypt_hashlib
+        hashlib_scrypt = lambda *args: scrypt_hashlib(
+            args[0], **dict(zip(['salt', 'n', 'r', 'p', 'dklen'], args[1:])))
+    except ImportError:
+        hashlib_scrypt = None
     from timeit import Timer
     try:
         from scrypt import hash as pip_scrypt
