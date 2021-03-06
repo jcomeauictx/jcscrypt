@@ -14,10 +14,19 @@ logging.basicConfig(level=logging.DEBUG if __debug__ else logging.WARN)
 SCRIPT_DIR, PROGRAM = os.path.split(sys.argv[0])
 ARGS = sys.argv[1:]
 COMMAND = os.path.splitext(PROGRAM)[0]
-if COMMAND == 'doctest':
+if COMMAND in ('doctest', 'pydoc'):
     SCRIPT_DIR, PROGRAM = os.path.split(os.path.abspath(ARGS[0]))
+if not SCRIPT_DIR:
+    SCRIPT_DIR = '.'  # assume we're here if importing
 logging.debug('SCRIPT_DIR: %s, COMMAND: %s, ARGS: %s',
               SCRIPT_DIR, COMMAND, ARGS)
+try:
+    LIBRARY = ctypes.cdll.LoadLibrary(os.path.join(SCRIPT_DIR, '_rfc7914.so'))
+    SALSA = LIBRARY.salsa20_word_specification
+    SALSA.restype = None  # otherwise it returns contents of return register
+except RuntimeError:
+    logging.error('Cannot load shared library, aborting')
+    raise
 
 SALSA_TEST_VECTOR = {
     'INPUT':
@@ -387,10 +396,6 @@ def truncate(bytestring):
     '''
     return bytestring[:5] + b'...' + bytestring[-5:]
 
-if __name__ == '__main__' or COMMAND == 'doctest':
-    LIBRARY = ctypes.cdll.LoadLibrary(os.path.join(SCRIPT_DIR, '_rfc7914.so'))
-    SALSA = LIBRARY.salsa20_word_specification
-    SALSA.restype = None  # otherwise it returns contents of return register
 if __name__ == '__main__':
     import doctest
     doctest.testmod(verbose=True)
