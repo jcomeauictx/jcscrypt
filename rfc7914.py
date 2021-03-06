@@ -259,7 +259,7 @@ def romix(B, N=1024):
     True
     '''
     r = len(B) // (64 * 2)  # not needed
-    logging.debug('r: %d', r)
+    logging.debug('romix B: %r, N: %d, r: %d', truncate(B), N, r)
     X = B
     V = []
     for i in range(N):  # pylint: disable=unused-variable
@@ -356,10 +356,10 @@ def integerify(octets, endianness='little'):
     '0x33221100'
     '''
     chunk = octets[-64:-60]
-    logging.debug('chunk: %r', chunk)
+    #logging.debug('chunk: %r', chunk)
     integer = struct.unpack('<L', chunk)[0]
-    logging.debug('integerify taking %r from %r and returning %s',
-                  chunk, octets, hex(integer))
+    #logging.debug('integerify taking %r from %r and returning %s',
+                  #chunk, octets, hex(integer))
     return integer
 
 def xor(*arrays):
