@@ -250,7 +250,7 @@ def romix(B, N=1024):
             j = Integerify (X) mod N
                 where Integerify (B[0] ... B[2 * r - 1]) is defined
                 as the result of interpreting B[2 * r - 1] as a
-                little-endian integer. [WRONG, see `integerify` definition]
+                little-endian integer.
             T = X xor V[j]
             X = scryptBlockMix (T)
            end for
@@ -359,14 +359,14 @@ def integerify(octets, endianness='little'):  # pylint: disable=unused-argument
     Neither does treating the entire string as a long integer.
 
     Colin Percival emailed me that B[0] ... B[2 * r - 1] are 64-octet chunks,
-    and that the low 4 bytes of the highest chunk are to be used.
+    and that the highest chunk is to be used.
 
     >>> hex(integerify(b'\x00\x11\x22\x33' + bytes(60)))
     '0x33221100'
     '''
-    chunk = octets[-64:-60]
+    chunk = octets[-64:]
     #logging.debug('chunk: %r', chunk)
-    integer = struct.unpack('<L', chunk)[0]
+    integer = int.from_bytes(chunk, 'little')
     #logging.debug('integerify taking %r from %r and returning %s',
                   #chunk, octets, hex(integer))
     return integer
