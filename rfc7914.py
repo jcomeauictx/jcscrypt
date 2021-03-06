@@ -187,7 +187,7 @@ def salsa(octets):
     outbytes = bytearray(64)
     outarray = (ctypes.c_char * len(outbytes)).from_buffer(outbytes)
     SALSA(outarray, inarray)
-    return outarray.raw
+    return outbytes
 
 def block_mix(octets):
     '''
@@ -404,8 +404,6 @@ def xor(*arrays):
         except ctypes.ArgumentError:
             logging.error('Bad args %r and %r', outarray, arrays[1])
             raise
-            for i in range(len(result)):
-                result[i] ^= arrays[1][i]
     #logging.debug('xor result: %r', truncate(bytes(result)))
     return result
 
