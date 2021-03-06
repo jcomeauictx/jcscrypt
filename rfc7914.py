@@ -455,7 +455,7 @@ def compare():
             got = eval(function)(*tuple(OrderedDict(testvector).values()))
             end = datetime.now()
             logging.info('%s runtime: %s', function, end - start)
-        except(RuntimeError) as problem:
+        except(RuntimeError, TypeError) as problem:
             logging.exception(problem, exc_info=True)
         try:
             assert(got == expected)
