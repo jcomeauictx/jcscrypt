@@ -167,11 +167,13 @@ SCRYPT_TEST_VECTORS = {
         '37 30 40 49 e8 a9 52 fb cb f4 5c 6f a7 7a 41 a4'
 }
 
+SALSA_BUFFER = ctypes.create_string_buffer(64)
+
 def salsa(octets):
     '''
     the Salsa20.8 core function
 
-    octets here should be a bytearray. the function returns a bytes object.
+    octets here should be a 64-bytearray. the function returns a bytes object.
 
     >>> logging.debug('doctesting salsa')
     >>> testvector = SALSA_TEST_VECTOR
@@ -183,8 +185,8 @@ def salsa(octets):
     >>> shaken == expected
     True
     '''
-    inarray = (ctypes.c_char * len(octets)).from_buffer(octets)
-    outbytes = ctypes.create_string_buffer(64)
+    inarray = ctypes.create_string_buffer(bytes(octets), 64)
+    outbytes = SALSA_BUFFER
     SALSA(outbytes, inarray)
     return outbytes.raw
 
@@ -392,19 +394,15 @@ def xor(*arrays):
     lengths = set(map(len, arrays))
     assert len(lengths) == 1  # must be the same length
     length = lengths.pop()
-    result = bytearray(arrays[0])
     #logging.debug('xor %r with %r', truncate(result), truncate(arrays[1]))
     if True or length == 64:  # i.e., from block_mix
-        outarray = (ctypes.c_char * length).from_buffer(result)
-        #inbytes = bytearray(arrays[1])
-        #inarray = (ctypes.c_char * 64).from_buffer(inbytes)
+        outarray = ctypes.create_string_buffer(bytes(arrays[0]), length)
         try:
             XOR(outarray, arrays[1], length)
+            return bytearray(outarray.raw)
         except ctypes.ArgumentError:
             logging.error('Bad args %r and %r', outarray, arrays[1])
             raise
-    #logging.debug('xor result: %r', truncate(bytes(result)))
-    return result
 
 def truncate(bytestring):
     r'''
