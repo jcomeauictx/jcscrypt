@@ -396,7 +396,7 @@ def xor(*arrays):
         XOR(outarray, inarray)
         return bytearray(outarray.raw)
     else:  # for octet lengths other than 64
-        for i in range(1, len(result)):
+        for i in range(len(result)):
             result[i] ^= arrays[1][i]
     #logging.debug('xor result: %r', truncate(bytes(result)))
     return result
