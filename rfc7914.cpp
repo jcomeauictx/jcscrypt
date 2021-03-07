@@ -2,10 +2,11 @@
 using namespace std;
 #include <stdint.h>
 #include <iostream>
+#include <cstring>
 #define R(a,b) (((a) << (b)) | ((a) >> (32 - (b))))
 typedef uint32_t uint32;  // for code copied from spec
 extern "C" {  // prevents name mangling
-    void array_xor(uint32 *first, uint32 *second, int length)
+    void array_xor(uint32 *first, uint32 *second, int length=64)
     {
         int i, wordlength = length >> 2;
         for (i = 0; i < wordlength; i++) first[i] ^= second[i];
@@ -34,6 +35,57 @@ extern "C" {  // prevents name mangling
             x[14] ^= R(x[13]+x[12],13);  x[15] ^= R(x[14]+x[13],18);
         }
         for (i = 0;i < 16;++i) x[i] += in[i];
+    }
+    void block_mix(uint32_t *octets, int length)
+    {
+        /*
+        octets is taken as 64-octet chunks, and hashed with salsa20
+
+        steps according to the RFC:
+        1. X = B[2 * r - 1]
+        2. for i = 0 to 2 * r - 1 do
+             T = X xor B[i]
+             X = Salsa (T)
+             Y[i] = X
+           end for
+        3. B' = (Y[0], Y[2], ..., Y[2 * r - 2],
+                 Y[1], Y[3], ..., Y[2 * r - 1])
+
+        Optimizations: 
+        * array creation in #1 can be avoided simply by moving the
+          pointer to the correct 64-byte block of the octet buffer
+        * T, X, and Y[i] don't necessarily all have to be different
+          pointers. Some of the operations can be done in place.
+        * shuffling in #3 can be avoided by moving the pointer to 
+          the appropriate place in B' as #2 is running
+        int i, j, k;
+        int wordlength = length >> 2, midway = length >> 3, chunk = 16;
+        // chunk length is 64 / sizeof(uint32_t) = 16
+        uint32_t bPrime[wordlength], T[chunk], X[chunk];
+        // NOTE that we're not using B here same as the spec does.
+        // Here, B is a uint32_t pointer, *not* the index of a 64-byte block
+        uint32_t *B = &octets, *Y = &bPrime;
+        // first copy the final octet to X
+        memcpy((void *)&X, (void *)(octets + length - 64), 64);
+        // now begin the loop
+        for (i = 0; i < wordlength; i += chunk << 1)
+        {
+            j = i >> 1;  // odd blocks go to the front of bprime
+            k = j + midway;  // even blocks go to the 2nd half of bprime
+            // T = X xor B[i]
+            memcpy((void *)&T, (void *)&X, 64);
+            array_xor(&T, &B[i]);
+            // X = Salsa (T)
+            salsa20_word_specification(&X, &T);
+            // Y[i] = X
+            memcpy((void *)&Y[j], (void *)&X, 64);
+            // now repeat for the even chunk
+            memcpy((void *)&T, (void *)&X, 64);
+            array_xor(&T, &B[i + chunk]);
+            salsa20_word_specification(&X, &T);
+            memcpy((void *)&Y[k], (void *)&X, 64);
+        }
+        */
     }
 }
 /* vim: set tabstop=4 expandtab shiftwidth=4 softtabstop=4: */

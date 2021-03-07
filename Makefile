@@ -1,4 +1,5 @@
 PY_SOURCES := $(wildcard *.py)
+CPP_SOURCES := $(wildcard *.cpp)
 OPTIMIZE := -O3 -Wall -lrt # https://stackoverflow.com/a/10366757/493161
 ifeq ($(shell sed -n '0,/.*\<\(pni\)\>.*/s//\1/p' /proc/cpuinfo),pni)
  OPTIMIZE += -msse3
@@ -26,3 +27,5 @@ profile: rfc7914.py _rfc7914.so
 	time ./$< $@
 compare: rfc7914.py _rfc7914.so
 	./$< $@
+edit: $(PY_SOURCES) $(CPP_SOURCES)
+	vi $+
