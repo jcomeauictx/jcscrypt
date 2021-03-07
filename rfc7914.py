@@ -13,20 +13,23 @@ except ImportError:
     # stolen from ricmoo's pyscrypt.hash.pbkdf2_single
     # `size` is in bytes, and we know that the algorithm used,
     # sha256, returns 256 bits, which is 32 bytes.
-    import struct
-    import hmac
-    from hashlib import sha256
+    import struct, hmac, hashlib  # pylint: disable=multiple-imports
     # pbkdf2_hmac requires: algorithm, message, salt, count, size
-    PRF = lambda key, message: hmac.new(
-        key, msg = message, digestmod = sha256).digest()
 
     def pbkdf2_hmac(algorithm, message, salt, count, size):
+        r'''
+        This has to work the same as hashlib.pbkdf2_hmac, but only
+        for sha256. We ignore the `algorithm` arg.
+
+        >>> pbkdf2_hmac('sha256', b'', b'', 1, 64)
+        b"\xf7\xce\x0be=-r\xa4\x10\x8c\xf5\xab\xe9\x12\xff\xddwv\x16\xdb\xbb'\xa7\x0e\x82\x04\xf3\xae-\x0fo\xad\x89\xf6\x8fH\x11\xd1\xe8{\xcc;\xd7@\n\x9f\xfd)\tO\x01\x84c\x95t\xf3\x9a\xe5\xa11R\x17\xbc\xd7"
         '''
-        This has to work the same as hashlib.pbkdf2_hmac
-        '''
+        prf = lambda key, message: hmac.new(
+            key, msg=message, digestmod=getattr(hashlib, algorithm)
+        ).digest()
         hmac_hash, n = b'', 0
         while len(hmac_hash) < size:
-            hmac_hash += PRF(message, salt + struct.pack('<L', n))
+            hmac_hash += prf(message, salt + struct.pack('<L', n))
             n += 1
         return hmac_hash[:size]
 
