@@ -7,7 +7,21 @@ N=1024, r=1, p=1, dkLen=32
 # pylint: disable=invalid-name, too-many-arguments
 import sys, os, logging, ctypes  # pylint: disable=multiple-imports
 from datetime import datetime
-from hashlib import pbkdf2_hmac
+try:
+    from hashlib import pbkdf2_hmac
+except ImportError:
+    # stolen from ricmoo's pyscrypt.hash.pbkdf2_single
+    # `size` is in bytes, and we know that the algorithm used,
+    # sha256, returns 256 bits, which is 32 bytes.
+    import struct
+    import hmac
+    from hashlib import sha256
+    # pbkdf2_hmac requires: algorithm, message, salt, count, size
+    PRF = lambda key, message: hmac.new(
+        key, msg = message, digestmod = sha256).digest()
+    pbkdf2_hmac = lambda algo, message, salt, count, size: (
+	b''.join((PRF(message, salt + struct.pack('>L', n))
+        for n in range((size + 31) // 32))))[:size]
 from collections import OrderedDict  # pylint: disable=unused-import
 
 logging.basicConfig(level=logging.DEBUG if __debug__ else logging.WARN)
@@ -378,7 +392,13 @@ def integerify(octets, endianness='little'):  # pylint: disable=unused-argument
     '''
     chunk = octets[-64:]
     #logging.debug('chunk: %r', chunk)
-    integer = int.from_bytes(chunk, 'little')
+    try:
+        integer = int.from_bytes(chunk, 'little')
+    except AttributeError:
+        try:
+            integer = struct.unpack('<Q', chunk[:8])[0]
+        except ValueError:
+            integer = struct.unpack('<L', chunk[:4])[0]
     #logging.debug('integerify taking %r from %r and returning %s',
                   #chunk, octets, hex(integer))
     return integer
