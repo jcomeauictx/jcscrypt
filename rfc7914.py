@@ -19,9 +19,17 @@ except ImportError:
     # pbkdf2_hmac requires: algorithm, message, salt, count, size
     PRF = lambda key, message: hmac.new(
         key, msg = message, digestmod = sha256).digest()
-    pbkdf2_hmac = lambda algo, message, salt, count, size: (
-	b''.join((PRF(message, salt + struct.pack('>L', n))
-        for n in range((size + 31) // 32))))[:size]
+
+    def pbkdf2_hmac(algorithm, message, salt, count, size):
+        '''
+        This has to work the same as hashlib.pbkdf2_hmac
+        '''
+        hmac_hash, n = b'', 0
+        while len(hmac_hash) < size:
+            hmac_hash += PRF(message, salt + struct.pack('<L', n))
+            n += 1
+        return hmac_hash[:size]
+
 from collections import OrderedDict  # pylint: disable=unused-import
 
 logging.basicConfig(level=logging.DEBUG if __debug__ else logging.WARN)
