@@ -29,8 +29,8 @@ extern "C" {  // prevents name mangling
             reinterpret_cast<const unsigned char *>(bytes);
         cerr << "dump_memory: dumping " << dec << length << 
             " bytes of memory from "
-            << setw(8) << hex << p << endl;
-        cerr << "dump_memory: raw bytes: " << *p << endl;
+            << setw(8) << hex << &p << endl;
+        cerr << "dump_memory: raw bytes: " << p << endl;
         for (int i = 0; i < length; i += 24)
         {
             showbytes(p + i, min((unsigned int)24, (length - i)));
