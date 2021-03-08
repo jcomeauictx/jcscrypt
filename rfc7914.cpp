@@ -19,7 +19,7 @@ extern "C" {  // prevents name mangling
         cerr << "showbytes: " << setw(8) << hex << addr << ": ";
         for (unsigned int i = 0; i < length; i++)
         {
-            cerr << setfill('0') << setw(2) << hex << p[i];
+            cerr << setfill('0') << setw(2) << hex << (p[i] & 0xff);
         }
         cerr << endl;
     }
