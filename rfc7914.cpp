@@ -12,8 +12,8 @@ extern "C" {  // prevents name mangling
         uint32_t length=24)
     // https://stackoverflow.com/a/1286761/493161
     {
-        const unsigned char *p =
-            reinterpret_cast<const unsigned char *>(bytes);
+        const uint8_t *p =
+            reinterpret_cast<const uint8_t *>(bytes);
         cerr << "showbytes: " << setw(8) << hex << addr << ": ";
         for (uint32_t i = 0; i < length; i++)
         {
@@ -24,8 +24,8 @@ extern "C" {  // prevents name mangling
 
     void dump_memory(const void *addr, const void *bytes, uint32_t length=64)
     {
-        const unsigned char *p =
-            reinterpret_cast<const unsigned char *>(bytes);
+        const uint8_t *p =
+            reinterpret_cast<const uint8_t *>(bytes);
         for (uint32_t i = 0; i < length; i += 24)
         {
             showbytes((char *)addr + i, p + i,
@@ -94,9 +94,12 @@ extern "C" {  // prevents name mangling
         // NOTE that we're not using B here same as the spec does.
         // Here, B is a uint32_t pointer, *not* the index of a 64-byte block
         uint32_t *B = octets, *Y = bPrime;
+        uint8_t *t = (uint8_t *)T, *x = (uint8_t *)X, *y = (uint8_t *)Y;
         // first copy the final octet to X
         // X = B[2 * r - 1]
         memcpy((void *)X, (void *)(octets + length - 64), 64);
+        cerr << "block_mix: X after first load:" << endl;
+        dump_memory(&x, x, 64);
         // now begin the loop
         for (i = 0; i < wordlength; i += chunk << 1)
         {
@@ -109,18 +112,22 @@ extern "C" {  // prevents name mangling
             salsa20_word_specification(X, T);
             // Y[i] = X
             memcpy((void *)&Y[j], (void *)X, 64);
+            cerr << "block_mix: Y after odd-numbered pass:" << endl;
+            dump_memory(&y, y, length);
             // now repeat for the even chunk
             memcpy((void *)T, (void *)X, 64);
             array_xor(T, &B[i + chunk]);
             salsa20_word_specification(X, T);
             memcpy((void *)&Y[k], (void *)X, 64);
+            cerr << "block_mix: Y after even-numbered pass:" << endl;
+            dump_memory(&y, y, length);
         }
         // now overwrite the original with the hashed data
         memcpy((void *)octets, (void *)bPrime, length);
     }
 
     int main() {
-        unsigned char T[64] = {
+        uint8_t T[64] = {
             0x15, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
             0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
             0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
@@ -130,7 +137,7 @@ extern "C" {  // prevents name mangling
             0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
             0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x51
         };
-        unsigned char X[64] = {
+        uint8_t X[64] = {
             0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
             0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
             0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
@@ -140,7 +147,7 @@ extern "C" {  // prevents name mangling
             0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
             0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa
         };
-        unsigned char BLOCK_MIX_IN[128] = {
+        uint8_t BLOCK_MIX_IN[128] = {
             0xf7, 0xce, 0x0b, 0x65, 0x3d, 0x2d, 0x72, 0xa4,
             0x10, 0x8c, 0xf5, 0xab, 0xe9, 0x12, 0xff, 0xdd,
             0x77, 0x76, 0x16, 0xdb, 0xbb, 0x27, 0xa7, 0x0e,
@@ -158,7 +165,7 @@ extern "C" {  // prevents name mangling
             0x7f, 0x4d, 0x1c, 0xad, 0x6a, 0x52, 0x3c, 0xda,
             0x77, 0x0e, 0x67, 0xbc, 0xea, 0xaf, 0x7e, 0x89
         };
-        unsigned char BLOCK_MIX_OUT[128] = {
+        uint8_t BLOCK_MIX_OUT[128] = {
             0xa4, 0x1f, 0x85, 0x9c, 0x66, 0x08, 0xcc, 0x99,
             0x3b, 0x81, 0xca, 0xcb, 0x02, 0x0c, 0xef, 0x05,
             0x04, 0x4b, 0x21, 0x81, 0xa2, 0xfd, 0x33, 0x7d,
@@ -176,7 +183,7 @@ extern "C" {  // prevents name mangling
             0x5d, 0x2a, 0x22, 0x58, 0x77, 0xd5, 0xed, 0xf5,
             0x84, 0x2c, 0xb9, 0xf1, 0x4e, 0xef, 0xe4, 0x25,
         };
-        unsigned char *t = T, *x = X, *b = BLOCK_MIX_IN, *c = BLOCK_MIX_OUT;
+        uint8_t *t = T, *x = X, *b = BLOCK_MIX_IN, *c = BLOCK_MIX_OUT;
         cerr << "Debugging rfc7914.cpp" << endl;
         dump_memory(&t, t, 64);
         dump_memory(&x, x, 64);
