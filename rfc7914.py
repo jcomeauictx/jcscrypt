@@ -18,8 +18,12 @@ except ImportError:
 
     def pbkdf2_hmac(algorithm, message, salt, count, size):
         r'''
-        This has to work the same as hashlib.pbkdf2_hmac
+        This has to work the same as hashlib.pbkdf2_hmac for count=1
         '''
+        if count != 1:
+            raise ValueError('This pbkdf2_hmac requires count=1, not %d'
+                             % count)
+                             
         prf = lambda key, message: hmac.new(
             key, msg=message, digestmod=getattr(hashlib, algorithm)
         ).digest()
@@ -353,8 +357,8 @@ def scrypt(passphrase, salt=None, N=1024, r=1, p=1, dkLen=32):
                                     1, dkLen)
 
     >>> for key in PBKDF2_TEST_VECTORS:
-    ...  expected = bytes.fromhex(PBKDF2_TEST_VECTORS[key])
-    ...  pbkdf2_hmac('sha256', *OrderedDict(key).values()) == expected
+    ...  truncate(bytes.fromhex(PBKDF2_TEST_VECTORS[key]))
+    ...  truncate(pbkdf2_hmac('sha256', *OrderedDict(key).values()))
     ...
     True
     True
@@ -438,10 +442,10 @@ def truncate(bytestring, telomere=5):
     r'''
     show just the beginning and end of bytestring, for doctests and logging
 
-    >>> truncate(b'\x00\x00\x00\x00\x00\x55\x55\xff\xff\xff\xff\xff')
-    b'\x00\x00\x00\x00\x00...\xff\xff\xff\xff\xff'
+    >>> truncate(b'\x00\x00\x00\x00\x55\x55\x55\x55\xff\xff\xff\xff', 4)
+    b'\x00\x00\x00\x00...\xff\xff\xff\xff'
     '''
-    if len(bytestring) > telomere << 1:
+    if len(bytestring) > (telomere << 1) + 3:
         return bytestring[:telomere] + b'...' + bytestring[-telomere:]
     else:
         return bytestring
