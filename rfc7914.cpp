@@ -14,8 +14,8 @@ extern "C" {  // prevents name mangling
     {
         const unsigned char *p =
             reinterpret_cast<const unsigned char *>(bytes);
-        cerr << "showbytes: bytes=" << hex << addr << endl;
-        cerr << "showbytes: *bytes=" << hex << p << endl;
+        //cerr << "showbytes: bytes=" << hex << addr << endl;
+        //cerr << "showbytes: *bytes=" << hex << p << endl;
         cerr << "showbytes: " << setw(8) << hex << addr << ": ";
         for (unsigned int i = 0; i < length; i++)
         {
@@ -29,13 +29,14 @@ extern "C" {  // prevents name mangling
     {
         const unsigned char *p =
             reinterpret_cast<const unsigned char *>(bytes);
-        cerr << "dump_memory: dumping " << dec << length << 
-            " bytes of memory from "
-            << setw(8) << hex << addr << endl;
-        cerr << "dump_memory: raw bytes: " << p << endl;
+        //cerr << "dump_memory: dumping " << dec << length << 
+        //    " bytes of memory from "
+        //    << setw(8) << hex << addr << endl;
+        //cerr << "dump_memory: raw bytes: " << p << endl;
         for (int i = 0; i < length; i += 24)
         {
-            showbytes((char *)addr + i, p + i, min((unsigned int)24, (length - i)));
+            showbytes((char *)addr + i, p + i,
+                min((unsigned int)24, (length - i)));
         }
     }
         
@@ -147,15 +148,15 @@ extern "C" {  // prevents name mangling
         };
         char *t = T, *x = X;
         cerr << "Debugging rfc7914.cpp" << endl;
-        cerr << "T(" << hex << &t << ") before array_xor:";
-        cerr << t << endl;
-        //dump_memory(&t, 64);
-        cerr << "X(" << hex << &x << ") before array_xor:";
-        cerr << x << endl;
-        //dump_memory(&x, 64);
+        //cerr << "T(" << hex << &t << ") before array_xor:";
+        //cerr << t << endl;
+        dump_memory(&t, t, 64);
+        //cerr << "X(" << hex << &x << ") before array_xor:";
+        //cerr << x << endl;
+        dump_memory(&x, x, 64);
         array_xor((uint32_t *)T, (uint32_t *)X);
-        cerr << "T(" << hex << &t << ") after array_xor:";
-        cerr << t << endl;
+        //cerr << "T(" << hex << &t << ") after array_xor:";
+        //cerr << t << endl;
         dump_memory(&t, t, 64);
         return 0;
     }
