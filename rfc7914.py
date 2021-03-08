@@ -247,7 +247,7 @@ def block_mix(octets):
     True
     '''
     array = ctypes.create_string_buffer(bytes(octets), len(octets))
-    if os.getenv('SCRYPT_FAST_BUT_WRONG'):  # for development testing only!
+    if not os.getenv('SCRYPT_SLOW_BUT_SURE'):
         BLOCK_MIX(array, len(octets))
         bprime = array.raw
     else:
@@ -375,7 +375,7 @@ def scrypt(passphrase, salt=None, N=1024, r=1, p=1, dkLen=32):
     b'M\xdc\xd8\xf6\x0b...\xb3\x97\xf3<\x8d'
 
     >>> for key in SCRYPT_TEST_VECTORS:
-    ...  if ('N', 1048576) in key:
+    ...  if False and ('N', 1048576) in key:
     ...   continue  # takes too long
     ...  expected = bytes.fromhex(SCRYPT_TEST_VECTORS[key])
     ...  logging.debug('calculating scrypt hash for parameters %s', key)

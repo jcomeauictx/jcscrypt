@@ -94,14 +94,14 @@ extern "C" {  // prevents name mangling
         // NOTE that we're not using B here same as the spec does.
         // Here, B is a uint32_t pointer, *not* the index of a 64-byte block
         uint32_t *B = octets, *Y = bPrime;
-        uint8_t *t = (uint8_t *)T, *x = (uint8_t *)X, *y = (uint8_t *)Y;
+        //uint8_t *t = (uint8_t *)T, *x = (uint8_t *)X, *y = (uint8_t *)Y;
         // first copy the final octets to X
         // X = B[2 * r - 1]
         memcpy((void *)X, (void *)(&octets[wordlength - chunk]), 64);
-        cerr << "block_mix: X after first load:" << endl;
-        dump_memory(&x, x, 64);
-        cerr << "block_mix: the above should be the last 64 octets of:" << endl;
-        dump_memory(&B, B, length);
+        //cerr << "block_mix: X after first load:" << endl;
+        //dump_memory(&x, x, 64);
+        //cerr << "block_mix: the above should be the last 64 octets of:" << endl;
+        //dump_memory(&B, B, length);
         // now begin the loop
         for (i = 0; i < wordlength; i += chunk << 1)
         {
@@ -114,15 +114,15 @@ extern "C" {  // prevents name mangling
             salsa20_word_specification(X, T);
             // Y[i] = X
             memcpy((void *)&Y[j], (void *)X, 64);
-            cerr << "block_mix: Y after even-numbered pass:" << endl;
-            dump_memory(&y, y, length);
+            //cerr << "block_mix: Y after even-numbered pass:" << endl;
+            //dump_memory(&y, y, length);
             // now repeat for the odd chunk
             memcpy((void *)T, (void *)X, 64);
             array_xor(T, &B[i + chunk]);
             salsa20_word_specification(X, T);
             memcpy((void *)&Y[k], (void *)X, 64);
-            cerr << "block_mix: Y after odd-numbered pass:" << endl;
-            dump_memory(&y, y, length);
+            //cerr << "block_mix: Y after odd-numbered pass:" << endl;
+            //dump_memory(&y, y, length);
         }
         // now overwrite the original with the hashed data
         memcpy((void *)octets, (void *)bPrime, length);
