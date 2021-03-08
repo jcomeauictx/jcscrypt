@@ -67,7 +67,8 @@ extern "C" {  // prevents name mangling
         // Here, B is a uint32_t pointer, *not* the index of a 64-byte block
         uint32_t *B = octets, *Y = bPrime;
         // first copy the final octet to X
-        memcpy((void *)&X, (void *)(octets + length - 64), 64);
+        // X = B[2 * r - 1]
+        memcpy((void *)X, (void *)(octets + length - 64), 64);
         // now begin the loop
         for (i = 0; i < wordlength; i += chunk << 1)
         {
