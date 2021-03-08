@@ -105,7 +105,6 @@ extern "C" {  // prevents name mangling
     }
 
     int main() {
-        /*
         char T[64] = {
             0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
             0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
@@ -132,8 +131,6 @@ extern "C" {  // prevents name mangling
         array_xor((uint32_t *)T, (uint32_t *)X);
         showbytes(T, 64);
         return 0;
-        */
-        return 123;
     }
 }
 /* vim: set tabstop=4 expandtab shiftwidth=4 softtabstop=4: */
