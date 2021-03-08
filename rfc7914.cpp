@@ -10,8 +10,8 @@ extern "C" {  // prevents name mangling
     void showbytes(char *bytes, int length=64)  // for debugging
     // https://stackoverflow.com/a/10600155
     {
-        cerr << "DEBUG: ";
-        cerr << hex << setw(16) << setfill('0') << bytes << ": ";
+        cerr << "DEBUG: 0x";
+        cerr << hex << setw(8) << setfill('0') << &bytes << ": ";
         for (int i = 0; i < length; i++)
         {
             cerr << hex << setw(2) << setfill('0') << bytes[i];
