@@ -79,12 +79,12 @@ extern "C" {  // prevents name mangling
             // X = Salsa (T)
             salsa20_word_specification(X, T);
             // Y[i] = X
-            memcpy((void *)&Y[j], (void *)&X, 64);
+            memcpy((void *)&Y[j], (void *)X, 64);
             // now repeat for the even chunk
-            memcpy((void *)&T, (void *)&X, 64);
+            memcpy((void *)T, (void *)X, 64);
             array_xor(T, &B[i + chunk]);
             salsa20_word_specification(X, T);
-            memcpy((void *)&Y[k], (void *)&X, 64);
+            memcpy((void *)&Y[k], (void *)X, 64);
         }
     }
 }
