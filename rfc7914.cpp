@@ -21,6 +21,8 @@ extern "C" {  // prevents name mangling
 
     void dump_memory(char *bytes, int length=64)  // for debugging
     {
+        cerr << "DEBUG: dumping " << length << " bytes of memory from "
+            << setw(8) << hex << &bytes << endl;
         for (int i = 0; i < length; i += 24)
         {
             showbytes(&bytes[i], min(24, (length - i)));
