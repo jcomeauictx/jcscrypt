@@ -187,6 +187,13 @@ extern "C" {  // prevents name mangling
         cerr << "Block mix returned " <<
             (matched ? "expected" : "incorrect") <<
             " results" << endl;
+        if (!matched)
+        {
+            cerr << "Results of block_mix" << endl;
+            dump_memory(&b, b, 128);
+            cerr << "Expected results" << endl;
+            dump_memory(&c, c, 128);
+        }
         return 0;
     }
 }
