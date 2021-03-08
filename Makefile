@@ -15,6 +15,7 @@ endif
 #endif
 export
 default: rfc7914.py _rfc7914.so
+	./$(word 2, $+)
 	./$<
 _%.so: %.cpp Makefile
 	g++ -shared $(OPTIMIZE) -fpic $(ARCH) -lm -o $@ $(EXTRALIBS) $<
