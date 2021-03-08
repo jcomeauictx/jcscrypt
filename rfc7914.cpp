@@ -155,6 +155,7 @@ extern "C" {  // prevents name mangling
         cerr << "T(" << hex << &t << ") after array_xor:";
         cerr << t << endl;
         dump_memory(&t, 64);
+        dump_memory(t, 64);
         return 0;
     }
 }
