@@ -18,8 +18,7 @@ except ImportError:
 
     def pbkdf2_hmac(algorithm, message, salt, count, size):
         r'''
-        This has to work the same as hashlib.pbkdf2_hmac, but only
-        for sha256. We ignore the `algorithm` arg.
+        This has to work the same as hashlib.pbkdf2_hmac
 
         >>> pbkdf2_hmac('sha256', b'', b'', 1, 64)
         b"\xf7\xce\x0be=-r\xa4\x10\x8c\xf5\xab\xe9\x12\xff\xddwv\x16\xdb\xbb'\xa7\x0e\x82\x04\xf3\xae-\x0fo\xad\x89\xf6\x8fH\x11\xd1\xe8{\xcc;\xd7@\n\x9f\xfd)\tO\x01\x84c\x95t\xf3\x9a\xe5\xa11R\x17\xbc\xd7"
@@ -27,10 +26,10 @@ except ImportError:
         prf = lambda key, message: hmac.new(
             key, msg=message, digestmod=getattr(hashlib, algorithm)
         ).digest()
-        hmac_hash, n = b'', 0
+        hmac_hash, block = b'', 0
         while len(hmac_hash) < size:
-            hmac_hash += prf(message, salt + struct.pack('<L', n))
-            n += 1
+            block += 1  # increments *before* hashing!
+            hmac_hash += prf(message, salt + struct.pack('>L', block))
         return hmac_hash[:size]
 
 from collections import OrderedDict  # pylint: disable=unused-import
