@@ -13,9 +13,9 @@ extern "C" {  // prevents name mangling
     {
         const unsigned char *p =
             reinterpret_cast<const unsigned char *>(bytes);
-        cerr << "showbytes: bytes=" << hex << p << endl;
-        cerr << "showbytes: *bytes=" << hex << *p << endl;
-        cerr << "showbytes: " << setw(8) << hex << p << ": ";
+        cerr << "showbytes: bytes=" << hex << &p << endl;
+        cerr << "showbytes: *bytes=" << hex << p << endl;
+        cerr << "showbytes: " << setw(8) << hex << &p << ": ";
         for (unsigned int i = 0; i < length; i++)
         {
             cerr << setfill('0') << setw(2) << hex << p[i];
