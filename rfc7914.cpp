@@ -23,15 +23,17 @@ extern "C" {  // prevents name mangling
         cerr << endl;
     }
 
-    void dump_memory(char **bytes, int length=64)  // for debugging
+    void dump_memory(const void *bytes, unsigned int length=64)
     {
+        const unsigned char *p =
+            reinterpret_cast<const unsigned char *>(bytes);
         cerr << "dump_memory: dumping " << dec << length << 
             " bytes of memory from "
-            << setw(8) << hex << &bytes << endl;
-        cerr << "dump_memory: raw bytes: " << *bytes << endl;
+            << setw(8) << hex << p << endl;
+        cerr << "dump_memory: raw bytes: " << *p << endl;
         for (int i = 0; i < length; i += 24)
         {
-            showbytes(bytes[i], min(24, (length - i)));
+            showbytes(p + i, min((unsigned int)24, (length - i)));
         }
     }
         
