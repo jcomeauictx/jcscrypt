@@ -11,10 +11,10 @@ extern "C" {  // prevents name mangling
     // https://stackoverflow.com/a/10600155
     {
         cerr << "DEBUG: ";
-        cerr << hex << setfill("0") << setw(16) << bytes << ": ";
+        cerr << hex << setw(16) << setfill('0') << bytes << ": ";
         for (int i = 0; i < length; i++)
         {
-            cerr << hex << setfill("0") << setw(2) << bytes[i];
+            cerr << hex << setw(2) << setfill('0') << bytes[i];
         }
         cerr << endl;
     }
