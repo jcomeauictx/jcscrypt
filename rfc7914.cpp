@@ -7,14 +7,22 @@ using namespace std;
 #define R(a,b) (((a) << (b)) | ((a) >> (32 - (b))))
 typedef uint32_t uint32;  // for code copied from spec
 extern "C" {  // prevents name mangling
+    const char *digits = "0123456789abcdef";
+
+    char *hexnybbles(char n)  // because I can't figure out streams
+    {
+        char out[3] = {digits[n >> 4], digits[n & 0xff], 0};
+        return out;
+    }
+
     void showbytes(char *bytes, int length=64)  // for debugging
     // https://stackoverflow.com/a/10600155
     {
-        cerr << "DEBUG: 0x";
+        cerr << "DEBUG: ";
         cerr << hex << setw(8) << setfill('0') << &bytes << ": ";
         for (int i = 0; i < length; i++)
         {
-            cerr << hex << setw(2) << setfill('0') << bytes[i];
+            cerr << hexnybbles(bytes[i]);
         }
         cerr << endl;
     }
