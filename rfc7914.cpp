@@ -58,13 +58,14 @@ extern "C" {  // prevents name mangling
           pointers. Some of the operations can be done in place.
         * shuffling in #3 can be avoided by moving the pointer to 
           the appropriate place in B' as #2 is running
+        */
         int i, j, k;
         int wordlength = length >> 2, midway = length >> 3, chunk = 16;
         // chunk length is 64 / sizeof(uint32_t) = 16
         uint32_t bPrime[wordlength], T[chunk], X[chunk];
         // NOTE that we're not using B here same as the spec does.
         // Here, B is a uint32_t pointer, *not* the index of a 64-byte block
-        uint32_t *B = &octets, *Y = &bPrime;
+        uint32_t *B = octets, *Y = bPrime;
         // first copy the final octet to X
         memcpy((void *)&X, (void *)(octets + length - 64), 64);
         // now begin the loop
@@ -74,18 +75,17 @@ extern "C" {  // prevents name mangling
             k = j + midway;  // even blocks go to the 2nd half of bprime
             // T = X xor B[i]
             memcpy((void *)&T, (void *)&X, 64);
-            array_xor(&T, &B[i]);
+            array_xor(T, &B[i]);
             // X = Salsa (T)
-            salsa20_word_specification(&X, &T);
+            salsa20_word_specification(X, T);
             // Y[i] = X
             memcpy((void *)&Y[j], (void *)&X, 64);
             // now repeat for the even chunk
             memcpy((void *)&T, (void *)&X, 64);
-            array_xor(&T, &B[i + chunk]);
-            salsa20_word_specification(&X, &T);
+            array_xor(T, &B[i + chunk]);
+            salsa20_word_specification(X, T);
             memcpy((void *)&Y[k], (void *)&X, 64);
         }
-        */
     }
 }
 /* vim: set tabstop=4 expandtab shiftwidth=4 softtabstop=4: */
