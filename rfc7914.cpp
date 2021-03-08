@@ -100,8 +100,8 @@ extern "C" {  // prevents name mangling
         // now begin the loop
         for (i = 0; i < wordlength; i += chunk << 1)
         {
-            j = i >> 1;  // odd blocks go to the front of bprime
-            k = j + midway;  // even blocks go to the 2nd half of bprime
+            j = i >> 1;  // odd blocks go to the front of bPrime
+            k = j + midway;  // even blocks go to the 2nd half of bPrime
             // T = X xor B[i]
             memcpy((void *)T, (void *)X, 64);
             array_xor(T, &B[i]);
@@ -115,6 +115,8 @@ extern "C" {  // prevents name mangling
             salsa20_word_specification(X, T);
             memcpy((void *)&Y[k], (void *)X, 64);
         }
+        // now overwrite the original with the hashed data
+        memcpy((void *)octets, (void *)bPrime, length);
     }
 
     int main() {
@@ -174,12 +176,17 @@ extern "C" {  // prevents name mangling
             0x5d, 0x2a, 0x22, 0x58, 0x77, 0xd5, 0xed, 0xf5,
             0x84, 0x2c, 0xb9, 0xf1, 0x4e, 0xef, 0xe4, 0x25,
         };
-        unsigned char *t = T, *x = X;
+        unsigned char *t = T, *x = X, *b = BLOCK_MIX_IN, *c = BLOCK_MIX_OUT;
         cerr << "Debugging rfc7914.cpp" << endl;
         dump_memory(&t, t, 64);
         dump_memory(&x, x, 64);
         array_xor((uint32_t *)T, (uint32_t *)X);
         dump_memory(&t, t, 64);
+        block_mix((uint32_t *)b, 128);
+        bool matched = !memcmp(b, c, 128);
+        cerr << "Block mix returned " <<
+            (matched ? "expected" : "incorrect") <<
+            " results" << endl;
         return 0;
     }
 }
