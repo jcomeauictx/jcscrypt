@@ -14,7 +14,7 @@ endif
 # ARCH += -march=atom
 #endif
 export
-default: rfc7914.py _rfc7914.so
+default: rfc7914.py rfc7914 _rfc7914.so
 	./$(word 2, $+)
 	./$<
 _%.so: %.cpp Makefile
