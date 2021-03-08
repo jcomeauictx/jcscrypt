@@ -74,7 +74,7 @@ extern "C" {  // prevents name mangling
             j = i >> 1;  // odd blocks go to the front of bprime
             k = j + midway;  // even blocks go to the 2nd half of bprime
             // T = X xor B[i]
-            memcpy((void *)&T, (void *)&X, 64);
+            memcpy((void *)T, (void *)X, 64);
             array_xor(T, &B[i]);
             // X = Salsa (T)
             salsa20_word_specification(X, T);
