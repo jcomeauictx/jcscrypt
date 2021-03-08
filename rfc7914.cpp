@@ -11,6 +11,8 @@ extern "C" {  // prevents name mangling
     void showbytes(char *bytes, int length=24)  // for debugging
     // https://stackoverflow.com/a/10600155
     {
+        cerr << "DEBUG: bytes=" << hex << &bytes << endl;
+        cerr << "DEBUG: *bytes=" << hex << bytes << endl;
         cerr << "DEBUG: " << setw(8) << hex << &bytes << ": ";
         for (int i = 0; i < length; i++)
         {
@@ -21,7 +23,8 @@ extern "C" {  // prevents name mangling
 
     void dump_memory(char *bytes, int length=64)  // for debugging
     {
-        cerr << "DEBUG: dumping " << length << " bytes of memory from "
+        cerr << "DEBUG: dumping " << dec << length << 
+            " bytes of memory from "
             << setw(8) << hex << &bytes << endl;
         for (int i = 0; i < length; i += 24)
         {
