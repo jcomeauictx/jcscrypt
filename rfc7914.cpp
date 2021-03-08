@@ -35,7 +35,7 @@ extern "C" {  // prevents name mangling
         cerr << "dump_memory: raw bytes: " << p << endl;
         for (int i = 0; i < length; i += 24)
         {
-            showbytes(addr + i, p + i, min((unsigned int)24, (length - i)));
+            showbytes((char *)addr + i, p + i, min((unsigned int)24, (length - i)));
         }
     }
         
