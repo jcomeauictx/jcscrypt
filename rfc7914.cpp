@@ -26,6 +26,7 @@ extern "C" {  // prevents name mangling
         cerr << "DEBUG: dumping " << dec << length << 
             " bytes of memory from "
             << setw(8) << hex << &bytes << endl;
+        cerr << "DEBUG: raw bytes: " << bytes << endl;
         for (int i = 0; i < length; i += 24)
         {
             showbytes(&bytes[i], min(24, (length - i)));
