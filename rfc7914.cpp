@@ -21,15 +21,15 @@ extern "C" {  // prevents name mangling
         cerr << endl;
     }
 
-    void dump_memory(char *bytes, int length=64)  // for debugging
+    void dump_memory(char **bytes, int length=64)  // for debugging
     {
         cerr << "DEBUG: dumping " << dec << length << 
             " bytes of memory from "
-            << setw(8) << hex << &bytes << endl;
-        cerr << "DEBUG: raw bytes: " << bytes << endl;
+            << setw(8) << hex << bytes << endl;
+        cerr << "DEBUG: raw bytes: " << *bytes << endl;
         for (int i = 0; i < length; i += 24)
         {
-            showbytes(&bytes[i], min(24, (length - i)));
+            showbytes(bytes[i], min(24, (length - i)));
         }
     }
         
@@ -142,12 +142,12 @@ extern "C" {  // prevents name mangling
         char *t = T, *x = X;
         cerr << "Debugging rfc7914.cpp" << endl;
         cerr << "T(" << hex << &T << ") before array_xor:" << endl;
-        dump_memory(t, 64);
+        dump_memory(&t, 64);
         cerr << "X(" << hex << &X << ") before array_xor:" << endl;
-        dump_memory(x, 64);
+        dump_memory(&x, 64);
         array_xor((uint32_t *)T, (uint32_t *)X);
         cerr << "T(" << hex << &T << ") after array_xor:" << endl;
-        dump_memory(t, 64);
+        dump_memory(&t, 64);
         return 0;
     }
 }
