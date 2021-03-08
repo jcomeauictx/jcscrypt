@@ -23,7 +23,6 @@ except ImportError:
         if count != 1:
             raise ValueError('This pbkdf2_hmac requires count=1, not %d'
                              % count)
-                             
         prf = lambda key, message: hmac.new(
             key, msg=message, digestmod=getattr(hashlib, algorithm)
         ).digest()
@@ -358,10 +357,15 @@ def scrypt(passphrase, salt=None, N=1024, r=1, p=1, dkLen=32):
 
     >>> for key in PBKDF2_TEST_VECTORS:
     ...  truncate(bytes.fromhex(PBKDF2_TEST_VECTORS[key]))
-    ...  truncate(pbkdf2_hmac('sha256', *OrderedDict(key).values()))
+    ...  try:
+    ...   truncate(pbkdf2_hmac('sha256', *OrderedDict(key).values()))
+    ...  except ValueError as failure:
+    ...   str(failure).encode()
     ...
-    True
-    True
+    b'U\xac\x04nV...A\xd3\xa1\x97\x83'
+    b'U\xac\x04nV...A\xd3\xa1\x97\x83'
+    b'M\xdc\xd8\xf6\x0b...\xb3\x97\xf3<\x8d'
+    b'M\xdc\xd8\xf6\x0b...\xb3\x97\xf3<\x8d'
 
     >>> for key in SCRYPT_TEST_VECTORS:
     ...  if ('N', 1048576) in key:
