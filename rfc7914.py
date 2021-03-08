@@ -322,7 +322,7 @@ def romix(B, N=1024):
     return X
 
 def scrypt(passphrase, salt=None, N=1024, r=1, p=1, dkLen=32):
-    '''
+    r'''
     Algorithm scrypt
 
     Input:
