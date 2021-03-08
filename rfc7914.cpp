@@ -8,15 +8,17 @@ using namespace std;
 typedef uint32_t uint32;  // for code copied from spec
 extern "C" {  // prevents name mangling
 
-    void showbytes(char *bytes, int length=24)  // for debugging
-    // https://stackoverflow.com/a/10600155
+    void showbytes(const void *bytes, unsigned int length=24)
+    // https://stackoverflow.com/a/1286761/493161
     {
-        cerr << "showbytes: bytes=" << hex << &bytes << endl;
-        cerr << "showbytes: *bytes=" << hex << bytes << endl;
-        cerr << "showbytes: " << setw(8) << hex << &bytes << ": ";
-        for (int i = 0; i < length; i++)
+        const unsigned char *p =
+            reinterpret_cast<const unsigned char *>(bytes);
+        cerr << "showbytes: bytes=" << hex << p << endl;
+        cerr << "showbytes: *bytes=" << hex << *p << endl;
+        cerr << "showbytes: " << setw(8) << hex << p << ": ";
+        for (unsigned int i = 0; i < length; i++)
         {
-            cerr << setfill('0') << setw(2) << hex << (bytes[i] & 0xff);
+            cerr << setfill('0') << setw(2) << hex << p[i];
         }
         cerr << endl;
     }
