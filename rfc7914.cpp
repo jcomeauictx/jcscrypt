@@ -139,14 +139,15 @@ extern "C" {  // prevents name mangling
             0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
             0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa
         };
+        char *t = T, *x = X;
         cerr << "Debugging rfc7914.cpp" << endl;
         cerr << "T(" << hex << &T << ") before array_xor:" << endl;
-        dump_memory(T, 64);
+        dump_memory(t, 64);
         cerr << "X(" << hex << &X << ") before array_xor:" << endl;
-        dump_memory(X, 64);
+        dump_memory(x, 64);
         array_xor((uint32_t *)T, (uint32_t *)X);
         cerr << "T(" << hex << &T << ") after array_xor:" << endl;
-        dump_memory(T, 64);
+        dump_memory(t, 64);
         return 0;
     }
 }
