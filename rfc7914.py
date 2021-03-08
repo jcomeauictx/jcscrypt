@@ -61,6 +61,8 @@ try:
     SALSA.restype = None  # otherwise it returns contents of return register
     XOR = LIBRARY.array_xor
     XOR.restype = None
+    BLOCK_MIX = LIBRARY.block_mix
+    BLOCK_MIX.restype = None
 except RuntimeError:
     logging.error('Cannot load shared library, aborting')
     raise
@@ -244,6 +246,10 @@ def block_mix(octets):
     >>> mixed == expected
     True
     '''
+    array = ctypes.create_string_buffer(bytes(octets), len(octets))
+    BLOCK_MIX(array, len(octets))
+    return array.raw
+    # following is the original Python, no longer used
     r = len(octets) // (64 * 2)
     B = [octets[i:i + 64] for i in range(0, r * 2 * 64, 64)]
     Y = [bytes(64) for i in range(len(B))]
