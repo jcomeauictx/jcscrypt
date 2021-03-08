@@ -247,22 +247,23 @@ def block_mix(octets):
     True
     '''
     array = ctypes.create_string_buffer(bytes(octets), len(octets))
-    BLOCK_MIX(array, len(octets))
-    return array.raw
-    # following is the original Python, no longer used
-    r = len(octets) // (64 * 2)
-    B = [octets[i:i + 64] for i in range(0, r * 2 * 64, 64)]
-    Y = [bytes(64) for i in range(len(B))]
-    X = B[-1]
-    for i in range(2 * r):
-        #logging.debug('block_mix calling xor(%r, b[%d])', truncate(X), i)
-        T = xor(X, bytes(B[i]))
-        #logging.debug('block_mix t: %r', truncate(T))
-        X = salsa(T)
-        #logging.debug('block_mix x: %r', truncate(X))
-        Y[i] = X
-    bprime = b''.join(tuple(Y[i] for i in range(0, 2 * r, 2)) +
-                      tuple(Y[i] for i in range(1, 2 * r, 2)))
+    if os.getenv('SCRYPT_FAST_BUT_WRONG'):  # for development testing only!
+        BLOCK_MIX(array, len(octets))
+        bprime = array.raw
+    else:
+        r = len(octets) // (64 * 2)
+        B = [octets[i:i + 64] for i in range(0, r * 2 * 64, 64)]
+        Y = [bytes(64) for i in range(len(B))]
+        X = B[-1]
+        for i in range(2 * r):
+            #logging.debug('block_mix calling xor(%r, b[%d])', truncate(X), i)
+            T = xor(X, bytes(B[i]))
+            #logging.debug('block_mix t: %r', truncate(T))
+            X = salsa(T)
+            #logging.debug('block_mix x: %r', truncate(X))
+            Y[i] = X
+        bprime = b''.join(tuple(Y[i] for i in range(0, 2 * r, 2)) +
+                          tuple(Y[i] for i in range(1, 2 * r, 2)))
     #logging.debug('block_mix returning %r', truncate(bprime))
     return bprime
 
