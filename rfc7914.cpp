@@ -95,11 +95,13 @@ extern "C" {  // prevents name mangling
         // Here, B is a uint32_t pointer, *not* the index of a 64-byte block
         uint32_t *B = octets, *Y = bPrime;
         uint8_t *t = (uint8_t *)T, *x = (uint8_t *)X, *y = (uint8_t *)Y;
-        // first copy the final octet to X
+        // first copy the final octets to X
         // X = B[2 * r - 1]
         memcpy((void *)X, (void *)(octets + length - 64), 64);
         cerr << "block_mix: X after first load:" << endl;
         dump_memory(&x, x, 64);
+        cerr << "block_mix: the above should be the last 64 octets of:" << endl;
+        dump_memory(&B, B, length);
         // now begin the loop
         for (i = 0; i < wordlength; i += chunk << 1)
         {
