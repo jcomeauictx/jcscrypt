@@ -8,7 +8,7 @@ using namespace std;
 typedef uint32_t uint32;  // for code copied from spec
 extern "C" {  // prevents name mangling
 
-    void showbytes(char *bytes, int length=32)  // for debugging
+    void showbytes(char *bytes, int length=24)  // for debugging
     // https://stackoverflow.com/a/10600155
     {
         cerr << "DEBUG: ";
@@ -22,9 +22,9 @@ extern "C" {  // prevents name mangling
 
     void dump_memory(char *bytes, int length=64)  // for debugging
     {
-        for (int i = 0; i < length; i += 32)
+        for (int i = 0; i < length; i += 24)
         {
-            showbytes(&bytes[i], min(32, (length - i)));
+            showbytes(&bytes[i], min(24, (length - i)));
         }
     }
         
