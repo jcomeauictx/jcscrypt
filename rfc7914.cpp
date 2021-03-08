@@ -2,15 +2,29 @@
 using namespace std;
 #include <stdint.h>
 #include <iostream>
+#include <iomanip>
 #include <cstring>
 #define R(a,b) (((a) << (b)) | ((a) >> (32 - (b))))
 typedef uint32_t uint32;  // for code copied from spec
 extern "C" {  // prevents name mangling
+    void showbytes(char *bytes, int length=64)  // for debugging
+    // https://stackoverflow.com/a/10600155
+    {
+        cerr << "DEBUG: ";
+        cerr << hex << setfill("0") << setw(16) << bytes << ": ";
+        for (int i = 0; i < length; i++)
+        {
+            cerr << hex << setfill("0") << setw(2) << bytes[i];
+        }
+        cerr << endl;
+    }
+        
     void array_xor(uint32 *first, uint32 *second, int length=64)
     {
         int i, wordlength = length >> 2;
         for (i = 0; i < wordlength; i++) first[i] ^= second[i];
     }
+
     void salsa20_word_specification(uint32 out[16],uint32 in[16])
     {
         uint32 *x = out;
@@ -36,6 +50,7 @@ extern "C" {  // prevents name mangling
         }
         for (i = 0;i < 16;++i) x[i] += in[i];
     }
+
     void block_mix(uint32_t *octets, int length)
     {
         /*
@@ -87,6 +102,34 @@ extern "C" {  // prevents name mangling
             salsa20_word_specification(X, T);
             memcpy((void *)&Y[k], (void *)X, 64);
         }
+    }
+
+    int main() {
+        char T[64] = {
+            0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
+            0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
+            0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
+            0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
+            0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
+            0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
+            0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
+            0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55
+        };
+        showbytes(T, 64);
+        char X[64] = {
+            0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
+            0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
+            0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
+            0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
+            0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
+            0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
+            0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
+            0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa
+        };
+        showbytes(X, 64);
+        array_xor((uint32_t *)T, (uint32_t *)X);
+        showbytes(T, 64);
+        return 0;
     }
 }
 /* vim: set tabstop=4 expandtab shiftwidth=4 softtabstop=4: */
