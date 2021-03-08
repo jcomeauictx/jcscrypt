@@ -23,13 +23,14 @@ extern "C" {  // prevents name mangling
         cerr << endl;
     }
 
-    void dump_memory(const void *bytes, unsigned int length=64)
+    void dump_memory(const void *addr, const void *bytes,
+        unsigned int length=64)
     {
         const unsigned char *p =
             reinterpret_cast<const unsigned char *>(bytes);
         cerr << "dump_memory: dumping " << dec << length << 
             " bytes of memory from "
-            << setw(8) << hex << &p << endl;
+            << setw(8) << hex << addr << endl;
         cerr << "dump_memory: raw bytes: " << p << endl;
         for (int i = 0; i < length; i += 24)
         {
@@ -154,8 +155,7 @@ extern "C" {  // prevents name mangling
         array_xor((uint32_t *)T, (uint32_t *)X);
         cerr << "T(" << hex << &t << ") after array_xor:";
         cerr << t << endl;
-        dump_memory(&t, 64);
-        dump_memory(t, 64);
+        dump_memory(&t, t, 64);
         return 0;
     }
 }
