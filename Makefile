@@ -17,6 +17,9 @@ export
 default: rfc7914.py rfc7914 _rfc7914.so
 	./$(word 2, $+)
 	./$<
+%:	%.cpp
+	# override system default to add debugging symbols
+	g++ -g -o $@ $<
 _%.so: %.cpp Makefile
 	g++ -shared $(OPTIMIZE) -fpic $(ARCH) -lm -o $@ $(EXTRALIBS) $<
 %.pylint: %.py
@@ -30,3 +33,5 @@ compare: rfc7914.py _rfc7914.so
 	./$< $@
 edit: $(PY_SOURCES) $(CPP_SOURCES)
 	vi $+
+gdb: rfc7914
+	gdb $<
