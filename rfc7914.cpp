@@ -126,15 +126,14 @@ extern "C" {  // prevents name mangling
             0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
             0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa
         };
-        */
         cerr << "Debugging rfc7914.cpp" << endl;
-        /*
         showbytes(T, 64);
         showbytes(X, 64);
         array_xor((uint32_t *)T, (uint32_t *)X);
         showbytes(T, 64);
         return 0;
         */
+        return 123;
     }
 }
 /* vim: set tabstop=4 expandtab shiftwidth=4 softtabstop=4: */
