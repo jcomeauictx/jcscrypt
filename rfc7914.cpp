@@ -8,7 +8,7 @@ using namespace std;
 typedef uint32_t uint32;  // for code copied from spec
 extern "C" {  // prevents name mangling
 
-    void showbytes(char *bytes, int length=64)  // for debugging
+    void showbytes(char *bytes, int length=32)  // for debugging
     // https://stackoverflow.com/a/10600155
     {
         cerr << "DEBUG: ";
@@ -18,6 +18,14 @@ extern "C" {  // prevents name mangling
             cerr << setfill('0') << setw(2) << hex << (bytes[i] & 0xff);
         }
         cerr << endl;
+    }
+
+    void dump_memory(char *bytes, int length=64)  // for debugging
+    {
+        for (int i = 0; i < length; i += 32)
+        {
+            showbytes(&bytes[i], min(32, (length - i)));
+        }
     }
         
     void array_xor(uint32 *first, uint32 *second, int length=64)
@@ -127,10 +135,13 @@ extern "C" {  // prevents name mangling
             0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa
         };
         cerr << "Debugging rfc7914.cpp" << endl;
-        showbytes(T, 64);
-        showbytes(X, 64);
+        cerr << "T before array_xor:" << endl;
+        dump_memory(T, 64);
+        cerr << "X before array_xor:" << endl;
+        dump_memory(X, 64);
         array_xor((uint32_t *)T, (uint32_t *)X);
-        showbytes(T, 64);
+        cerr << "T after array_xor:" << endl;
+        dump_memory(T, 64);
         return 0;
     }
 }
