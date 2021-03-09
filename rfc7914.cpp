@@ -128,6 +128,45 @@ extern "C" {  // prevents name mangling
         memcpy((void *)octets, (void *)bPrime, length);
     }
 
+    void scrypt(uint32_t *passphrase, uint32_t *salt=NULL,
+        uint32_t N=1024, uint32_t r=1, uint32_t p=1,
+        uint32_t dkLen=32, uint8_t *derivedKey=NULL)
+    {
+        /*
+        Algorithm scrypt
+
+        Input:
+            P       Passphrase, an octet string.
+            S       Salt, an octet string.
+            N       CPU/Memory cost parameter, must be larger than 1,
+                    and a power of 2.
+            r       Block size parameter.
+            p       Parallelization parameter, a positive integer
+                    less than or equal to ((2^32-1) * hLen) / MFLen
+                    where hLen is 32 and MFlen is 128 * r.
+            dkLen   Intended output length in octets of the derived
+                    key; a positive integer less than or equal to
+                    (2^32 - 1) * hLen where hLen is 32.
+
+        Output:
+            DK      Derived key, of length dkLen octets.
+
+        Steps:
+
+            1. Initialize an array B consisting of p blocks of 128 * r octets
+               each:
+                B[0] || B[1] || ... || B[p - 1] =
+                 PBKDF2-HMAC-SHA256 (P, S, 1, p * 128 * r)
+
+            2. for i = 0 to p - 1 do
+                B[i] = scryptROMix (r, B[i], N)
+               end for
+
+            3. DK = PBKDF2-HMAC-SHA256 (P, B[0] || B[1] || ... || B[p - 1],
+                                        1, dkLen)
+        */
+        if (salt == NULL) salt = passphrase;  // for Litecoin and derivatives
+    }
     int main() {
         uint8_t T[64] = {
             0x15, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
