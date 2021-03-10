@@ -24,7 +24,10 @@ _%.so: %.cpp Makefile
 	g++ -shared $(OPTIMIZE) -fpic $(ARCH) -lm -o $@ $(EXTRALIBS) $<
 %.pylint: %.py
 	pylint3 $<
+%.doctest: %.py
+	python3 -m doctest $<
 pylint: $(PY_SOURCES:.py=.pylint)
+doctests: $(PY_SOURCES:.py=.doctest)
 env:
 	$@
 profile: rfc7914.py _rfc7914.so

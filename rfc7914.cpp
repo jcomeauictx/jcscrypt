@@ -91,7 +91,8 @@ extern "C" {  // prevents name mangling
         uint32_t wordlength = length >> 2, midway = length >> 3, chunk = 16;
         // chunk length is 64 / sizeof(uint32_t) = 16
         uint32_t bPrime[wordlength] __attribute__((aligned(64))),
-            T[chunk], X[chunk];
+            T[chunk] __attribute__((aligned(64)),
+            X[chunk] __attribute__((aligned(64));
         // NOTE that we're not using B here same as the spec does.
         // Here, B is a uint32_t pointer, *not* the index of a 64-byte block
         uint32_t *B = octets, *Y = bPrime;
@@ -196,6 +197,7 @@ extern "C" {  // prevents name mangling
         for (i = 0; i < N; i++)
         {
             j = X[wordlength - chunk] % N;
+            cerr << "romix: j=" << dec << j << endl;
             memcpy((void *)T, (void *)X, length);
             array_xor(T, &V[j * length]);
             memcpy((void *)X, (void *)T, length);

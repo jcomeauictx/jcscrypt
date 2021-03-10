@@ -49,7 +49,7 @@ if COMMAND == 'doctest':
 else:
     DOCTESTDEBUG = lambda *args, **kwargs: None
     logging.debug('DOCTESTDEBUG disabled')
-if COMMAND in ('doctest', 'pydoc'):
+if COMMAND in ('doctest', 'pydoc', 'pydoc3'):
     SCRIPT_DIR, PROGRAM = os.path.split(os.path.abspath(ARGS[0]))
 if not SCRIPT_DIR:
     SCRIPT_DIR = '.'  # assume we're here if importing
@@ -63,6 +63,8 @@ try:
     XOR.restype = None
     BLOCK_MIX = LIBRARY.block_mix
     BLOCK_MIX.restype = None
+    ROMIX = LIBRARY.romix
+    ROMIX.restype = None
 except RuntimeError:
     logging.error('Cannot load shared library, aborting')
     raise
@@ -246,8 +248,8 @@ def block_mix(octets):
     >>> mixed == expected
     True
     '''
-    array = ctypes.create_string_buffer(bytes(octets), len(octets))
     if not os.getenv('SCRYPT_SLOW_BUT_SURE'):
+        array = ctypes.create_string_buffer(bytes(octets), len(octets))
         BLOCK_MIX(array, len(octets))
         bprime = array.raw
     else:
@@ -312,20 +314,25 @@ def romix(B, N=1024):
     >>> mixed == expected
     True
     '''
-    r = len(B) // (64 * 2)  # not needed
-    logging.debug('romix B: %r, N: %d, r: %d', truncate(B), N, r)
-    X = B
-    V = []
-    for i in range(N):  # pylint: disable=unused-variable
-        #logging.debug('romix first loop appending %r to V', truncate(X))
-        V.append(X)
-        X = block_mix(X)
-    #logging.debug('V: %s', V)
-    for i in range(N):
-        j = integerify(X) % N
-        #logging.debug('romix calling xor(%r, V[%d])', X, j)
-        T = xor(X, V[j])
-        X = block_mix(T)
+    if not os.getenv('SCRYPT_SLOW_BUT_SURE'):
+        array = ctypes.create_string_buffer(bytes(B), len(B))
+        ROMIX(array, N)
+        X = array.raw
+    else:
+        r = len(B) // (64 * 2)  # not needed
+        logging.debug('romix B: %r, N: %d, r: %d', truncate(B), N, r)
+        X = B
+        V = []
+        for i in range(N):  # pylint: disable=unused-variable
+            #logging.debug('romix first loop appending %r to V', truncate(X))
+            V.append(X)
+            X = block_mix(X)
+        #logging.debug('V: %s', V)
+        for i in range(N):
+            j = integerify(X) % N
+            #logging.debug('romix calling xor(%r, V[%d])', X, j)
+            T = xor(X, V[j])
+            X = block_mix(T)
     return X
 
 def scrypt(passphrase, salt=None, N=1024, r=1, p=1, dkLen=32):
