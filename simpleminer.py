@@ -24,7 +24,7 @@ logging.basicConfig(level=logging.DEBUG if __debug__ else logging.INFO)
 try:
     long
 except NameError:
-    long = int
+    long = int  # pylint: disable=invalid-name, redefined-builtin
 TIMEOUT = 120  # seconds to wait for server response
 START_TIME = time.time()
 PERSISTENT = {'quit': False, 'solved': False}  # global for storing settings
@@ -85,19 +85,18 @@ class FakePipe(object):
         return self.pipeline.pop(0)
 
 def key_value(line):
-     '''
-     parse key and value from configuration line
-     '''
-     match = re.match(r'^(\w+)\s*=\s*(\S+)', line)
-     return match.groups() if match else None
+    '''
+    parse key and value from configuration line
+    '''
+    match = re.match(r'^(\w+)\s*=\s*(\S+)', line)
+    return match.groups() if match else None
 
 def parse_config(config_file):
     '''
     parse config file
     '''
-    input = open(config_file)
-    settings = dict(filter(None, map(key_value, input.readlines())))
-    input.close()
+    with open(config_file) as infile:
+        settings = dict(filter(None, map(key_value, infile.readlines())))
     logging.debug('settings from config file: %s', settings)
     return settings
 
@@ -118,18 +117,18 @@ def init():
     initialize PERSISTENT data and set up signal trapping
     '''
     if not PERSISTENT.get('urandom'):
-         PERSISTENT['settings'] = parse_config(CONFIGFILE)
-         PERSISTENT['authorization'] = base64.b64encode(b'%s:%s' % (
-             PERSISTENT['settings']['rpcuser'].encode(),
-             PERSISTENT['settings']['rpcpassword'].encode())).decode()
-         PERSISTENT['get_nonce'] = random32
-         signal.signal(signal.SIGUSR1, setup_fake_nonce)
-         signal.signal(signal.SIGINT, finish_up)
-         signal.signal(signal.SIGQUIT, finish_up)
-         signal.signal(signal.SIGTERM, finish_up)
-         signal.signal(signal.SIGALRM, timeout_thread)
-         PERSISTENT['urandom'] = open('/dev/urandom', 'rb')
-         logging.debug('settings now: %s', PERSISTENT)
+        PERSISTENT['settings'] = parse_config(CONFIGFILE)
+        PERSISTENT['authorization'] = base64.b64encode(b'%s:%s' % (
+            PERSISTENT['settings']['rpcuser'].encode(),
+            PERSISTENT['settings']['rpcpassword'].encode())).decode()
+        PERSISTENT['get_nonce'] = random32
+        signal.signal(signal.SIGUSR1, setup_fake_nonce)
+        signal.signal(signal.SIGINT, finish_up)
+        signal.signal(signal.SIGQUIT, finish_up)
+        signal.signal(signal.SIGTERM, finish_up)
+        signal.signal(signal.SIGALRM, timeout_thread)
+        PERSISTENT['urandom'] = open('/dev/urandom', 'rb')
+        logging.debug('settings now: %s', PERSISTENT)
 
 def random32():
     '''
@@ -137,14 +136,14 @@ def random32():
     '''
     return PERSISTENT['urandom'].read(4)
 
-def finish_up(*ignored):
+def finish_up(*ignored):  # pylint: disable=unused-argument
     '''
     signal that brought us here ignored, just set global to quit
     '''
     PERSISTENT['quit'] = True
     print('signal received, shutting down...', file=sys.stderr)
 
-def setup_fake_nonce(*ignored):
+def setup_fake_nonce(*ignored):  # pylint: disable=unused-argument
     '''
     signal that brought us here ignored, just set up fake nonce
     '''
@@ -152,14 +151,14 @@ def setup_fake_nonce(*ignored):
     if os.getenv('SIMPLEMINER_FAKE_DATA', False):
         PERSISTENT['get_nonce'] = fake_nonce
 
-def fake_nonce(*ignored):
+def fake_nonce(*ignored):  # pylint: disable=unused-argument
     '''
     inject a few fake nonces until race condition is over
     '''
     PERSISTENT['get_nonce'] = random32
     return TEST_NONCE
 
-def rpc(method, parameters = []):
+def rpc(method, parameters=[]):
     '''
     send rpc query to server
     '''
@@ -175,13 +174,13 @@ def rpc(method, parameters = []):
         logging.debug('message from RPC server: %r', message)
         response_object = json.loads(message)
         response.close()
-    except Exception:
+    except RuntimeError:
         response_object = {'error': 'No response or null response', 'result': None}
         if __debug__: raise
     logging.debug(response_object.get('error', None))
     return response_object
 
-def getwork(data = None):
+def getwork(data=None):
     '''
     get "getwork" data from server, or submit possible solution
     '''
@@ -203,7 +202,7 @@ def getwork(data = None):
         logging.info('result of getwork(): %s', work)
     return work.get('result', None)
 
-def timeout_thread(*ignored):
+def timeout_thread(*ignored):  # pylint: disable=unused-argument
     '''
     tell thread to quit
     '''
@@ -235,7 +234,7 @@ def miner_thread(thread_id, work, pipe):
     pipe.send((hashes, thread_id))
     return
 
-def bufreverse(data = None):
+def bufreverse(data=None):
     '''
     reverse groups of 4 bytes in arbitrary string of bits
 
@@ -247,7 +246,7 @@ def bufreverse(data = None):
     length = len(data) / INT_SIZE
     return struct.pack('>%dI' % length, *(struct.unpack('<%dI' % length, data)))
 
-def sha256d_hash(data, check_bytes = '\0\0\0\0'):
+def sha256d_hash(data, check_bytes='\0\0\0\0'):
     '''
     return block hash as a little-endian 256-bit number encoded as a bitstring
 
@@ -263,7 +262,7 @@ def sha256d_hash(data, check_bytes = '\0\0\0\0'):
     else:
         return hashed[-len(check_bytes):] == check_bytes
 
-def scrypt_hash(data, check_bytes = '\0\0\0'):
+def scrypt_hash(data, check_bytes='\0\0\0'):
     '''
     return scrypt hash of data
 
@@ -287,7 +286,7 @@ def scrypt_hash(data, check_bytes = '\0\0\0'):
     else:
         return hashed[-len(check_bytes):] == check_bytes
 
-def check_hash(data = unhexlify(TEST_HEADER), target = None, nonce = None):
+def check_hash(data=unhexlify(TEST_HEADER), target=None, nonce=None):
     '''
     check if data with chosen nonce is below target
     '''
@@ -379,15 +378,16 @@ def simpleminer():
                     done += 1
         logging.debug('threads finished')
         delta_time = time.time() - start_time
-        logging.info('Combined HashMeter: %d hashes in %.2f sec, %d Khash/sec',
-           total_hashes, delta_time, (total_hashes / 1000) / delta_time)
+        logging.info(
+            'Combined HashMeter: %d hashes in %.2f sec, %d Khash/sec',
+            total_hashes, delta_time, (total_hashes / 1000) / delta_time)
         while multiprocessing.active_children():
             time.sleep(0.1)  # joins finished processes
         if PERSISTENT['solved'] and os.getenv('SIMPLEMINER_FAKE_DATA', False):
             break  # for timing and/or profiling
     return 'done'
 
-def pad(message = ''):
+def pad(message=''):
     '''
     pad a message out to 512 bits (64 bytes)
 
@@ -408,8 +408,8 @@ def pad(message = ''):
     padding_needed = chunksize - (length % chunksize)
     padding_needed += chunksize * (padding_needed < (countsize + bytesize))
     bit_length = length * BITS_PER_BYTE
-    packed_length = struct.pack('>2I',
-        bit_length / (INT_MASK + 1), bit_length & INT_MASK)
+    packed_length = struct.pack(
+        '>2I', bit_length / (INT_MASK + 1), bit_length & INT_MASK)
     padding = FIRST_PAD_BYTE + '\0' * (padding_needed - countsize - bytesize)
     padding += packed_length
     return message + padding
@@ -459,4 +459,4 @@ if __name__ == '__main__':
         ARGS = []
     else:
         COMMAND, ARGS = sys.argv[1], sys.argv[2:]
-    eval(COMMAND)(*ARGS)    # pylint: disable=eval-used
+    print(eval(COMMAND)(*ARGS))    # pylint: disable=eval-used
