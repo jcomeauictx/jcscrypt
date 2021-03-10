@@ -269,7 +269,7 @@ def block_mix(octets):
     #logging.debug('block_mix returning %r', truncate(bprime))
     return bprime
 
-def romix(B=None, N=1024):
+def romix(B=None, N=1024, verbose=False):
     '''
     Algorithm scryptROMix
 
@@ -317,6 +317,7 @@ def romix(B=None, N=1024):
     if B is None:  # testing from command line
         B = bytes.fromhex(ROMIX_TEST_VECTOR['INPUT'])
         N = 16
+        verbose = True
     r = len(B) // (64 * 2)
     if not os.getenv('SCRYPT_SLOW_BUT_SURE'):
         array = ctypes.create_string_buffer(bytes(B), len(B))
@@ -330,10 +331,12 @@ def romix(B=None, N=1024):
             #logging.debug('romix first loop appending %r to V', truncate(X))
             V.append(X)
             X = block_mix(X)
-        #logging.debug('V: %s', V)
+        if verbose:
+            logging.debug('V: %r', V)
         for i in range(N):
             j = integerify(X) % N
-            logging.debug('j after integerify: %d', j)
+            if verbose:
+                logging.debug('j after integerify: %d', j)
             #logging.debug('romix calling xor(%r, V[%d])', X, j)
             T = xor(X, V[j])
             X = block_mix(T)

@@ -142,7 +142,8 @@ extern "C" {  // prevents name mangling
         return result;
     }
 
-    void romix(uint32_t *octets, uint32_t N=1024, uint32_t r=1)
+    void romix(uint32_t *octets, uint32_t N=1024, uint32_t r=1,
+        bool verbose=false)
     {
         /*
         Algorithm scryptROMix
@@ -204,9 +205,9 @@ extern "C" {  // prevents name mangling
             memcpy((void *)&V[i], (void *)X, length);
             block_mix(X, length);
         }
-        if (false) {
-            cerr << "romix: first 1024 bytes of V after first loop" << endl;
-            dump_memory(&V, V, 1024);
+        if (verbose) {
+            cerr << "romix: V after first loop" << endl;
+            dump_memory(&V, V, length * N);
         }
         /*  3. for i = 0 to N - 1 do
                 j = Integerify (X) mod N
@@ -386,7 +387,7 @@ extern "C" {  // prevents name mangling
         uint32_t j = integer % 16;
         cerr << "j of ROMIX_IN is 0x" << hex << integer << " % 16 = "
             << dec << j << endl;
-        romix((uint32_t *)d, 16, 1);
+        romix((uint32_t *)d, 16, 1, true);
         matched = !memcmp(d, e, 128);
         cerr << "romix returned " <<
             (matched ? "expected" : "incorrect") <<
