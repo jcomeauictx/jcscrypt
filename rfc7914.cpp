@@ -181,7 +181,7 @@ extern "C" {  // prevents name mangling
         */
         //cerr << "romix: allocating buffers" << endl;
         uint32_t length = 128 * r;
-        uint32_t i, j;
+        uint32_t i, j, k;
         uint32_t wordlength = length >> 2;
         if (verbose) cerr << "romix: largest buffer is " << dec << (N * length)
              << " bytes" << endl;
@@ -222,7 +222,10 @@ extern "C" {  // prevents name mangling
         */
         for (i = 0; i < N; i++)
         {
-            j = integerify(X, wordlength) % N;
+            k = integerify(X, wordlength);
+            j = k % N;
+            if (verbose) cerr << "j = " << dec << j << ", resulting from "
+                << hex << k << " % " << dec << N << endl;
             memcpy((void *)T, (void *)X, length);
             array_xor(T, &V[j * wordlength]);
             memcpy((void *)X, (void *)T, length);
