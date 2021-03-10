@@ -314,12 +314,12 @@ def romix(B, N=1024):
     >>> mixed == expected
     True
     '''
+    r = len(B) // (64 * 2)
     if not os.getenv('SCRYPT_SLOW_BUT_SURE'):
         array = ctypes.create_string_buffer(bytes(B), len(B))
-        ROMIX(array, N)
+        ROMIX(array, N, r)
         X = array.raw
     else:
-        r = len(B) // (64 * 2)  # not needed
         logging.debug('romix B: %r, N: %d, r: %d', truncate(B), N, r)
         X = B
         V = []
