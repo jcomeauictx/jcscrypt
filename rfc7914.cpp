@@ -181,8 +181,8 @@ extern "C" {  // prevents name mangling
         uint32_t *B = octets;
         uint32_t *V;
         V = (uint32_t *)aligned_alloc(64, N * length);
-        cerr << "allocated " << hex << (N * length) << " bytes at "
-            << hex << V << "for V" << endl;
+        cerr << "allocated 0x" << hex << (N * length) << " bytes at "
+            << hex << V << " for V" << endl;
         //  1. X = B
         //cerr << "romix: copying B into X" << endl;
         memcpy((void *)X, (void *)B, length);
@@ -197,7 +197,7 @@ extern "C" {  // prevents name mangling
             block_mix(X, length);
         }
         cerr << "romix: first 1024 bytes of V after first loop" << endl;
-        dump_memory(&V, V, 1024);
+        if (false) dump_memory(&V, V, 1024);
         /*  3. for i = 0 to N - 1 do
                 j = Integerify (X) mod N
                     where Integerify (B[0] ... B[2 * r - 1]) is defined
@@ -374,7 +374,7 @@ extern "C" {  // prevents name mangling
             dump_memory(&c, c, 128);
         }
         b = ROMIX_IN, c = ROMIX_OUT;
-        romix((uint32_t *)b, 1024, 1);
+        romix((uint32_t *)b, 16, 1);
         matched = !memcmp(b, c, 128);
         cerr << "romix returned " <<
             (matched ? "expected" : "incorrect") <<

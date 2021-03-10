@@ -330,7 +330,7 @@ def romix(B=None, N=1024):
             #logging.debug('romix first loop appending %r to V', truncate(X))
             V.append(X)
             X = block_mix(X)
-        logging.debug('V: %s', V)
+        #logging.debug('V: %s', V)
         for i in range(N):
             j = integerify(X) % N
             #logging.debug('romix calling xor(%r, V[%d])', X, j)
