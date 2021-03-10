@@ -129,6 +129,83 @@ extern "C" {  // prevents name mangling
         memcpy((void *)octets, (void *)bPrime, length);
     }
 
+    void romix(uint32_t *octets, uint32_t N=1024, uint32_t r=1)
+    {
+        /*
+        Algorithm scryptROMix
+
+        accepts octets parameter 'b' as bytes object, and returns bytes object
+
+        Input:
+            r       Block size parameter.
+            B       Input octet vector of length 128 * r octets.
+            N       CPU/Memory cost parameter, must be larger than 1,
+                    and a power of 2.
+
+        Output:
+            B'      Output octet vector of length 128 * r octets.
+
+        Steps:
+
+            1. X = B
+
+            2. for i = 0 to N - 1 do
+                V[i] = X
+                X = scryptBlockMix (X)
+               end for
+
+            3. for i = 0 to N - 1 do
+                j = Integerify (X) mod N
+                    where Integerify (B[0] ... B[2 * r - 1]) is defined
+                    as the result of interpreting B[2 * r - 1] as a
+                    little-endian integer.
+                T = X xor V[j]
+                X = scryptBlockMix (T)
+               end for
+
+            4. B' = X
+        */
+        uint32_t length = 128 * r, chunk = 16;  // treated as 64-byte blocks
+        uint32_t i, j;
+        uint32_t wordlength = length >> 2;
+        uint32_t V[N * wordlength] __attribute__((aligned(64))),
+            T[wordlength] __attribute__((aligned(64))),
+            X[wordlength] __attribute__((aligned(64)));
+        uint32_t *B = octets;
+        //  1. X = B
+        memcpy((void *)X, (void *)B, length);
+        /*  2. for i = 0 to N - 1 do
+                V[i] = X
+                X = scryptBlockMix (X)
+               end for
+        */
+        for (i = 0; i < N; i += wordlength)
+        {
+            memcpy((void *)&V[i], (void *)X, length);
+            block_mix(X, length);
+        }
+        /*  3. for i = 0 to N - 1 do
+                j = Integerify (X) mod N
+                    where Integerify (B[0] ... B[2 * r - 1]) is defined
+                    as the result of interpreting B[2 * r - 1] as a
+                    little-endian integer.
+                T = X xor V[j]
+                X = scryptBlockMix (T)
+               end for
+        */
+        for (i = 0; i < N; i++)
+        {
+            j = X[wordlength - chunk] % N;
+            memcpy((void *)T, (void *)X, length);
+            array_xor(T, &V[j * length]);
+            memcpy((void *)X, (void *)T, length);
+            block_mix(X, length);
+        }
+        //  4. B' = X
+        // since we're doing this in-place, just overwrite B with X
+        memcpy((void *)B, (void *)X, length);
+    }
+
     void scrypt(uint32_t *passphrase, uint32_t *salt=NULL,
         uint32_t N=1024, uint32_t r=1, uint32_t p=1,
         uint32_t dkLen=32, uint8_t *derivedKey=NULL)
