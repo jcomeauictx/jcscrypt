@@ -1,5 +1,7 @@
 #!/usr/bin/python -OO
-'adaptation of simpleminer for scrypt'
+'''
+adaptation of simpleminer for scrypt
+'''
 from __future__ import print_function
 # pylint: disable=multiple-imports
 import sys, os, time, json, hashlib, struct, re, base64
@@ -186,7 +188,8 @@ def getwork(data = None):
     init()
     if os.getenv('SIMPLEMINER_FAKE_DATA', False):
         if not data:
-            logging.debug('***WARNING*** this is static test data, not from server!')
+            logging.debug('***WARNING*** this is static test data, '
+                          'not from server!')
             work = {'result': {
                 'data': hexlify(bufreverse(pad(unhexlify(TEST_HEADER)))),
                 'target': hexlify(unhexlify(TEST_TARGET)[::-1]),
@@ -411,15 +414,16 @@ def pad(message = ''):
     padding += packed_length
     return message + padding
 
-def profile():
+def mine_once():
     '''
     took simpleminer() and trimmed it down to single process for profiling
     '''
     init()
+    os.environ['SIMPLEMINER_FAKE_DATA'] = '1'
     start_time = time.time()
     work = getwork()
     if not work:
-        raise Exception('daemon did not return valid "getwork" results')
+        raise RuntimeError('daemon did not return valid "getwork" results')
     data = bufreverse(unhexlify(work['data']))[:HEADER_SIZE - INT_SIZE]
     target = unhexlify(work['target'])[::-1]
     algorithm = work.get('algorithm', 'sha256d')
@@ -442,7 +446,17 @@ def profile():
         total_hashes, delta_time, (total_hashes // 1000) // delta_time
     )
 
+def profile():
+    '''
+    get an idea of where this program spends most of its time
+    '''
+    import cProfile
+    cProfile.run('mine_once()')
+
 if __name__ == '__main__':
-     COMMAND = os.path.splitext(os.path.basename(sys.argv[0]))[0]
-     # pylint: disable=eval-used
-     print('exit status: %s' % eval(COMMAND)(*sys.argv[1:]))
+    if len(sys.argv) == 1:
+        COMMAND = os.path.splitext(os.path.basename(sys.argv[0]))[0]
+        ARGS = []
+    else:
+        COMMAND, ARGS = sys.argv[1], sys.argv[2:]
+    eval(COMMAND)(*ARGS)    # pylint: disable=eval-used
