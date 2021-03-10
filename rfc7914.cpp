@@ -209,7 +209,7 @@ extern "C" {  // prevents name mangling
             cerr << "romix: j=" << dec << j << endl;
             memcpy((void *)T, (void *)X, length);
             cerr << "romix: got this far" << endl;
-            array_xor(T, &V[j * length]);
+            array_xor(T, &V[j * wordlength]);
             memcpy((void *)X, (void *)T, length);
             block_mix(X, length);
         }
