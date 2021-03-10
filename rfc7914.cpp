@@ -173,6 +173,7 @@ extern "C" {  // prevents name mangling
         uint32_t V[N * wordlength] __attribute__((aligned(64))),
             T[wordlength] __attribute__((aligned(64))),
             X[wordlength] __attribute__((aligned(64)));
+        cerr << "romix: got this far" << endl;
         uint32_t *B = octets;
         //  1. X = B
         cerr << "romix: copying B into X" << endl;
