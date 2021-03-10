@@ -227,7 +227,7 @@ extern "C" {  // prevents name mangling
             if (verbose) cerr << "j = " << dec << j << ", resulting from "
                 << hex << k << " % " << dec << N << endl;
             memcpy((void *)T, (void *)X, length);
-            array_xor(T, &V[j * wordlength]);
+            array_xor(T, &V[j * wordlength], length);
             memcpy((void *)X, (void *)T, length);
             block_mix(X, length);
         }
