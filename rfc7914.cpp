@@ -7,6 +7,9 @@ using namespace std;
 #include <cstring>
 #define R(a,b) (((a) << (b)) | ((a) >> (32 - (b))))
 typedef uint32_t uint32;  // for code copied from spec
+#ifndef aligned_alloc
+ #define aligned_alloc(alignment, size) malloc(size)
+#endif
 extern "C" {  // prevents name mangling
 
     void showbytes(const void *addr, const void *bytes,
