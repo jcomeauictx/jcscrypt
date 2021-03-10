@@ -134,6 +134,14 @@ extern "C" {  // prevents name mangling
         memcpy((void *)octets, (void *)bPrime, length);
     }
 
+    uint32_t integerify(uint32_t *octets, uint32_t wordlength)
+    {
+        // lame integerify that only looks at low 32 bits
+        // of final 64-byte octet (16 words)
+        uint32_t result = octets[wordlength - 16];  // little-endian assumed
+        return result;
+    }
+
     void romix(uint32_t *octets, uint32_t N=1024, uint32_t r=1)
     {
         /*
@@ -171,7 +179,7 @@ extern "C" {  // prevents name mangling
             4. B' = X
         */
         //cerr << "romix: allocating buffers" << endl;
-        uint32_t length = 128 * r, chunk = 16;  // treated as 64-byte blocks
+        uint32_t length = 128 * r;
         uint32_t i, j;
         uint32_t wordlength = length >> 2;
         if (false) cerr << "romix: largest buffer is " << dec << (N * length)
@@ -211,10 +219,8 @@ extern "C" {  // prevents name mangling
         */
         for (i = 0; i < N; i++)
         {
-            j = X[wordlength - chunk] % N;
-            cerr << "romix: j=" << dec << j << endl;
+            j = integerify(X, wordlength) % N;
             memcpy((void *)T, (void *)X, length);
-            //cerr << "romix: got this far" << endl;
             array_xor(T, &V[j * wordlength]);
             memcpy((void *)X, (void *)T, length);
             block_mix(X, length);
@@ -357,7 +363,8 @@ extern "C" {  // prevents name mangling
             0x4e, 0x90, 0x87, 0xcb, 0x33, 0x39, 0x6a, 0x68,
             0x73, 0xe8, 0xf9, 0xd2, 0x53, 0x9a, 0x4b, 0x8e,
         };
-        uint8_t *t = T, *x = X, *b = BLOCK_MIX_IN, *c = BLOCK_MIX_OUT;
+        uint8_t *t = T, *x = X, *b = BLOCK_MIX_IN, *c = BLOCK_MIX_OUT,
+                *d = ROMIX_IN, *e = ROMIX_OUT;
         cerr << "Debugging rfc7914.cpp" << endl;
         dump_memory(&t, t, 64);
         dump_memory(&x, x, 64);
@@ -375,18 +382,21 @@ extern "C" {  // prevents name mangling
             cerr << "Expected results" << endl;
             dump_memory(&c, c, 128);
         }
-        b = ROMIX_IN, c = ROMIX_OUT;
-        romix((uint32_t *)b, 16, 1);
-        matched = !memcmp(b, c, 128);
+        uint32_t integer = integerify((uint32_t *)d, 128 >> 2);
+        uint32_t j = integer % 16;
+        cerr << "j of ROMIX_IN is 0x" << hex << integer << " % 16 = "
+            << dec << j << endl;
+        romix((uint32_t *)d, 16, 1);
+        matched = !memcmp(d, e, 128);
         cerr << "romix returned " <<
             (matched ? "expected" : "incorrect") <<
             " results" << endl;
         if (!matched)
         {
             cerr << "Results of romix" << endl;
-            dump_memory(&b, b, 128);
+            dump_memory(&d, d, 128);
             cerr << "Expected results" << endl;
-            dump_memory(&c, c, 128);
+            dump_memory(&e, e, 128);
         }
         return 0;
     }

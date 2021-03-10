@@ -408,7 +408,8 @@ def scrypt(passphrase, salt=None, N=1024, r=1, p=1, dkLen=32):
         B[i] = romix(B[i], N)
     return pbkdf2_hmac('sha256', passphrase, b''.join(B), 1, dkLen)
 
-def integerify(octets, endianness='little'):  # pylint: disable=unused-argument
+def integerify(octets=None,
+        endianness='little'):  # pylint: disable=unused-argument
     r'''
     Return octet bytestring as an integer with given endianness
 
@@ -427,8 +428,14 @@ def integerify(octets, endianness='little'):  # pylint: disable=unused-argument
     >>> hex(integerify(b'\x00\x11\x22\x33' + bytes(60)))
     '0x33221100'
     '''
+    if octets is None:  # command line testing
+        octets = bytes.fromhex(ROMIX_TEST_VECTOR['INPUT'])
+        verbose = True
+    else:
+        verbose = False
     chunk = octets[-64:]
-    #logging.debug('chunk: %r', chunk)
+    if verbose:
+        logging.debug('chunk: %r', chunk)
     try:
         integer = int.from_bytes(chunk, 'little')
     except AttributeError:
@@ -436,8 +443,9 @@ def integerify(octets, endianness='little'):  # pylint: disable=unused-argument
             integer = struct.unpack('<Q', chunk[:8])[0]
         except ValueError:
             integer = struct.unpack('<L', chunk[:4])[0]
-    #logging.debug('integerify taking %r from %r and returning %s',
-                  #chunk, octets, hex(integer))
+    if verbose:
+        logging.debug('integerify taking %r from %r and returning %s',
+                      chunk, octets, hex(integer))
     return integer
 
 def xor(*arrays):
