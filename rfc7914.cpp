@@ -183,7 +183,14 @@ extern "C" {  // prevents name mangling
         uint32_t length = 128 * r;
         uint32_t i, j, k;
         uint32_t wordlength = length >> 2;
-        if (verbose) throw 1;
+        if (verbose)
+        {
+            cerr << "somehow verbose got set to true" << endl;
+            cerr << "N = " << dec << N << endl;
+            cerr << "r = " << dec << r << endl;
+            cerr << "verbose = " << verbose << endl;
+            verbose = false;
+        }
         if (verbose) cerr << "romix: largest buffer is " << dec << (N * length)
              << " bytes" << endl;
         uint32_t T[wordlength] __attribute__((aligned(64))),

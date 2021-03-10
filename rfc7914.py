@@ -321,6 +321,9 @@ def romix(B=None, N=1024, verbose=False):
     r = len(B) // (64 * 2)
     if not os.getenv('SCRYPT_SLOW_BUT_SURE'):
         array = ctypes.create_string_buffer(bytes(B), len(B))
+        if verbose:
+            logging.warning('calling library romix with args %r',
+                          (array, N, r))
         ROMIX(array, N, r)
         X = array.raw
     else:
