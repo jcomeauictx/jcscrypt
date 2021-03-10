@@ -5,7 +5,7 @@ minimalist implementation of rfc7914 optimized for litecoin-style scrypt hash
 N=1024, r=1, p=1, dkLen=32
 '''
 # pylint: disable=invalid-name, too-many-arguments
-import sys, os, logging, ctypes  # pylint: disable=multiple-imports
+import sys, os, logging, ctypes, struct  # pylint: disable=multiple-imports
 from datetime import datetime
 try:
     from hashlib import pbkdf2_hmac
@@ -334,9 +334,10 @@ def romix(B=None, N=1024, verbose=False):
         if verbose:
             logging.debug('V: %r', V)
         for i in range(N):
-            j = integerify(X) % N
+            k = integerify(X, short=verbose)
+            j = k % N
             if verbose:
-                logging.debug('j after integerify: %d', j)
+                logging.debug('j = %d, 0x%x %% %d', j, k, N)
             #logging.debug('romix calling xor(%r, V[%d])', X, j)
             T = xor(X, V[j])
             X = block_mix(T)
@@ -411,10 +412,9 @@ def scrypt(passphrase, salt=None, N=1024, r=1, p=1, dkLen=32):
         B[i] = romix(B[i], N)
     return pbkdf2_hmac('sha256', passphrase, b''.join(B), 1, dkLen)
 
-def integerify(octets=None,
-        endianness='little'):  # pylint: disable=unused-argument
+def integerify(octets=None, short=False):
     r'''
-    Return octet bytestring as an integer with given endianness
+    Return octet bytestring as a little-endian integer
 
     The RFC states "... Integerify (B[0] ... B[2 * r - 1]) is defined
     as the result of interpreting B[2 * r - 1] as a little-endian integer."
@@ -439,13 +439,16 @@ def integerify(octets=None,
     chunk = octets[-64:]
     if verbose:
         logging.debug('chunk: %r', chunk)
-    try:
-        integer = int.from_bytes(chunk, 'little')
-    except AttributeError:
+    if short:
+        integer = struct.unpack('<L', chunk[:4])[0]
+    else:
         try:
-            integer = struct.unpack('<Q', chunk[:8])[0]
-        except ValueError:
-            integer = struct.unpack('<L', chunk[:4])[0]
+            integer = int.from_bytes(chunk, 'little')
+        except AttributeError:
+            try:
+                integer = struct.unpack('<Q', chunk[:8])[0]
+            except ValueError:
+                integer = struct.unpack('<L', chunk[:4])[0]
     if verbose:
         logging.debug('integerify taking %r from %r and returning %s',
                       chunk, octets, hex(integer))
