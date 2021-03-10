@@ -88,7 +88,7 @@ def key_value(line):
      '''
      parse key and value from configuration line
      '''
-     match = re.match('^(\w+)\s*=\s*(\S+)', line)
+     match = re.match(r'^(\w+)\s*=\s*(\S+)', line)
      return match.groups() if match else None
 
 def parse_config(config_file):
@@ -356,7 +356,7 @@ def simpleminer():
         while done < THREADS:
             try:
                 readable = select.select(pipe_list, [], [])[0]
-            except Exception:
+            except (KeyboardInterrupt, RuntimeError):
                 PERSISTENT['quit'] = True
                 break
             for pipe in readable:
@@ -366,9 +366,9 @@ def simpleminer():
                     logging.debug('checking hash for nonce 0x%08x', nonce)
                     if check_hash(data, target, nonce):
                         PERSISTENT['solved'] = True
-                        getwork([work['data'][:HEX_HEADER_SIZE - HEX_INT_SIZE] + \
-                            hexlify(struct.pack('>I', nonce)) + \
-                        work['data'][HEX_HEADER_SIZE:]])
+                        getwork([work['data'][:HEX_HEADER_SIZE - HEX_INT_SIZE] +
+                            hexlify(struct.pack('>I', nonce)) +
+                            work['data'][HEX_HEADER_SIZE:]])
                     else:
                         logging.info('nonce %08x failed threshold', nonce)
                 else:
