@@ -91,8 +91,8 @@ extern "C" {  // prevents name mangling
         uint32_t wordlength = length >> 2, midway = length >> 3, chunk = 16;
         // chunk length is 64 / sizeof(uint32_t) = 16
         uint32_t bPrime[wordlength] __attribute__((aligned(64))),
-            T[chunk] __attribute__((aligned(64)),
-            X[chunk] __attribute__((aligned(64));
+            T[chunk] __attribute__((aligned(64))),
+            X[chunk] __attribute__((aligned(64)));
         // NOTE that we're not using B here same as the spec does.
         // Here, B is a uint32_t pointer, *not* the index of a 64-byte block
         uint32_t *B = octets, *Y = bPrime;
@@ -166,6 +166,7 @@ extern "C" {  // prevents name mangling
 
             4. B' = X
         */
+        cerr << "romix: allocating buffers" << endl;
         uint32_t length = 128 * r, chunk = 16;  // treated as 64-byte blocks
         uint32_t i, j;
         uint32_t wordlength = length >> 2;
@@ -174,6 +175,7 @@ extern "C" {  // prevents name mangling
             X[wordlength] __attribute__((aligned(64)));
         uint32_t *B = octets;
         //  1. X = B
+        cerr << "romix: copying B into X" << endl;
         memcpy((void *)X, (void *)B, length);
         /*  2. for i = 0 to N - 1 do
                 V[i] = X

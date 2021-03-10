@@ -24,7 +24,7 @@ _%.so: %.cpp Makefile
 	g++ -shared $(OPTIMIZE) -fpic $(ARCH) -lm -o $@ $(EXTRALIBS) $<
 %.pylint: %.py
 	pylint3 $<
-%.doctest: %.py
+%.doctest: %.py _rfc7914.so
 	python3 -m doctest $<
 pylint: $(PY_SOURCES:.py=.pylint)
 doctests: $(PY_SOURCES:.py=.doctest)
