@@ -193,18 +193,18 @@ extern "C" {  // prevents name mangling
         if (verbose) cerr << "allocated 0x" << hex << (N * length)
             << " bytes at " << hex << V << " for V" << endl;
         //  1. X = B
-        //cerr << "romix: copying B into X" << endl;
+        if (verbose) cerr << "romix: copying B into X" << endl;
         memcpy((void *)X, (void *)B, length);
         /*  2. for i = 0 to N - 1 do
                 V[i] = X
                 X = scryptBlockMix (X)
                end for
         */
-        for (i = 0; i < N; i += wordlength)
+        for (i = 0; i < N * wordlength; i += wordlength)
         {
             if (verbose) cerr << "&V[i]: " << hex << &V[i] << endl;
             if (verbose) cerr << "V + i: " << hex << (V + i) << endl;
-            memcpy((void *)(V + i), (void *)X, length);
+            memcpy((void *)&V[i], (void *)X, length);
             block_mix(X, length);
         }
         if (verbose) {
