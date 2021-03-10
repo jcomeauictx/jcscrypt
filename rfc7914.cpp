@@ -1,6 +1,7 @@
 /* direct implementation of rfc7914, "scrypt" */
 using namespace std;
 #include <stdint.h>
+#include <stdlib.h>
 #include <iostream>
 #include <iomanip>
 #include <cstring>
@@ -170,11 +171,14 @@ extern "C" {  // prevents name mangling
         uint32_t length = 128 * r, chunk = 16;  // treated as 64-byte blocks
         uint32_t i, j;
         uint32_t wordlength = length >> 2;
-        uint32_t V[N * wordlength] __attribute__((aligned(64))),
-            T[wordlength] __attribute__((aligned(64))),
+        cerr << "romix: largest buffer is " << dec << (N * length)
+             << " bytes" << endl;
+        uint32_t T[wordlength] __attribute__((aligned(64))),
             X[wordlength] __attribute__((aligned(64)));
         cerr << "romix: got this far" << endl;
         uint32_t *B = octets;
+        uint32_t *V;
+        V = (uint32_t *)aligned_alloc(64, N * length);
         //  1. X = B
         cerr << "romix: copying B into X" << endl;
         memcpy((void *)X, (void *)B, length);
@@ -206,6 +210,7 @@ extern "C" {  // prevents name mangling
             memcpy((void *)X, (void *)T, length);
             block_mix(X, length);
         }
+        free(V);
         //  4. B' = X
         // since we're doing this in-place, just overwrite B with X
         memcpy((void *)B, (void *)X, length);
