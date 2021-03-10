@@ -183,15 +183,15 @@ extern "C" {  // prevents name mangling
         uint32_t length = 128 * r;
         uint32_t i, j;
         uint32_t wordlength = length >> 2;
-        if (false) cerr << "romix: largest buffer is " << dec << (N * length)
+        if (verbose) cerr << "romix: largest buffer is " << dec << (N * length)
              << " bytes" << endl;
         uint32_t T[wordlength] __attribute__((aligned(64))),
             X[wordlength] __attribute__((aligned(64)));
         uint32_t *B = octets;
         uint32_t *V;
         V = (uint32_t *)aligned_alloc(64, N * length);
-        cerr << "allocated 0x" << hex << (N * length) << " bytes at "
-            << hex << V << " for V" << endl;
+        if (verbose) cerr << "allocated 0x" << hex << (N * length)
+            << " bytes at " << hex << V << " for V" << endl;
         //  1. X = B
         //cerr << "romix: copying B into X" << endl;
         memcpy((void *)X, (void *)B, length);
@@ -202,7 +202,9 @@ extern "C" {  // prevents name mangling
         */
         for (i = 0; i < N; i += wordlength)
         {
-            memcpy((void *)&V[i], (void *)X, length);
+            if (verbose) cerr << "&V[i]: " << hex << &V[i] << endl;
+            if (verbose) cerr << "V + i: " << hex << (V + i) << endl;
+            memcpy((void *)(V + i), (void *)X, length);
             block_mix(X, length);
         }
         if (verbose) {
