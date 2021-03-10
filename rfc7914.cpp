@@ -196,8 +196,10 @@ extern "C" {  // prevents name mangling
             memcpy((void *)&V[i], (void *)X, length);
             block_mix(X, length);
         }
-        cerr << "romix: first 1024 bytes of V after first loop" << endl;
-        if (false) dump_memory(&V, V, 1024);
+        if (false) {
+            cerr << "romix: first 1024 bytes of V after first loop" << endl;
+            dump_memory(&V, V, 1024);
+        }
         /*  3. for i = 0 to N - 1 do
                 j = Integerify (X) mod N
                     where Integerify (B[0] ... B[2 * r - 1]) is defined
@@ -210,7 +212,7 @@ extern "C" {  // prevents name mangling
         for (i = 0; i < N; i++)
         {
             j = X[wordlength - chunk] % N;
-            //cerr << "romix: j=" << dec << j << endl;
+            cerr << "romix: j=" << dec << j << endl;
             memcpy((void *)T, (void *)X, length);
             //cerr << "romix: got this far" << endl;
             array_xor(T, &V[j * wordlength]);
