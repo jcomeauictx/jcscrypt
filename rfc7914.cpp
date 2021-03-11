@@ -6,7 +6,6 @@ using namespace std;
 #include <iomanip>
 #include <cstring>
 #define R(a,b) (((a) << (b)) | ((a) >> (32 - (b))))
-typedef uint32_t uint32;  // for code copied from spec
 #ifndef aligned_alloc
  #define aligned_alloc(alignment, size) malloc(size)
 #endif
@@ -37,15 +36,15 @@ extern "C" {  // prevents name mangling
         }
     }
         
-    void array_xor(uint32 *first, uint32 *second, uint32_t length=64)
+    void array_xor(uint32_t *first, uint32_t *second, uint32_t length=64)
     {
         uint32_t wordlength = length >> 2;
         for (uint32_t i = 0; i < wordlength; i++) first[i] ^= second[i];
     }
 
-    void salsa20_word_specification(uint32 out[16],uint32 in[16])
+    void salsa20_word_specification(uint32_t out[16],uint32_t in[16])
     {
-        uint32 *x = out;
+        uint32_t *x = out;
         for (uint32_t i = 0;i < 16;++i) x[i] = in[i];
         for (uint32_t i = 8;i > 0;i -= 2) {
             x[ 4] ^= R(x[ 0]+x[12], 7);  x[ 8] ^= R(x[ 4]+x[ 0], 9);
