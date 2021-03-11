@@ -233,21 +233,15 @@ extern "C" {  // prevents name mangling
 
             4. B' = X
         */
-        //cerr << "romix: allocating buffers" << endl;
         uint32_t length = 128 * r;
         uint32_t i, j, k;
         uint32_t wordlength = length >> 2;
-        if (false) cerr << "romix: largest buffer is " << dec << (N * length)
-             << " bytes" << endl;
         uint32_t T[wordlength] __attribute__((aligned(64))),
             X[wordlength] __attribute__((aligned(64)));
         uint32_t *B = octets;
         uint32_t *V;
         V = (uint32_t *)aligned_alloc(64, N * length);
-        if (false) cerr << "allocated 0x" << hex << (N * length)
-            << " bytes at " << hex << V << " for V" << endl;
         //  1. X = B
-        if (false) cerr << "romix: copying B into X" << endl;
         memcpy((void *)X, (void *)B, length);
         /*  2. for i = 0 to N - 1 do
                 V[i] = X
@@ -256,14 +250,8 @@ extern "C" {  // prevents name mangling
         */
         for (i = 0; i < N * wordlength; i += wordlength)
         {
-            if (false) cerr << "&V[i]: " << hex << &V[i] << endl;
-            if (false) cerr << "V + i: " << hex << (V + i) << endl;
             memcpy((void *)&V[i], (void *)X, length);
             block_mix_rfc(X, length);
-        }
-        if (false) {
-            cerr << "romix: V after first loop" << endl;
-            dump_memory(&V, V, length * N);
         }
         /*  3. for i = 0 to N - 1 do
                 j = Integerify (X) mod N
@@ -278,8 +266,6 @@ extern "C" {  // prevents name mangling
         {
             k = integerify(X, wordlength);
             j = k % N;
-            if (false) cerr << "j = " << dec << j << ", resulting from "
-                << hex << k << " % " << dec << N << endl;
             memcpy((void *)T, (void *)X, length);
             array_xor(T, &V[j * wordlength], length);
             memcpy((void *)X, (void *)T, length);
