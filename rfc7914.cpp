@@ -128,6 +128,89 @@ extern "C" {  // prevents name mangling
         memcpy((void *)octets, (void *)bPrime, length);
     }
 
+    void block_mix2(uint32_t *octets, uint32_t length, bool verbose=true)
+    {
+        /*
+        octets is taken as 64-octet chunks, and hashed with salsa20
+
+        steps according to the RFC:
+        1. X = B[2 * r - 1]
+        2. for i = 0 to 2 * r - 1 do
+             T = X xor B[i]
+             X = Salsa (T)
+             Y[i] = X
+           end for
+        3. B' = (Y[0], Y[2], ..., Y[2 * r - 2],
+                 Y[1], Y[3], ..., Y[2 * r - 1])
+
+        Possible optimizations: 
+        * array creation in #1 can be avoided simply by moving the
+          pointer to the correct 64-byte block of the octet buffer
+        * T, X, and Y[i] don't necessarily all have to be different
+          pointers. Some of the operations can be done in place.
+        * shuffling in #3 can be avoided by moving the pointer to 
+          the appropriate place in B' as #2 is running
+        * since B is being processed sequentially, blocks in the first
+          half can be overwritten as we go. B' only has to be for the
+          2nd half of blocks, and that for reference (read) only.
+        */
+        uint32_t i, j, k;
+        uint32_t wordlength = length >> 2, midway = length >> 3, chunk = 16;
+        // chunk length is 64 / sizeof(uint32_t) = 16
+        uint32_t *B = octets, *bPrime, *X;
+        uint32_t T[chunk] __attribute__((aligned(64)));
+        /* NOTE that we're not using B here same as the spec does.
+           Here, B is a uint32_t pointer, *not* the index of a 64-byte block
+        */
+        bPrime = (uint32_t *)aligned_alloc(64, length >> 1);
+        memcpy((void *)bPrime, (void *)(octets + (length >> 1)), length >> 1);
+        if (verbose)
+        {
+            cerr << "octets:" << endl;
+            dump_memory(&B, B, length);
+            cerr << "bPrime:" << endl;
+            dump_memory(&bPrime, bPrime, length >> 1);
+        }
+        // X = B[2 * r - 1]
+        // we will use bPrime as reference, and overwrite B as we go.
+        X = B + length - 64;
+        // now begin the loop for the first half
+        for (i = 0; i < midway; i += chunk << 1)
+        {
+            j = i >> 1;  // even blocks go to the front
+            k = j + midway;  // odd blocks go to the back
+            // T = X xor B[i]
+            memcpy((void *)T, (void *)X, 64);
+            array_xor(T, &B[i]);
+            // X = Salsa (T); Y[i] = X
+            X = &B[j];
+            salsa20_word_specification(X, T);
+            // now repeat for the odd chunk
+            memcpy((void *)T, (void *)X, 64);
+            array_xor(T, &B[i + chunk]);
+            X = &B[k];
+            salsa20_word_specification(X, T);
+        }
+        // now the second half, using bPrime as reference
+        // right now, the first 4th of B has been overwritten with the
+        // original even blocks, and the 3rd 4th has been overwritten with
+        // the original odd blocks. So now we overwrite the 2nd and 4th 4ths.
+        for (i = 0; i < midway; i += chunk << 1)
+        {
+            j = i + (midway >> 1);
+            k = j + midway;
+            memcpy((void *)T, (void *)X, 64);
+            array_xor(T, &bPrime[i]);
+            X = &B[j];
+            salsa20_word_specification(X, T);
+            memcpy((void *)T, (void *)X, 64);
+            array_xor(T, &bPrime[i + chunk]);
+            X = &B[k];
+            salsa20_word_specification(X, T);
+        }
+        free(bPrime);
+    }
+
     uint32_t integerify(uint32_t *octets, uint32_t wordlength)
     {
         // lame integerify that only looks at low 32 bits
@@ -377,7 +460,7 @@ extern "C" {  // prevents name mangling
         dump_memory(&x, x, 64);
         array_xor((uint32_t *)T, (uint32_t *)X);
         dump_memory(&t, t, 64);
-        block_mix((uint32_t *)b, 128);
+        block_mix2((uint32_t *)b, 128);
         bool matched = !memcmp(b, c, 128);
         cerr << "block_mix returned " <<
             (matched ? "expected" : "incorrect") <<
