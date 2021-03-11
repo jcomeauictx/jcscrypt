@@ -31,7 +31,7 @@ PERSISTENT = {'quit': False, 'solved': False}  # global for storing settings
 THREAD = {}  # global for threads
 DEFAULTCOIN = 'americancoin'  # one of easiest to mine as of January 2014
 COIN = os.getenv('SIMPLEMINER_COIN', DEFAULTCOIN)
-SCRYPT_PARAMETERS = {'N': 1024, 'r': 1,'p': 1, 'buflen': 32}
+SCRYPT_PARAMETERS = {'N': 1024, 'r': 1, 'p': 1, 'buflen': 32}
 SCRYPT_ALGORITHM = 'scrypt:1024,1,1'
 CONFIGFILE = os.path.expanduser('~/.%s/%s.conf' % (COIN, COIN))
 MULTIPLIER = int(os.getenv('SIMPLEMINER_MULTIPLIER', '1'))
@@ -60,7 +60,7 @@ TEST_TARGET = (
 )
 TEST_NONCE = 3562614017
 
-class FakePipe(object):
+class FakePipe(object):  # pylint: disable=useless-object-inheritance
     '''
     implement fake pipe for profiling code
     '''
@@ -148,7 +148,7 @@ def setup_fake_nonce(*ignored):  # pylint: disable=unused-argument
     signal that brought us here ignored, just set up fake nonce
     '''
     logging.debug('setting up fake nonce')
-    if os.getenv('SIMPLEMINER_FAKE_DATA', False):
+    if os.getenv('SIMPLEMINER_FAKE_DATA'):
         PERSISTENT['get_nonce'] = fake_nonce
 
 def fake_nonce(*ignored):  # pylint: disable=unused-argument
@@ -158,15 +158,17 @@ def fake_nonce(*ignored):  # pylint: disable=unused-argument
     PERSISTENT['get_nonce'] = random32
     return TEST_NONCE
 
-def rpc(method, parameters=[]):
+def rpc(method, parameters=None):
     '''
     send rpc query to server
     '''
     logging.debug('making rpc call with parameters = %s', parameters)
-    rpc_call = {'version': '1.1', 'method': method, 'id': 0, 'params': parameters}
+    rpc_call = {'version': '1.1', 'method': method,
+                'id': 0, 'params': parameters or []}
     try:
         establish_connection()
-        PERSISTENT['rpcserver'].request('POST', '/', json.dumps(rpc_call),
+        PERSISTENT['rpcserver'].request(
+            'POST', '/', json.dumps(rpc_call),
             {'Authorization': 'Basic %s' % PERSISTENT['authorization'],
              'Content-type': 'application/json'})
         response = PERSISTENT['rpcserver'].getresponse()
@@ -175,8 +177,10 @@ def rpc(method, parameters=[]):
         response_object = json.loads(message)
         response.close()
     except RuntimeError:
-        response_object = {'error': 'No response or null response', 'result': None}
-        if __debug__: raise
+        response_object = {'error': 'No response or null response',
+                           'result': None}
+        if __debug__:
+            raise
     logging.debug(response_object.get('error', None))
     return response_object
 
@@ -185,7 +189,7 @@ def getwork(data=None):
     get "getwork" data from server, or submit possible solution
     '''
     init()
-    if os.getenv('SIMPLEMINER_FAKE_DATA', False):
+    if os.getenv('SIMPLEMINER_FAKE_DATA'):
         if not data:
             logging.debug('***WARNING*** this is static test data, '
                           'not from server!')
@@ -298,7 +302,7 @@ def check_hash(data=unhexlify(TEST_HEADER), target=None, nonce=None):
     if target and get_hash:
         checking = get_hash(data, '')[::-1]  # convert to big-endian
         logging.info('comparing:\n %s nonce 0x%08x to\n %s',
-            hexlify(checking), nonce, hexlify(target))
+                     hexlify(checking), nonce, hexlify(target))
         return checking < target
     else:
         print('header: %s, nonce: 0x%08x (%d)' % (hexlify(data), nonce, nonce))
@@ -348,7 +352,7 @@ def simpleminer():
         for thread_id in range(THREADS):
             parent_end, child_end = multiprocessing.Pipe()
             thread = multiprocessing.Process(
-                target = miner_thread, args = (thread_id, data, child_end))
+                target=miner_thread, args=(thread_id, data, child_end))
             thread.start()
             pipe_list.append(parent_end)
         logging.debug('%d mining threads started', THREADS)
@@ -366,8 +370,8 @@ def simpleminer():
                     if check_hash(data, target, nonce):
                         PERSISTENT['solved'] = True
                         getwork([work['data'][:HEX_HEADER_SIZE - HEX_INT_SIZE] +
-                            hexlify(struct.pack('>I', nonce)) +
-                            work['data'][HEX_HEADER_SIZE:]])
+                                 hexlify(struct.pack('>I', nonce)) +
+                                 work['data'][HEX_HEADER_SIZE:]])
                     else:
                         logging.info('nonce %08x failed threshold', nonce)
                 else:
@@ -383,7 +387,7 @@ def simpleminer():
             total_hashes, delta_time, (total_hashes / 1000) / delta_time)
         while multiprocessing.active_children():
             time.sleep(0.1)  # joins finished processes
-        if PERSISTENT['solved'] and os.getenv('SIMPLEMINER_FAKE_DATA', False):
+        if PERSISTENT['solved'] and os.getenv('SIMPLEMINER_FAKE_DATA'):
             break  # for timing and/or profiling
     return 'done'
 
