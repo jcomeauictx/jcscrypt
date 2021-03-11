@@ -96,51 +96,36 @@ extern "C" {  // prevents name mangling
         uint32_t i, j, k;
         uint32_t wordlength = length >> 2, midway = length >> 3, chunk = 16;
         // chunk length is 64 / sizeof(uint32_t) = 16
-        uint32_t *B = octets, *bPrime, *X;
-        uint32_t T[chunk] __attribute__((aligned(64)));
+        uint32_t bPrime[wordlength] __attribute__((aligned(64))),
+            T[chunk] __attribute__((aligned(64))),
+            X[chunk] __attribute__((aligned(64)));
         /* NOTE that we're not using B here same as the spec does.
            Here, B is a uint32_t pointer, *not* the index of a 64-byte block
         */
-        bPrime = (uint32_t *)aligned_alloc(64, length >> 1);
-        memcpy((void *)bPrime, (void *)(octets + (length >> 1)), length >> 1);
+        uint32_t *B = octets, *Y = bPrime;
+
         // X = B[2 * r - 1]
-        // we will use bPrime as reference, and overwrite B as we go.
-        X = B + length - 64;
-        // now begin the loop for the first half
-        for (i = 0; i < midway; i += chunk << 1)
+        memcpy((void *)X, (void *)(&octets[wordlength - chunk]), 64);
+        // now begin the loop
+        for (i = 0; i < wordlength; i += chunk << 1)
         {
-            j = i >> 1;  // even blocks go to the front
-            k = j + midway;  // odd blocks go to the back
+            j = i >> 1;  // even blocks go to the front of bPrime
+            k = j + midway;  // odd blocks go to the 2nd half of bPrime
             // T = X xor B[i]
             memcpy((void *)T, (void *)X, 64);
             array_xor(T, &B[i]);
-            // X = Salsa (T); Y[i] = X
-            X = &B[j];
+            // X = Salsa (T)
             salsa20_word_specification(X, T);
+            // Y[i] = X
+            memcpy((void *)&Y[j], (void *)X, 64);
             // now repeat for the odd chunk
             memcpy((void *)T, (void *)X, 64);
             array_xor(T, &B[i + chunk]);
-            X = &B[k];
             salsa20_word_specification(X, T);
+            memcpy((void *)&Y[k], (void *)X, 64);
         }
-        // now the second half, using bPrime as reference
-        // right now, the first 4th of B has been overwritten with the
-        // original even blocks, and the 3rd 4th has been overwritten with
-        // the original odd blocks. So now we overwrite the 2nd and 4th 4ths.
-        for (i = 0; i < midway; i += chunk << 1)
-        {
-            j = i + (midway >> 1);
-            k = j + midway;
-            memcpy((void *)T, (void *)X, 64);
-            array_xor(T, &bPrime[i]);
-            X = &B[j];
-            salsa20_word_specification(X, T);
-            memcpy((void *)T, (void *)X, 64);
-            array_xor(T, &bPrime[i + chunk]);
-            X = &B[k];
-            salsa20_word_specification(X, T);
-        }
-        free(bPrime);
+        // now overwrite the original with the hashed data
+        memcpy((void *)octets, (void *)bPrime, length);
     }
 
     uint32_t integerify(uint32_t *octets, uint32_t wordlength)
