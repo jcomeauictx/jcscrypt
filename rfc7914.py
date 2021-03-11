@@ -5,7 +5,9 @@ minimalist implementation of rfc7914 optimized for litecoin-style scrypt hash
 N=1024, r=1, p=1, dkLen=32
 '''
 # pylint: disable=invalid-name, too-many-arguments
+from __future__ import print_function
 import sys, os, logging, ctypes, struct  # pylint: disable=multiple-imports
+from binascii import unhexlify  # for python2/3 differences
 from datetime import datetime
 try:
     from hashlib import pbkdf2_hmac
@@ -210,10 +212,10 @@ def salsa(octets):
 
     >>> logging.debug('doctesting salsa')
     >>> testvector = SALSA_TEST_VECTOR
-    >>> octets = bytearray.fromhex(testvector['INPUT'])
+    >>> octets = fromhex(testvector['INPUT'], bytearray)
     >>> shaken = salsa(octets)
     >>> logging.debug('result of `salsa`: %r', shaken)
-    >>> expected = bytes.fromhex(testvector['OUTPUT'])
+    >>> expected = fromhex(testvector['OUTPUT'], bytes)
     >>> logging.debug('expected: %r', expected)
     >>> shaken == expected
     True
@@ -241,9 +243,9 @@ def block_mix(octets):
 
     >>> logging.debug('doctesting block_mix')
     >>> testvector = BLOCK_MIX_TEST_VECTOR
-    >>> octets = bytearray.fromhex(testvector['INPUT'])
+    >>> octets = fromhex(testvector['INPUT'], bytearray)
     >>> mixed = block_mix(octets)
-    >>> expected = bytearray.fromhex(testvector['OUTPUT'])
+    >>> expected = fromhex(testvector['OUTPUT'], bytearray)
     >>> logging.debug('expected: %r', truncate(expected))
     >>> mixed == expected
     True
@@ -306,16 +308,16 @@ def romix(B=None, N=1024, verbose=False):
 
     >>> logging.debug('doctesting romix')
     >>> testvector = ROMIX_TEST_VECTOR
-    >>> octets = bytes.fromhex(testvector['INPUT'])
+    >>> octets = fromhex(testvector['INPUT'], bytes)
     >>> mixed = romix(octets, N=16)
     >>> logging.debug('results of `romix`: %r', mixed)
-    >>> expected = bytes.fromhex(testvector['OUTPUT'])
+    >>> expected = fromhex(testvector['OUTPUT'], bytes)
     >>> logging.debug('expected: %r', expected)
     >>> mixed == expected
     True
     '''
     if B is None:  # testing from command line
-        B = bytes.fromhex(ROMIX_TEST_VECTOR['INPUT'])
+        B = fromhex(ROMIX_TEST_VECTOR['INPUT'], bytes)
         N = 16
         verbose = True
     r = len(B) // (64 * 2)
@@ -381,7 +383,7 @@ def scrypt(passphrase, salt=None, N=1024, r=1, p=1, dkLen=32):
                                     1, dkLen)
 
     >>> for key in PBKDF2_TEST_VECTORS:
-    ...  truncate(bytes.fromhex(PBKDF2_TEST_VECTORS[key]))
+    ...  truncate(fromhex(PBKDF2_TEST_VECTORS[key], bytes))
     ...  try:
     ...   truncate(pbkdf2_hmac('sha256', *OrderedDict(key).values()))
     ...  except ValueError as failure:
@@ -395,7 +397,7 @@ def scrypt(passphrase, salt=None, N=1024, r=1, p=1, dkLen=32):
     >>> for key in SCRYPT_TEST_VECTORS:
     ...  if False and ('N', 1048576) in key:
     ...   continue  # takes too long
-    ...  expected = bytes.fromhex(SCRYPT_TEST_VECTORS[key])
+    ...  expected = fromhex(SCRYPT_TEST_VECTORS[key], bytes)
     ...  logging.debug('calculating scrypt hash for parameters %s', key)
     ...  result = scrypt(*OrderedDict(key).values())
     ...  logging.debug('check %r == %r', truncate(result), truncate(expected))
@@ -435,7 +437,7 @@ def integerify(octets=None, short=False):
     '0x33221100'
     '''
     if octets is None:  # command line testing
-        octets = bytes.fromhex(ROMIX_TEST_VECTOR['INPUT'])
+        octets = fromhex(ROMIX_TEST_VECTOR['INPUT'], bytes)
         verbose = True
     else:
         verbose = False
@@ -522,7 +524,7 @@ def compare():
         pyscrypt = None
     testvectors = SCRYPT_TEST_VECTORS
     testvector = [t for t in testvectors if ('N', 16384) in t][0]
-    expected = bytes.fromhex(testvectors[testvector])
+    expected = fromhex(testvectors[testvector], bytes)
     for function in 'scrypt', 'pip_scrypt', 'hashlib_scrypt', 'pyscrypt':
         got = None
         try:
@@ -540,6 +542,17 @@ def compare():
         except AssertionError:
             logging.error('wrong result from %s: %r != %r',
                           function, got, expected)
+
+def fromhex(source, resulttype):
+    '''
+    Get binary data from hex with embedded spaces as bytes or bytearray
+    '''
+    try:
+        data = resulttype.fromhex(source)
+    except AttributeError:
+        data = resulttype(unhexlify(''.join(source.split())))
+    return data
+
 if __name__ == '__main__':
     if ARGS and ARGS[0] in globals():
         print(eval(ARGS[0])(*ARGS[1:]))  # pylint: disable=eval-used
