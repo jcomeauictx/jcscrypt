@@ -67,7 +67,7 @@ extern "C" {  // prevents name mangling
         for (uint32_t i = 0;i < 16;++i) x[i] += in[i];
     }
 
-    void block_mix(uint32_t *octets, uint32_t length)
+    void block_mix_working(uint32_t *octets, uint32_t length)
     {
         /*
         octets is taken as 64-octet chunks, and hashed with salsa20
@@ -128,7 +128,7 @@ extern "C" {  // prevents name mangling
         memcpy((void *)octets, (void *)bPrime, length);
     }
 
-    void block_mix2(uint32_t *octets, uint32_t length)
+    void block_mix(uint32_t *octets, uint32_t length)
     {
         /*
         octets is taken as 64-octet chunks, and hashed with salsa20
@@ -164,15 +164,9 @@ extern "C" {  // prevents name mangling
         */
         bPrime = (uint32_t *)aligned_alloc(64, length >> 1);
         memcpy((void *)bPrime, (void *)(&B[midway]), length >> 1);
-        cerr << "octets:" << endl;
-        dump_memory(&B, B, length);
-        cerr << "bPrime:" << endl;
-        dump_memory(&bPrime, bPrime, length >> 1);
         // X = B[2 * r - 1]
         // we will use bPrime as reference, and overwrite B as we go.
         X = &B[wordlength - chunk];
-        cerr << "X:" << endl;
-        dump_memory(&X, X, 64);
         // now begin the loop
         for (i = 0; i < midway; i += chunk << 1)
         {
@@ -181,8 +175,6 @@ extern "C" {  // prevents name mangling
             // T = X xor B[i]
             memcpy((void *)T, (void *)X, 64);
             array_xor(T, &B[i]);
-            cerr << "blockmix loop 0: T after xor with B[" << i << "]" << endl;
-            dump_memory(&T, T, 64);
             // X = Salsa (T); Y[i] = X
             X = &B[j];
             salsa20_word_specification(X, T);
@@ -444,7 +436,7 @@ extern "C" {  // prevents name mangling
         dump_memory(&x, x, 64);
         array_xor((uint32_t *)T, (uint32_t *)X);
         dump_memory(&t, t, 64);
-        block_mix2((uint32_t *)b, 128);
+        block_mix((uint32_t *)b, 128);
         bool matched = !memcmp(b, c, 128);
         cerr << "block_mix returned " <<
             (matched ? "expected" : "incorrect") <<
