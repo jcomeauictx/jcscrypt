@@ -39,6 +39,7 @@ SCRYPT_PARAMETERS = {'N': 1024, 'r': 1, 'p': 1, 'dkLen': 32}  # jcscrypt
 SCRYPT_ALGORITHM = 'scrypt:1024,1,1'
 CONFIGFILE = os.path.expanduser('~/.%s/%s.conf' % (COIN, COIN))
 MULTIPLIER = int(os.getenv('SIMPLEMINER_MULTIPLIER', '1'))
+DO_NOT_HASH = os.getenv('DO_NOT_HASH')  # for profiling non-hash code
 THREADS = multiprocessing.cpu_count() * MULTIPLIER
 INT_SIZE = 4  # bytes
 INT_MASK = 0xffffffff
@@ -231,7 +232,7 @@ def miner_thread(thread_id, work, pipe):
     signal.alarm(seconds)  # seconds to run
     logging.debug('thread %d running bruteforce for %d seconds with %s',
                   thread_id, seconds,
-                  'null hash algorithm' if __debug__ else 'random nonces')
+                  'null hash algorithm' if DO_NOT_HASH else 'random nonces')
     get_hash = PERSISTENT['get_hash']
     while not THREAD['timeout']:
         nonce_bin = PERSISTENT['get_nonce']()
@@ -245,7 +246,6 @@ def miner_thread(thread_id, work, pipe):
                 'thread %d found possible nonce 0x%08x after %d reps',
                 thread_id, nonce, hashes)
     pipe.send((hashes, thread_id))
-    return
 
 def bufreverse(data=None):
     '''
@@ -255,9 +255,12 @@ def bufreverse(data=None):
     '432154326543765487659876'
     '''
     if data is None:
-        return None
-    length = len(data) / INT_SIZE
-    return struct.pack('>%dI' % length, *(struct.unpack('<%dI' % length, data)))
+        processed = None
+    else:
+        length = len(data) / INT_SIZE
+        processed = struct.pack(
+            '>%dI' % length, *(struct.unpack('<%dI' % length, data)))
+    return processed
 
 def sha256d_hash(data, check_bytes='\0\0\0\0'):
     '''
@@ -267,13 +270,11 @@ def sha256d_hash(data, check_bytes='\0\0\0\0'):
     otherwise returns boolean indicating whether or not check_bytes
     matches what was found in the MSBs
     '''
-    if __debug__:  # makes this part wicked fast but useless
-        return False
-    hashed = hashlib.sha256(hashlib.sha256(data).digest()).digest()
-    if not check_bytes:
-        return hashed
+    if DO_NOT_HASH:  # makes this part wicked fast but useless
+        hashed, check_bytes = None, None
     else:
-        return hashed[-len(check_bytes):] == check_bytes
+        hashed = hashlib.sha256(hashlib.sha256(data).digest()).digest()
+    return hashed[-len(check_bytes):] == check_bytes if check_bytes else hashed
 
 def scrypt_hash(data, check_bytes='\0\0\0'):
     '''
@@ -283,21 +284,19 @@ def scrypt_hash(data, check_bytes='\0\0\0'):
     otherwise returns boolean indicating whether or not check_bytes
     matches what was found in the MSBs
     '''
-    if __debug__:  # makes this part wicked fast but useless
-        return False
-    try:
-        hashed = scrypthash(data, salt=data, **SCRYPT_PARAMETERS)
-    except TypeError:  # different libraries being used
-        # these changes are specifically for Python3 hashlib.scrypt
-        SCRYPT_PARAMETERS['n'] = SCRYPT_PARAMETERS.pop('N')
-        SCRYPT_PARAMETERS['dklen'] = SCRYPT_PARAMETERS.pop('buflen')
-        # try again. if this works, it won't have to be done again,
-        # because we have changed the global parameters
-        hashed = scrypthash(data, salt=data, **SCRYPT_PARAMETERS)
-    if not check_bytes:
-        return hashed
+    if DO_NOT_HASH:  # makes this part wicked fast but useless
+        hashed, check_bytes = None, None
     else:
-        return hashed[-len(check_bytes):] == check_bytes
+        try:
+            hashed = scrypthash(data, salt=data, **SCRYPT_PARAMETERS)
+        except TypeError:  # different libraries being used
+            # these changes are specifically for Python3 hashlib.scrypt
+            SCRYPT_PARAMETERS['n'] = SCRYPT_PARAMETERS.pop('N')
+            SCRYPT_PARAMETERS['dklen'] = SCRYPT_PARAMETERS.pop('buflen')
+            # try again. if this works, it won't have to be done again,
+            # because we have changed the global parameters
+            hashed = scrypthash(data, salt=data, **SCRYPT_PARAMETERS)
+    return hashed[-len(check_bytes):] == check_bytes if check_bytes else hashed
 
 def check_hash(data=unhexlify(TEST_HEADER), target=None, nonce=None):
     '''
@@ -312,11 +311,13 @@ def check_hash(data=unhexlify(TEST_HEADER), target=None, nonce=None):
         checking = get_hash(data, '')[::-1]  # convert to big-endian
         logging.info('comparing:\n %s nonce 0x%08x to\n %s',
                      hexlify(checking), nonce, hexlify(target))
-        return checking < target
+        return_value = checking < target
     else:
         print('header: %s, nonce: 0x%08x (%d)' % (hexlify(data), nonce, nonce))
         print('sha256: %s' % hexlify(sha256d_hash(data, '')[::-1]))
         print('scrypt: %s' % hexlify(scrypt_hash(data, '')[::-1]))
+        return_value = None
+    return return_value
 
 def simpleminer():
     '''
