@@ -1,4 +1,4 @@
-#!/usr/bin/python -OO
+#!/usr/bin/python3 -OO
 '''
 adaptation of simpleminer for scrypt
 '''
@@ -18,7 +18,7 @@ except ImportError:
     print('Requires github.com/jcomeauictx/jcscrypt', file=sys.stderr)
     sys.exit(1)
 
-logging.basicConfig(level=logging.DEBUG if __debug__ else logging.INFO)
+logging.basicConfig(level=logging.DEBUG if __debug__ else logging.DEBUG)
 
 # python3 compatibility
 try:
@@ -205,7 +205,7 @@ def getwork(data=None):
             work = {}
     else:
         work = rpc('getwork', data)
-        logging.info('result of getwork(): %s', work)
+        logging.warning('result of getwork(): %s', work)
     return work.get('result', None)
 
 def timeout_thread(*ignored):  # pylint: disable=unused-argument
@@ -234,8 +234,9 @@ def miner_thread(thread_id, work, pipe):
         if viable:
             nonce = struct.unpack('<I', nonce_bin)[0]
             pipe.send(nonce)
-            logging.info('thread %d found possible nonce 0x%08x after %d reps',
-                         thread_id, nonce, hashes)
+            logging.warning(
+                'thread %d found possible nonce 0x%08x after %d reps',
+                thread_id, nonce, hashes)
     pipe.send((hashes, thread_id))
     return
 
@@ -302,7 +303,7 @@ def check_hash(data=unhexlify(TEST_HEADER), target=None, nonce=None):
     get_hash = PERSISTENT.get('get_hash', None)
     if target and get_hash:
         checking = get_hash(data, '')[::-1]  # convert to big-endian
-        logging.info('comparing:\n %s nonce 0x%08x to\n %s',
+        logging.warning('comparing:\n %s nonce 0x%08x to\n %s',
                      hexlify(checking), nonce, hexlify(target))
         return checking < target
     else:
@@ -314,6 +315,7 @@ def simpleminer():
     '''
     run mining threads
     '''
+    logging.warning('starting simpleminer')
     init()
     consecutive_errors = 0
     while not PERSISTENT['quit']:
@@ -346,8 +348,8 @@ def simpleminer():
             PERSISTENT['get_hash'] = sha256d_hash
         else:
             raise Exception('unknown algorithm: %s' % algorithm)
-        logging.info('work: %s', hexlify(data))
-        logging.info('target: %s', hexlify(target))
+        logging.warning('work: %s', hexlify(data))
+        logging.warning('target: %s', hexlify(target))
         pipe_list = []
         total_hashes, done = 0, 0
         for thread_id in range(THREADS):
@@ -374,7 +376,7 @@ def simpleminer():
                                  hexlify(struct.pack('>I', nonce)) +
                                  work['data'][HEX_HEADER_SIZE:]])
                     else:
-                        logging.info('nonce %08x failed threshold', nonce)
+                        logging.warning('nonce %08x failed threshold', nonce)
                 else:
                     hashes, thread_id = nonce
                     total_hashes += hashes
@@ -383,7 +385,7 @@ def simpleminer():
                     done += 1
         logging.debug('threads finished')
         delta_time = time.time() - start_time
-        logging.info(
+        logging.warning(
             'Combined HashMeter: %d hashes in %.2f sec, %d Khash/sec',
             total_hashes, delta_time, (total_hashes / 1000) / delta_time)
         while multiprocessing.active_children():
@@ -446,7 +448,7 @@ def mine_once():
     print('result: %s' % repr(pipe.pipeline))
     total_hashes += pipe.pipeline[-1][0]
     delta_time = time.time() - start_time
-    logging.info(
+    logging.warning(
         'Combined HashMeter: %d hashes in %.2f sec, %d Khash/sec',
         total_hashes, delta_time, (total_hashes // 1000) // delta_time
     )
