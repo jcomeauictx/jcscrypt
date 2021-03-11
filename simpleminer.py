@@ -1,4 +1,4 @@
-#!/usr/bin/python3 -OO
+#!/usr/bin/python -OO
 '''
 adaptation of simpleminer for scrypt
 '''
@@ -18,7 +18,9 @@ except ImportError:
     print('Requires github.com/jcomeauictx/jcscrypt', file=sys.stderr)
     sys.exit(1)
 
-logging.basicConfig(level=logging.DEBUG if __debug__ else logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG if __debug__ else logging.INFO)
+logging.warning('logging level: %s',
+                logging.getLevelName(logging.getLogger().level))
 
 # python3 compatibility
 try:
@@ -62,7 +64,7 @@ TEST_TARGET = (
 )
 TEST_NONCE = 3562614017
 
-class FakePipe(object):  # pylint: disable=useless-object-inheritance
+class FakePipe():
     '''
     implement fake pipe for profiling code
     '''
@@ -205,7 +207,7 @@ def getwork(data=None):
             work = {}
     else:
         work = rpc('getwork', data)
-        logging.warning('result of getwork(): %s', work)
+        logging.info('result of getwork(): %s', work)
     return work.get('result', None)
 
 def timeout_thread(*ignored):  # pylint: disable=unused-argument
@@ -234,7 +236,7 @@ def miner_thread(thread_id, work, pipe):
         if viable:
             nonce = struct.unpack('<I', nonce_bin)[0]
             pipe.send(nonce)
-            logging.warning(
+            logging.info(
                 'thread %d found possible nonce 0x%08x after %d reps',
                 thread_id, nonce, hashes)
     pipe.send((hashes, thread_id))
@@ -303,7 +305,7 @@ def check_hash(data=unhexlify(TEST_HEADER), target=None, nonce=None):
     get_hash = PERSISTENT.get('get_hash', None)
     if target and get_hash:
         checking = get_hash(data, '')[::-1]  # convert to big-endian
-        logging.warning('comparing:\n %s nonce 0x%08x to\n %s',
+        logging.info('comparing:\n %s nonce 0x%08x to\n %s',
                      hexlify(checking), nonce, hexlify(target))
         return checking < target
     else:
@@ -315,7 +317,7 @@ def simpleminer():
     '''
     run mining threads
     '''
-    logging.warning('starting simpleminer')
+    logging.info('starting simpleminer')
     init()
     consecutive_errors = 0
     while not PERSISTENT['quit']:
@@ -348,8 +350,8 @@ def simpleminer():
             PERSISTENT['get_hash'] = sha256d_hash
         else:
             raise Exception('unknown algorithm: %s' % algorithm)
-        logging.warning('work: %s', hexlify(data))
-        logging.warning('target: %s', hexlify(target))
+        logging.info('work: %s', hexlify(data))
+        logging.info('target: %s', hexlify(target))
         pipe_list = []
         total_hashes, done = 0, 0
         for thread_id in range(THREADS):
@@ -368,7 +370,7 @@ def simpleminer():
             for pipe in readable:
                 nonce = pipe.recv()
                 logging.debug('received: %s', repr(nonce))
-                if type(nonce) in (int, long):
+                if isinstance(nonce, (int, long)):
                     logging.debug('checking hash for nonce 0x%08x', nonce)
                     if check_hash(data, target, nonce):
                         PERSISTENT['solved'] = True
@@ -376,7 +378,7 @@ def simpleminer():
                                  hexlify(struct.pack('>I', nonce)) +
                                  work['data'][HEX_HEADER_SIZE:]])
                     else:
-                        logging.warning('nonce %08x failed threshold', nonce)
+                        logging.info('nonce %08x failed threshold', nonce)
                 else:
                     hashes, thread_id = nonce
                     total_hashes += hashes
@@ -385,7 +387,7 @@ def simpleminer():
                     done += 1
         logging.debug('threads finished')
         delta_time = time.time() - start_time
-        logging.warning(
+        logging.info(
             'Combined HashMeter: %d hashes in %.2f sec, %d Khash/sec',
             total_hashes, delta_time, (total_hashes / 1000) / delta_time)
         while multiprocessing.active_children():
@@ -448,7 +450,7 @@ def mine_once():
     print('result: %s' % repr(pipe.pipeline))
     total_hashes += pipe.pipeline[-1][0]
     delta_time = time.time() - start_time
-    logging.warning(
+    logging.info(
         'Combined HashMeter: %d hashes in %.2f sec, %d Khash/sec',
         total_hashes, delta_time, (total_hashes // 1000) // delta_time
     )

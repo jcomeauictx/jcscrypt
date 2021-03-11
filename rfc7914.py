@@ -40,7 +40,7 @@ except ImportError:
 
 from collections import OrderedDict  # pylint: disable=unused-import
 
-logging.basicConfig(level=logging.DEBUG if __debug__ else logging.WARN)
+logging.basicConfig(level=logging.DEBUG if __debug__ else logging.INFO)
 
 SCRIPT_DIR, PROGRAM = os.path.split(sys.argv[0])
 ARGS = sys.argv[1:]
