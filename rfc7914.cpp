@@ -153,19 +153,21 @@ extern "C" {  // prevents name mangling
         * since B is being processed sequentially, blocks in the first
           half can be overwritten as we go. B' only has to be for the
           2nd half of blocks, and that for reference (read) only.
+          but the loop can be simplified if we copy the whole thing.
         */
         uint32_t i, j, k;
         uint32_t wordlength = length >> 2, midway = length >> 3, chunk = 16;
         // chunk length is 64 / sizeof(uint32_t) = 16
-        uint32_t *B = octets, *bPrime, *X;
+        uint32_t *B = octets, *bCopy, *X;
         uint32_t T[chunk] __attribute__((aligned(64)));
         /* NOTE that we're not using B here same as the spec does.
            Here, B is a uint32_t pointer, *not* the index of a 64-byte block
         */
-        bPrime = (uint32_t *)aligned_alloc(64, length >> 1);
-        memcpy((void *)bPrime, (void *)(&B[midway]), length >> 1);
+        bCopy = (uint32_t *)aligned_alloc(64, length);
+        memcpy((void *)bCopy, (void *)B, length);
         // X = B[2 * r - 1]
-        // we will use bPrime as reference, and overwrite B as we go.
+        // we will use bCopy as reference, and overwrite B as we go.
+        // won't call it bPrime because B *is* B' in this implementation.
         X = &B[wordlength - chunk];
         // now begin the loop
         for (i = 0; i < wordlength; i += chunk << 1)
@@ -174,17 +176,17 @@ extern "C" {  // prevents name mangling
             k = j + midway;  // odd blocks go to the back
             // T = X xor B[i]
             memcpy((void *)T, (void *)X, 64);
-            array_xor(T, &B[i]);
+            array_xor(T, &bCopy[i]);
             // X = Salsa (T); Y[i] = X
             X = &B[j];
             salsa20_word_specification(X, T);
             // now repeat for the odd chunk
             memcpy((void *)T, (void *)X, 64);
-            array_xor(T, &B[i + chunk]);
+            array_xor(T, &bCopy[i + chunk]);
             X = &B[k];
             salsa20_word_specification(X, T);
         }
-        free(bPrime);
+        free(bCopy);
     }
 
     uint32_t integerify(uint32_t *octets, uint32_t wordlength)
