@@ -168,7 +168,7 @@ extern "C" {  // prevents name mangling
         // we will use bPrime as reference, and overwrite B as we go.
         X = &B[wordlength - chunk];
         // now begin the loop
-        for (i = 0; i < midway; i += chunk << 1)
+        for (i = 0; i < wordlength; i += chunk << 1)
         {
             j = i >> 1;  // even blocks go to the front
             k = j + midway;  // odd blocks go to the back
