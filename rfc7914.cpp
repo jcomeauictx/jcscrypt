@@ -170,7 +170,7 @@ extern "C" {  // prevents name mangling
         dump_memory(&bPrime, bPrime, length >> 1);
         // X = B[2 * r - 1]
         // we will use bPrime as reference, and overwrite B as we go.
-        X = B + wordlength - chunk;
+        X = &B[wordlength - chunk];
         cerr << "X:" << endl;
         dump_memory(&X, X, 64);
         // now begin the loop for the first half
