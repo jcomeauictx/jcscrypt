@@ -173,7 +173,7 @@ extern "C" {  // prevents name mangling
         X = &B[wordlength - chunk];
         cerr << "X:" << endl;
         dump_memory(&X, X, 64);
-        // now begin the loop for the first half
+        // now begin the loop
         for (i = 0; i < midway; i += chunk << 1)
         {
             j = i >> 1;  // even blocks go to the front
@@ -181,29 +181,14 @@ extern "C" {  // prevents name mangling
             // T = X xor B[i]
             memcpy((void *)T, (void *)X, 64);
             array_xor(T, &B[i]);
+            cerr << "blockmix loop 0: T after xor with B[" << i << "]" << endl;
+            dump_memory(&T, T, 64);
             // X = Salsa (T); Y[i] = X
             X = &B[j];
             salsa20_word_specification(X, T);
             // now repeat for the odd chunk
             memcpy((void *)T, (void *)X, 64);
             array_xor(T, &B[i + chunk]);
-            X = &B[k];
-            salsa20_word_specification(X, T);
-        }
-        // now the second half, using bPrime as reference
-        // right now, the first 4th of B has been overwritten with the
-        // original even blocks, and the 3rd 4th has been overwritten with
-        // the original odd blocks. So now we overwrite the 2nd and 4th 4ths.
-        for (i = 0; i < midway; i += chunk << 1)
-        {
-            j = i + (midway >> 1);
-            k = j + midway;
-            memcpy((void *)T, (void *)X, 64);
-            array_xor(T, &bPrime[i]);
-            X = &B[j];
-            salsa20_word_specification(X, T);
-            memcpy((void *)T, (void *)X, 64);
-            array_xor(T, &bPrime[i + chunk]);
             X = &B[k];
             salsa20_word_specification(X, T);
         }
