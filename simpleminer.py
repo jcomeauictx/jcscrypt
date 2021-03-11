@@ -13,9 +13,9 @@ except ImportError:
     from http.client import HTTPConnection
 # don't use python3 hashlib.scrypt, it's too slow!
 try:
-    from scrypt import hash as scrypthash
+    from rfc7914 import scrypt as scrypthash
 except ImportError:
-    print('Requires: python -m pip install --user scrypt', file=sys.stderr)
+    print('Requires github.com/jcomeauictx/jcscrypt', file=sys.stderr)
     sys.exit(1)
 
 logging.basicConfig(level=logging.DEBUG if __debug__ else logging.INFO)
@@ -31,7 +31,9 @@ PERSISTENT = {'quit': False, 'solved': False}  # global for storing settings
 THREAD = {}  # global for threads
 DEFAULTCOIN = 'americancoin'  # one of easiest to mine as of January 2014
 COIN = os.getenv('SIMPLEMINER_COIN', DEFAULTCOIN)
-SCRYPT_PARAMETERS = {'N': 1024, 'r': 1, 'p': 1, 'buflen': 32}
+SCRYPT_PARAMETERS = {'N': 1024, 'r': 1, 'p': 1, 'dkLen': 32}  # jcscrypt
+#SCRYPT_PARAMETERS = {'N': 1024, 'r': 1, 'p': 1, 'buflen': 32}  # pip scrypt
+#SCRYPT_PARAMETERS = {'n': 1024, 'r': 1, 'p': 1, 'dklen': 32}  # hashlib scrypt
 SCRYPT_ALGORITHM = 'scrypt:1024,1,1'
 CONFIGFILE = os.path.expanduser('~/.%s/%s.conf' % (COIN, COIN))
 MULTIPLIER = int(os.getenv('SIMPLEMINER_MULTIPLIER', '1'))
@@ -221,9 +223,8 @@ def miner_thread(thread_id, work, pipe):
     seconds = SECONDS.get(COIN, MAX_SECONDS)
     signal.alarm(seconds)  # seconds to run
     logging.debug('thread %d running bruteforce for %d seconds with %s',
-                  thread_id,
-                  'null hash algorithm' if __debug__ else 'random nonces',
-                  seconds)
+                  thread_id, seconds,
+                  'null hash algorithm' if __debug__ else 'random nonces')
     get_hash = PERSISTENT['get_hash']
     while not THREAD['timeout']:
         nonce_bin = PERSISTENT['get_nonce']()
