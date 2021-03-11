@@ -321,12 +321,13 @@ def romix(B=None, N=1024, verbose=False):
         N = 16
         verbose = True
     r = len(B) // (64 * 2)
+    mixer = 0 if not os.getenv('SCRYPT_BLOCK_MIXER') else 1
     if not os.getenv('SCRYPT_SLOW_BUT_SURE'):
         array = ctypes.create_string_buffer(bytes(B), len(B))
         if verbose:
             logging.warning('calling library romix with args %r',
-                            (array, N, r))
-        ROMIX(array, N, r)
+                            (array, N, r, mixer))
+        ROMIX(array, N, r, mixer)
         X = array.raw
     else:
         logging.debug('romix B: %r, N: %d, r: %d', truncate(B), N, r)

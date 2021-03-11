@@ -9,6 +9,8 @@ using namespace std;
 #ifndef aligned_alloc
  #define aligned_alloc(alignment, size) malloc(size)
 #endif
+typedef void (*block_mix_implementation)(uint32_t *octets, uint32_t length);
+
 extern "C" {  // prevents name mangling
 
     void showbytes(const void *addr, const void *bytes,
@@ -189,6 +191,8 @@ extern "C" {  // prevents name mangling
         free(bCopy);
     }
 
+    const block_mix_implementation block_mix[] = {block_mix_rfc, block_mix_alt};
+
     uint32_t integerify(uint32_t *octets, uint32_t wordlength)
     {
         // lame integerify that only looks at low 32 bits
@@ -197,7 +201,7 @@ extern "C" {  // prevents name mangling
         return result;
     }
 
-    void romix(uint32_t *octets, uint32_t N=1024, uint32_t r=1)
+    void romix(uint32_t *octets, uint32_t N=1024, uint32_t r=1, int mixer=0)
     {
         /*
         Algorithm scryptROMix
@@ -240,6 +244,17 @@ extern "C" {  // prevents name mangling
             X[wordlength] __attribute__((aligned(64)));
         uint32_t *B = octets;
         uint32_t *V;
+        if (mixer != 0)
+        {
+            cerr << "romix: alternative mixer " << dec << mixer
+                << " chosen." << endl;
+            if (mixer != 1)
+            {
+                cerr << "mixer " << dec << mixer << " does not exist." << endl;
+                cerr << "using block_mix_alt (index 1) instead." << endl;
+                mixer = 1;
+            }
+        }
         V = (uint32_t *)aligned_alloc(64, N * length);
         //  1. X = B
         memcpy((void *)X, (void *)B, length);
@@ -251,7 +266,7 @@ extern "C" {  // prevents name mangling
         for (i = 0; i < N * wordlength; i += wordlength)
         {
             memcpy((void *)&V[i], (void *)X, length);
-            block_mix_rfc(X, length);
+            block_mix[mixer](X, length);
         }
         /*  3. for i = 0 to N - 1 do
                 j = Integerify (X) mod N
@@ -269,7 +284,7 @@ extern "C" {  // prevents name mangling
             memcpy((void *)T, (void *)X, length);
             array_xor(T, &V[j * wordlength], length);
             memcpy((void *)X, (void *)T, length);
-            block_mix_rfc(X, length);
+            block_mix[mixer](X, length);
         }
         free(V);
         //  4. B' = X
@@ -324,7 +339,7 @@ extern "C" {  // prevents name mangling
         free(B);
     }
 
-    int main() {
+    int main(int argc, char **argv) {
         uint8_t T[64] __attribute__((aligned(64))) = {
             0x15, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
             0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
@@ -419,12 +434,20 @@ extern "C" {  // prevents name mangling
         };
         uint8_t *t = T, *x = X, *b = BLOCK_MIX_IN, *c = BLOCK_MIX_OUT,
                 *d = ROMIX_IN, *e = ROMIX_OUT;
+        int mixer = 0;
         cerr << "Debugging rfc7914.cpp" << endl;
         dump_memory(&t, t, 64);
         dump_memory(&x, x, 64);
         array_xor((uint32_t *)T, (uint32_t *)X);
         dump_memory(&t, t, 64);
-        block_mix_rfc((uint32_t *)b, 128);
+        if (argc > 1)
+        {
+            cerr << "choosing alternative mixer block_mix_alt" << endl;
+            mixer = 1;
+        }
+        // block_mix_rfc, index 0, is coded close to the spec.
+        // block_mix_alt, index 1, avoids a lot of RAM shuffling but is slower.
+        block_mix[mixer]((uint32_t *)b, 128);
         bool matched = !memcmp(b, c, 128);
         cerr << "block_mix returned " <<
             (matched ? "expected" : "incorrect") <<
@@ -440,7 +463,7 @@ extern "C" {  // prevents name mangling
         uint32_t j = integer % 16;
         cerr << "j of ROMIX_IN is 0x" << hex << integer << " % 16 = "
             << dec << j << endl;
-        romix((uint32_t *)d, 16, 1);
+        romix((uint32_t *)d, 16, 1, mixer);
         matched = !memcmp(d, e, 128);
         cerr << "romix returned " <<
             (matched ? "expected" : "incorrect") <<
