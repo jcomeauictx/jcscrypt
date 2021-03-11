@@ -395,8 +395,8 @@ def scrypt(passphrase, salt=None, N=1024, r=1, p=1, dkLen=32):
     b'M\xdc\xd8\xf6\x0b...\xb3\x97\xf3<\x8d'
 
     >>> for key in SCRYPT_TEST_VECTORS:
-    ...  if False and ('N', 1048576) in key:
-    ...   continue  # takes too long
+    ...  if os.getenv('SLOW_OR_LIMITED_RAM') and ('N', 1048576) in key:
+    ...   continue  # takes too long and a lot of memory
     ...  expected = fromhex(SCRYPT_TEST_VECTORS[key], bytes)
     ...  logging.debug('calculating scrypt hash for parameters %s', key)
     ...  result = scrypt(*OrderedDict(key).values())
