@@ -142,8 +142,7 @@ extern "C" {  // prevents name mangling
         return result;
     }
 
-    void romix(uint32_t *octets, uint32_t N=1024, uint32_t r=1,
-        bool verbose=false)
+    void romix(uint32_t *octets, uint32_t N=1024, uint32_t r=1)
     {
         /*
         Algorithm scryptROMix
@@ -183,25 +182,17 @@ extern "C" {  // prevents name mangling
         uint32_t length = 128 * r;
         uint32_t i, j, k;
         uint32_t wordlength = length >> 2;
-        if (verbose)
-        {
-            cerr << "somehow verbose got set to true" << endl;
-            cerr << "N = " << dec << N << endl;
-            cerr << "r = " << dec << r << endl;
-            cerr << "verbose = " << verbose << endl;
-            verbose = false;
-        }
-        if (verbose) cerr << "romix: largest buffer is " << dec << (N * length)
+        if (false) cerr << "romix: largest buffer is " << dec << (N * length)
              << " bytes" << endl;
         uint32_t T[wordlength] __attribute__((aligned(64))),
             X[wordlength] __attribute__((aligned(64)));
         uint32_t *B = octets;
         uint32_t *V;
         V = (uint32_t *)aligned_alloc(64, N * length);
-        if (verbose) cerr << "allocated 0x" << hex << (N * length)
+        if (false) cerr << "allocated 0x" << hex << (N * length)
             << " bytes at " << hex << V << " for V" << endl;
         //  1. X = B
-        if (verbose) cerr << "romix: copying B into X" << endl;
+        if (false) cerr << "romix: copying B into X" << endl;
         memcpy((void *)X, (void *)B, length);
         /*  2. for i = 0 to N - 1 do
                 V[i] = X
@@ -210,12 +201,12 @@ extern "C" {  // prevents name mangling
         */
         for (i = 0; i < N * wordlength; i += wordlength)
         {
-            if (verbose) cerr << "&V[i]: " << hex << &V[i] << endl;
-            if (verbose) cerr << "V + i: " << hex << (V + i) << endl;
+            if (false) cerr << "&V[i]: " << hex << &V[i] << endl;
+            if (false) cerr << "V + i: " << hex << (V + i) << endl;
             memcpy((void *)&V[i], (void *)X, length);
             block_mix(X, length);
         }
-        if (verbose) {
+        if (false) {
             cerr << "romix: V after first loop" << endl;
             dump_memory(&V, V, length * N);
         }
@@ -232,7 +223,7 @@ extern "C" {  // prevents name mangling
         {
             k = integerify(X, wordlength);
             j = k % N;
-            if (verbose) cerr << "j = " << dec << j << ", resulting from "
+            if (false) cerr << "j = " << dec << j << ", resulting from "
                 << hex << k << " % " << dec << N << endl;
             memcpy((void *)T, (void *)X, length);
             array_xor(T, &V[j * wordlength], length);
@@ -400,7 +391,7 @@ extern "C" {  // prevents name mangling
         uint32_t j = integer % 16;
         cerr << "j of ROMIX_IN is 0x" << hex << integer << " % 16 = "
             << dec << j << endl;
-        romix((uint32_t *)d, 16, 1, true);
+        romix((uint32_t *)d, 16, 1);
         matched = !memcmp(d, e, 128);
         cerr << "romix returned " <<
             (matched ? "expected" : "incorrect") <<
