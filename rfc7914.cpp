@@ -163,7 +163,7 @@ extern "C" {  // prevents name mangling
            Here, B is a uint32_t pointer, *not* the index of a 64-byte block
         */
         bPrime = (uint32_t *)aligned_alloc(64, length >> 1);
-        memcpy((void *)bPrime, (void *)(octets + (length >> 1)), length >> 1);
+        memcpy((void *)bPrime, (void *)(&B[midway]), length >> 1);
         if (verbose)
         {
             cerr << "octets:" << endl;
