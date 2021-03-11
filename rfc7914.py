@@ -13,7 +13,7 @@ except ImportError:
     # stolen from ricmoo's pyscrypt.hash.pbkdf2_single
     # `size` is in bytes, and we know that the algorithm used,
     # sha256, returns 256 bits, which is 32 bytes.
-    import struct, hmac, hashlib  # pylint: disable=multiple-imports
+    import hmac, hashlib  # pylint: disable=multiple-imports, ungrouped-imports
     # pbkdf2_hmac requires: algorithm, message, salt, count, size
 
     def pbkdf2_hmac(algorithm, message, salt, count, size):
@@ -323,7 +323,7 @@ def romix(B=None, N=1024, verbose=False):
         array = ctypes.create_string_buffer(bytes(B), len(B))
         if verbose:
             logging.warning('calling library romix with args %r',
-                          (array, N, r))
+                            (array, N, r))
         ROMIX(array, N, r)
         X = array.raw
     else:
@@ -484,10 +484,8 @@ def truncate(bytestring, telomere=5):
     >>> truncate(b'\x00\x00\x00\x00\x55\x55\x55\x55\xff\xff\xff\xff', 4)
     b'\x00\x00\x00\x00...\xff\xff\xff\xff'
     '''
-    if len(bytestring) > (telomere << 1) + 3:
-        return bytestring[:telomere] + b'...' + bytestring[-telomere:]
-    else:
-        return bytestring
+    return (bytestring[:telomere] + b'...' + bytestring[-telomere:]
+            if len(bytestring) > (telomere << 1) + 3 else bytestring)
 
 def profile():
     '''
@@ -504,6 +502,8 @@ def compare():
     '''
     see how this script performs against others
     '''
+    # pylint: disable=unused-import, unused-variable
+    # we *are* using them, just not in the normal way
     try:
         from hashlib import scrypt as scrypt_hashlib
         hashlib_scrypt = lambda *args: scrypt_hashlib(
@@ -535,7 +535,7 @@ def compare():
         except(RuntimeError, TypeError) as problem:
             logging.exception(problem, exc_info=True)
         try:
-            assert(got == expected)
+            assert got == expected
             logging.info('got %r as expected', truncate(got))
         except AssertionError:
             logging.error('wrong result from %s: %r != %r',
@@ -547,9 +547,9 @@ if __name__ == '__main__':
         import doctest
         DOCTESTDEBUG = logging.debug
         logging.debug('DOCTESTDEBUG enabled')
-        start = datetime.now()
+        START = datetime.now()
         doctest.testmod(verbose=True)
         #doctest.run_docstring_examples(xor, globals(), verbose=True)
-        end = datetime.now()
-        logging.info('runtime: %s', end - start)
+        END = datetime.now()
+        logging.info('runtime: %s', END - START)
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
