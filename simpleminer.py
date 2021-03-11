@@ -64,7 +64,12 @@ TEST_TARGET = (
 )
 TEST_NONCE = 3562614017
 
-class FakePipe():
+# FakePipe class, if derived from object, will have pylint3 complain
+# of useless-object-inheritance. Whereas without a base class, pylint2
+# complains about an old-style-class.
+# by disabling bad-option-value, E0012, we can get away with it either way.
+# but it must be done on same line as the bad option value.
+class FakePipe():  # pylint: disable=E0012, old-style-class
     '''
     implement fake pipe for profiling code
     '''
