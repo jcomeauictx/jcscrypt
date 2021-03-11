@@ -96,16 +96,16 @@ extern "C" {  // prevents name mangling
         uint32_t i, j, k;
         uint32_t wordlength = length >> 2, midway = length >> 3, chunk = 16;
         // chunk length is 64 / sizeof(uint32_t) = 16
-        uint32_t *B = octets, *bPrime, *X, *Y, *T;
+        uint32_t *B = octets, *bPrime, *X;
         uint32_t T[chunk] __attribute__((aligned(64)));
         /* NOTE that we're not using B here same as the spec does.
            Here, B is a uint32_t pointer, *not* the index of a 64-byte block
         */
         bPrime = (uint32_t *)aligned_alloc(64, length >> 1);
-        memcpy((void *)bPrime, (void *)(octets + (length >> 1), length >> 1);
+        memcpy((void *)bPrime, (void *)(octets + (length >> 1)), length >> 1);
         // X = B[2 * r - 1]
         // we will use bPrime as reference, and overwrite B as we go.
-        X = B + length - 64
+        X = B + length - 64;
         // now begin the loop for the first half
         for (i = 0; i < midway; i += chunk << 1)
         {
@@ -132,11 +132,11 @@ extern "C" {  // prevents name mangling
             j = i + (midway >> 1);
             k = j + midway;
             memcpy((void *)T, (void *)X, 64);
-            array_xor(T, &Bprime[i]);
+            array_xor(T, &bPrime[i]);
             X = &B[j];
-            salsa_word_specification(X, T);
+            salsa20_word_specification(X, T);
             memcpy((void *)T, (void *)X, 64);
-            array_xor(T, &Bprime[i + chunk]);
+            array_xor(T, &bPrime[i + chunk]);
             X = &B[k];
             salsa20_word_specification(X, T);
         }
