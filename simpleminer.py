@@ -322,7 +322,11 @@ def check_hash(data=unhexlify(TEST_HEADER), target=None, nonce=None):
 def simpleminer():
     '''
     run mining threads
+
+    this is a mess, but I don't see a simple way of fixing it,
+    so punting to silence the linter.
     '''
+    # pylint: disable=too-many-locals, too-many-branches, too-many-statements
     logging.info('starting simpleminer')
     init()
     consecutive_errors = 0
