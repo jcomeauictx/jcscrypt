@@ -244,7 +244,7 @@ extern "C" {  // prevents name mangling
             X[wordlength] __attribute__((aligned(64)));
         uint32_t *B = octets;
         uint32_t *V;
-        if (mixer != 0)
+        if (false && mixer != 0)
         {
             cerr << "romix: alternative mixer " << dec << mixer
                 << " chosen." << endl;
