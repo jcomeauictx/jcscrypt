@@ -236,6 +236,10 @@ extern "C" {  // prevents name mangling
         memcpy((void *)B, (void *)X, length);
     }
 
+    void pbkdf2_hmac_sha256()
+    {
+    }
+
     void scrypt(uint32_t *passphrase, uint32_t *salt=NULL,
         uint32_t N=1024, uint32_t r=1, uint32_t p=1,
         uint32_t dkLen=32, uint8_t *derivedKey=NULL)
@@ -274,7 +278,11 @@ extern "C" {  // prevents name mangling
                                         1, dkLen)
         */
         if (salt == NULL) salt = passphrase;  // for Litecoin and derivatives
+        uint32_t *B, length = p * 128 * r;
+        B = (uint32_t *)aligned_alloc(64, length);
+        free(B);
     }
+
     int main() {
         uint8_t T[64] __attribute__((aligned(64))) = {
             0x15, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
