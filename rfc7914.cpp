@@ -128,7 +128,7 @@ extern "C" {  // prevents name mangling
         memcpy((void *)octets, (void *)bPrime, length);
     }
 
-    void block_mix2(uint32_t *octets, uint32_t length, bool verbose=true)
+    void block_mix2(uint32_t *octets, uint32_t length)
     {
         /*
         octets is taken as 64-octet chunks, and hashed with salsa20
@@ -164,16 +164,15 @@ extern "C" {  // prevents name mangling
         */
         bPrime = (uint32_t *)aligned_alloc(64, length >> 1);
         memcpy((void *)bPrime, (void *)(&B[midway]), length >> 1);
-        if (verbose)
-        {
-            cerr << "octets:" << endl;
-            dump_memory(&B, B, length);
-            cerr << "bPrime:" << endl;
-            dump_memory(&bPrime, bPrime, length >> 1);
-        }
+        cerr << "octets:" << endl;
+        dump_memory(&B, B, length);
+        cerr << "bPrime:" << endl;
+        dump_memory(&bPrime, bPrime, length >> 1);
         // X = B[2 * r - 1]
         // we will use bPrime as reference, and overwrite B as we go.
-        X = B + length - 64;
+        X = B + wordlength - chunk;
+        cerr << "X:" << endl;
+        dump_memory(&X, X, 64);
         // now begin the loop for the first half
         for (i = 0; i < midway; i += chunk << 1)
         {
