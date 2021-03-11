@@ -67,7 +67,7 @@ extern "C" {  // prevents name mangling
         for (uint32_t i = 0;i < 16;++i) x[i] += in[i];
     }
 
-    void block_mix_working(uint32_t *octets, uint32_t length)
+    void block_mix_rfc(uint32_t *octets, uint32_t length)
     {
         /*
         octets is taken as 64-octet chunks, and hashed with salsa20
@@ -128,7 +128,7 @@ extern "C" {  // prevents name mangling
         memcpy((void *)octets, (void *)bPrime, length);
     }
 
-    void block_mix(uint32_t *octets, uint32_t length)
+    void block_mix_alt(uint32_t *octets, uint32_t length)
     {
         /*
         octets is taken as 64-octet chunks, and hashed with salsa20
@@ -259,7 +259,7 @@ extern "C" {  // prevents name mangling
             if (false) cerr << "&V[i]: " << hex << &V[i] << endl;
             if (false) cerr << "V + i: " << hex << (V + i) << endl;
             memcpy((void *)&V[i], (void *)X, length);
-            block_mix(X, length);
+            block_mix_rfc(X, length);
         }
         if (false) {
             cerr << "romix: V after first loop" << endl;
@@ -283,7 +283,7 @@ extern "C" {  // prevents name mangling
             memcpy((void *)T, (void *)X, length);
             array_xor(T, &V[j * wordlength], length);
             memcpy((void *)X, (void *)T, length);
-            block_mix(X, length);
+            block_mix_rfc(X, length);
         }
         free(V);
         //  4. B' = X
@@ -438,7 +438,7 @@ extern "C" {  // prevents name mangling
         dump_memory(&x, x, 64);
         array_xor((uint32_t *)T, (uint32_t *)X);
         dump_memory(&t, t, 64);
-        block_mix((uint32_t *)b, 128);
+        block_mix_rfc((uint32_t *)b, 128);
         bool matched = !memcmp(b, c, 128);
         cerr << "block_mix returned " <<
             (matched ? "expected" : "incorrect") <<

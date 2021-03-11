@@ -63,7 +63,7 @@ try:
     SALSA.restype = None  # otherwise it returns contents of return register
     XOR = LIBRARY.array_xor
     XOR.restype = None
-    BLOCK_MIX = LIBRARY.block_mix
+    BLOCK_MIX = LIBRARY.block_mix_rfc  # or block_mix_alt for fewer memcpys
     BLOCK_MIX.restype = None
     ROMIX = LIBRARY.romix
     ROMIX.restype = None
