@@ -67,6 +67,8 @@ try:
     BLOCK_MIX.restype = None
     ROMIX = LIBRARY.romix
     ROMIX.restype = None
+    SCRYPT = LIBRARY.scrypt
+    SCRYPT.restype = None
 except RuntimeError:
     logging.error('Cannot load shared library, aborting')
     raise
@@ -409,14 +411,26 @@ def scrypt(passphrase, salt=None, N=1024, r=1, p=1, dkLen=32):
     True
     True
     '''
-    if salt is None:
-        salt = passphrase
-    blocksize = 128 * r
-    hashed = pbkdf2_hmac('sha256', passphrase, salt, 1, blocksize * p)
-    B = [hashed[i:i + blocksize] for i in range(0, p * blocksize, blocksize)]
-    for i in range(p):
-        B[i] = romix(B[i], N)
-    return pbkdf2_hmac('sha256', passphrase, b''.join(B), 1, dkLen)
+    if not os.getenv('SCRYPT_SLOW_BUT_SURE'):
+        p_len = len(passphrase)
+        p_array = ctypes.create_string_buffer(bytes(passphrase), p_len)
+        s_len = len(salt) if salt is not None else 0
+        s_array = ctypes.create_string_buffer(
+            bytes(salt), s_len) if salt is not None else None
+        dk_array = ctypes.create_string_buffer(dkLen)
+        SCRYPT(p_array, p_len, salt, s_len, N, r, p, dkLen, dk_array)
+        derived_key = dk_array.raw
+    else:
+        if salt is None:
+            salt = passphrase
+        blocksize = 128 * r
+        hashed = pbkdf2_hmac('sha256', passphrase, salt, 1, blocksize * p)
+        B = [hashed[i:i + blocksize]
+            for i in range(0, p * blocksize, blocksize)]
+        for i in range(p):
+            B[i] = romix(B[i], N)
+        derived_key = pbkdf2_hmac('sha256', passphrase, b''.join(B), 1, dkLen)
+    return derived_key
 
 def integerify(octets=None, short=False):
     r'''
