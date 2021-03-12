@@ -5,10 +5,15 @@ using namespace std;
 #include <iostream>
 #include <iomanip>
 #include <cstring>
+#include <openssl/evp.h>
+#include <openssl/sha.h>
+#include <openssl/crypto.h>
+
 #define R(a,b) (((a) << (b)) | ((a) >> (32 - (b))))
 #ifndef aligned_alloc
  #define aligned_alloc(alignment, size) malloc(size)
 #endif
+
 typedef void (*block_mix_implementation)(uint32_t *octets, uint32_t length);
 
 extern "C" {  // prevents name mangling
@@ -293,14 +298,12 @@ extern "C" {  // prevents name mangling
         memcpy((void *)B, (void *)X, length);
     }
 
-    void pbkdf2_hmac_sha256()
-    {
-    }
-
-    void scrypt(uint32_t *passphrase, uint32_t *salt=NULL,
+    void scrypt(uint32_t *passphrase, uint32_t passlength,
+        uint32_t *salt=NULL, uint32_t saltlength=0,
         uint32_t N=1024, uint32_t r=1, uint32_t p=1,
         uint32_t dkLen=32, uint8_t *derivedKey=NULL)
     {
+        // if actual strings are used, you can pass in 0 for the lengths
         /*
         Algorithm scrypt
 
@@ -336,7 +339,20 @@ extern "C" {  // prevents name mangling
         */
         if (salt == NULL) salt = passphrase;  // for Litecoin and derivatives
         uint32_t *B, length = p * 128 * r;
+        uint32_t wordlength = length >> 2, chunk = (128 * r) >> 2;
         B = (uint32_t *)aligned_alloc(64, length);
+        //stackoverflow.com/a/22795472/493161
+        if (passlength == 0) passlength = strlen(passphrase);
+        if (salt == NULL) salt = passphrase;
+        if (saltlength == 0) saltlength = strlen(salt);
+        PKCS5_PBKDF2_HMAC_SHA256(passphrase, passlength,
+            salt, saltlength, iterations, length, B);
+        for (int i = 0; i < wordlength; i += chunk)
+        {
+            romix(&B[i], N, r);
+        }
+        PKCS5_PBKDF2_HMAC_SHA256(passphrase, passlength, B, length, iterations,
+            dkLen, derivedKey);
         free(B);
     }
 
