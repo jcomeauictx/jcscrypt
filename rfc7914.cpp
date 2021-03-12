@@ -342,16 +342,16 @@ extern "C" {  // prevents name mangling
         uint32_t wordlength = length >> 2, chunk = (128 * r) >> 2;
         B = (uint32_t *)aligned_alloc(64, length);
         //stackoverflow.com/a/22795472/493161
-        if (passlength == 0) passlength = strlen(passphrase);
+        if (passlength == 0) passlength = strlen((const char *)passphrase);
         if (salt == NULL) salt = passphrase;
-        if (saltlength == 0) saltlength = strlen(salt);
+        if (saltlength == 0) saltlength = strlen((const char *)salt);
         PKCS5_PBKDF2_HMAC_SHA256(passphrase, passlength,
-            salt, saltlength, iterations, length, B);
-        for (int i = 0; i < wordlength; i += chunk)
+            salt, saltlength, N, length, B);
+        for (uint32_t i = 0; i < wordlength; i += chunk)
         {
             romix(&B[i], N, r);
         }
-        PKCS5_PBKDF2_HMAC_SHA256(passphrase, passlength, B, length, iterations,
+        PKCS5_PBKDF2_HMAC_SHA256(passphrase, passlength, B, length, N,
             dkLen, derivedKey);
         free(B);
     }
@@ -459,7 +459,7 @@ extern "C" {  // prevents name mangling
         dump_memory(&t, t, 64);
         if (argc > 1)
         {
-            int arg = stoi(argv[1]);
+            int arg = atoi(argv[1]);
             if (arg == 1)
             {
                 cerr << "choosing alternative mixer block_mix_alt" << endl;
@@ -472,7 +472,7 @@ extern "C" {  // prevents name mangling
         }
         if (argc > 2)
         {
-            romix_count = stoi(argv[2]);
+            romix_count = atoi(argv[2]);
             cerr << "running romix " << argv[2] << " times" << endl;
             if (romix_count > 1)
             {
