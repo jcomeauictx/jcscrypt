@@ -1,6 +1,6 @@
 PY_SOURCES := $(wildcard *.py)
 CPP_SOURCES := $(wildcard *.cpp)
-ARCH += -march=native
+ARCH := -march=native
 OPTIMIZE := -O3 -Wall -lrt # https://stackoverflow.com/a/10366757/493161
 ifeq ($(shell sed -n '0,/.*\<\(pni\)\>.*/s//\1/p' /proc/cpuinfo),pni)
  OPTIMIZE += -msse3
@@ -28,7 +28,7 @@ default: rfc7914.py rfc7914 _rfc7914.so
 	./$<
 %:	%.cpp
 	# override system default to add debugging symbols
-	g++ $(EXECFLAGS) -o $@ $<
+	g++ $(OPTIMIZE) $(EXECFLAGS) -o $@ $<
 _%.so: %.cpp Makefile
 	g++ -shared $(OPTIMIZE) -fpic $(ARCH) -lm -o $@ $(EXTRALIBS) $<
 %.pylint: %.py
