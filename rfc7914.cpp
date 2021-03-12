@@ -434,7 +434,7 @@ extern "C" {  // prevents name mangling
         };
         uint8_t *t = T, *x = X, *b = BLOCK_MIX_IN, *c = BLOCK_MIX_OUT,
                 *d = ROMIX_IN, *e = ROMIX_OUT;
-        int mixer = 0;
+        int mixer = 0, romix_count = 1;
         cerr << "Debugging rfc7914.cpp" << endl;
         dump_memory(&t, t, 64);
         dump_memory(&x, x, 64);
@@ -442,8 +442,26 @@ extern "C" {  // prevents name mangling
         dump_memory(&t, t, 64);
         if (argc > 1)
         {
-            cerr << "choosing alternative mixer block_mix_alt" << endl;
-            mixer = 1;
+            int arg = stoi(argv[1]);
+            if (arg == 1)
+            {
+                cerr << "choosing alternative mixer block_mix_alt" << endl;
+                mixer = 1;
+            }
+            else
+            {
+                cerr << "ignoring arg " << argv[1] << endl;
+            }
+        }
+        if (argc > 2)
+        {
+            romix_count = stoi(argv[2]);
+            cerr << "running romix " << argv[2] << " times" << endl;
+            if (romix_count > 1)
+            {
+                cerr << "PLEASE NOTE: this is just for profiling." << endl;
+                cerr << "*** RESULTS WILL NOT MATCH EXPECTED ***" << endl;
+            }
         }
         // block_mix_rfc, index 0, is coded close to the spec.
         // block_mix_alt, index 1, avoids a lot of RAM shuffling but is slower.
@@ -463,7 +481,10 @@ extern "C" {  // prevents name mangling
         uint32_t j = integer % 16;
         cerr << "j of ROMIX_IN is 0x" << hex << integer << " % 16 = "
             << dec << j << endl;
-        romix((uint32_t *)d, 16, 1, mixer);
+        for (int i = 0; i < romix_count; i++)
+        {
+            romix((uint32_t *)d, 16, 1, mixer);
+        }
         matched = !memcmp(d, e, 128);
         cerr << "romix returned " <<
             (matched ? "expected" : "incorrect") <<

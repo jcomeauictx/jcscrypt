@@ -47,3 +47,5 @@ edit: $(PY_SOURCES) $(CPP_SOURCES)
 	vi $+
 gdb: rfc7914
 	gdb $<
+rfc7914.prof: rfc7914 gmon.out
+	gprof $< > $@
