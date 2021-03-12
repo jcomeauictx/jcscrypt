@@ -17,13 +17,18 @@ endif
 ifeq ($(shell sed -n '0,/.*\<\(sse4_2\)\>.*/s//\1/p' /proc/cpuinfo),sse4_2)
  OPTIMIZE += -msse4.2
 endif
+ifeq ($(PROFILER),)
+ EXECFLAGS ?= -g
+else
+ EXECFLAGS := -Wall -pg -g
+endif
 export
 default: rfc7914.py rfc7914 _rfc7914.so
 	./$(word 2, $+)
 	./$<
 %:	%.cpp
 	# override system default to add debugging symbols
-	g++ -g -o $@ $<
+	g++ $(EXECFLAGS) -o $@ $<
 _%.so: %.cpp Makefile
 	g++ -shared $(OPTIMIZE) -fpic $(ARCH) -lm -o $@ $(EXTRALIBS) $<
 %.pylint: %.py

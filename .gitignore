@@ -4,3 +4,5 @@
 __pycache__
 crashtest
 rfc7914
+gmon.out
+*.prof
