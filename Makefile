@@ -22,13 +22,14 @@ ifeq ($(PROFILER),)
 else
  EXECFLAGS := -Wall -pg -g
 endif
+EXTRALIBS += -lcrypto
 export
 default: rfc7914.py rfc7914 _rfc7914.so
 	./$(word 2, $+)
 	./$<
 %:	%.cpp
 	# override system default to add debugging symbols
-	g++ $(OPTIMIZE) $(EXECFLAGS) -o $@ $<
+	g++ $(OPTIMIZE) $(EXECFLAGS) $(EXTRALIBS) -o $@ $<
 _%.so: %.cpp Makefile
 	g++ -shared $(OPTIMIZE) -fpic $(ARCH) -lm -o $@ $(EXTRALIBS) $<
 %.pylint: %.py

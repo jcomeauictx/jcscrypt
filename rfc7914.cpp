@@ -5,6 +5,7 @@ using namespace std;
 #include <iostream>
 #include <iomanip>
 #include <cstring>
+// sudo apt install libcrypto++-dev libssl-dev
 #include <openssl/evp.h>
 #include <openssl/sha.h>
 #include <openssl/crypto.h>
@@ -345,14 +346,14 @@ extern "C" {  // prevents name mangling
         if (passlength == 0) passlength = strlen((const char *)passphrase);
         if (salt == NULL) salt = passphrase;
         if (saltlength == 0) saltlength = strlen((const char *)salt);
-        PKCS5_PBKDF2_HMAC_SHA256(passphrase, passlength,
-            salt, saltlength, N, length, B);
+        PKCS5_PBKDF2_HMAC((char*)passphrase, passlength, (uint8_t *)salt,
+            saltlength, N, EVP_sha256(), length, (uint8_t *)B);
         for (uint32_t i = 0; i < wordlength; i += chunk)
         {
             romix(&B[i], N, r);
         }
-        PKCS5_PBKDF2_HMAC_SHA256(passphrase, passlength, B, length, N,
-            dkLen, derivedKey);
+        PKCS5_PBKDF2_HMAC((char *)passphrase, passlength, (uint8_t *)B,
+            length, N, EVP_sha256(), dkLen, derivedKey);
         free(B);
     }
 
