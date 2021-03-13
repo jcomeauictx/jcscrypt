@@ -25,16 +25,16 @@ else
  EXECFLAGS := -Wall -pg -g
 endif
 EXTRALIBS += -lcrypto
-DEBUGGING ?= -Ddebugging=1
+DEBUG ?= -Ddebugging=1
 export
 default: rfc7914.py rfc7914 _rfc7914.so
 	./$(word 2, $+)
 	./$<
 %:	%.cpp
 	# override system default to add debugging symbols
-	g++ $(OPTIMIZE) $(DEBUGGING) $(EXECFLAGS) $(EXTRALIBS) -o $@ $<
+	g++ $(OPTIMIZE) $(DEBUG) $(EXECFLAGS) $(EXTRALIBS) -o $@ $<
 _%.so: %.cpp Makefile
-	g++ -shared $(OPTIMIZE) -fpic $(ARCH) -lm -o $@ $(EXTRALIBS) $<
+	g++ -shared $(OPTIMIZE) $(DEBUG) -fpic $(ARCH) -lm -o $@ $(EXTRALIBS) $<
 %.pylint: %.py
 	pylint3 $<
 %.doctest: %.py _rfc7914.so

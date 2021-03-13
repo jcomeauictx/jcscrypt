@@ -273,7 +273,7 @@ def block_mix(octets):
     #logging.debug('block_mix returning %r', truncate(bprime))
     return bprime
 
-def romix(B=None, N=1024, verbose=False):
+def romix(B=None, N=1024, mixer=0, verbose=0):
     '''
     Algorithm scryptROMix
 
@@ -321,15 +321,14 @@ def romix(B=None, N=1024, verbose=False):
     if B is None:  # testing from command line
         B = fromhex(ROMIX_TEST_VECTOR['INPUT'], bytes)
         N = 16
-        verbose = True
+        verbose = 2
     r = len(B) // (64 * 2)
-    mixer = 0 if not os.getenv('SCRYPT_BLOCK_MIXER') else 1
     if not os.getenv('SCRYPT_SLOW_BUT_SURE'):
         array = ctypes.create_string_buffer(bytes(B), len(B))
         if verbose:
             logging.warning('calling library romix with args %r',
-                            (array, N, r, mixer))
-        ROMIX(array, N, r, mixer, 0)
+                            (array, N, r, mixer, verbose))
+        ROMIX(array, N, r, mixer, verbose)
         X = array.raw
     else:
         logging.debug('romix B: %r, N: %d, r: %d', truncate(B), N, r)
@@ -568,9 +567,29 @@ def fromhex(source, resulttype):
         data = resulttype(unhexlify(''.join(source.split())))
     return data
 
+def smart_args(args):
+    '''
+    process args from command line, hopefully in a smart way
+    '''
+    logging.debug('smart_args args: %s', args)
+    result = []
+    for arg in args:
+        try:
+            intended = int(arg)
+        except (TypeError, ValueError):
+            if arg == '':
+                intended = None
+            else:
+                intended = arg
+        result.append(intended)
+    return result
+
 if __name__ == '__main__':
     if ARGS and ARGS[0] in globals():
-        print(eval(ARGS[0])(*ARGS[1:]))  # pylint: disable=eval-used
+        ARGS[1:] = smart_args(ARGS[1:])
+        logging.info('ARGS after processing: %s', ARGS)
+        # pylint: disable=eval-used
+        print(repr(eval(ARGS[0])(*(ARGS[1:]))))
     else:
         import doctest
         DOCTESTDEBUG = logging.debug
