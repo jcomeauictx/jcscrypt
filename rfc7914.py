@@ -329,7 +329,7 @@ def romix(B=None, N=1024, verbose=False):
         if verbose:
             logging.warning('calling library romix with args %r',
                             (array, N, r, mixer))
-        ROMIX(array, N, r, mixer)
+        ROMIX(array, N, r, mixer, 0)
         X = array.raw
     else:
         logging.debug('romix B: %r, N: %d, r: %d', truncate(B), N, r)
@@ -418,7 +418,7 @@ def scrypt(passphrase, salt=None, N=1024, r=1, p=1, dkLen=32):
         s_array = ctypes.create_string_buffer(
             bytes(salt), s_len) if salt is not None else None
         dk_array = ctypes.create_string_buffer(dkLen)
-        SCRYPT(p_array, p_len, salt, s_len, N, r, p, dkLen, dk_array)
+        SCRYPT(p_array, p_len, salt, s_len, N, r, p, dkLen, dk_array, 0, 0)
         derived_key = dk_array.raw
     else:
         if salt is None:

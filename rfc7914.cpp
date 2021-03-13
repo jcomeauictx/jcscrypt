@@ -23,6 +23,13 @@ using namespace std;
  #define PKCS5_PBKDF2_HMAC(...) (cerr << "HMAC not supported" << endl)
 #endif
 */
+#define MAX_VERBOSITY 2  // use for the nitty gritty stuff
+#ifndef debugging  // when debugging, mixer is selectable
+    #warning Setting mixer to RFC-strict code, may be slower.
+    #define mixer 0
+#else
+    #warning Adding debugging code, will be slower.
+#endif
 
 typedef void (*block_mix_implementation)(uint32_t *octets, uint32_t length);
 
@@ -207,19 +214,33 @@ extern "C" {  // prevents name mangling
         free(bCopy);
     }
 
-    const block_mix_implementation block_mix[] = {block_mix_rfc, block_mix_alt};
+    block_mix_implementation block_mix[] = {
+        block_mix_rfc,
+        block_mix_alt
+    };
 
-    uint32_t integerify(uint32_t *octets, uint32_t wordlength, int verbose=0)
+    uint32_t integerify(
+        uint32_t *octets, uint32_t wordlength,
+        #ifdef debugging
+        int verbose=0
+        #endif
+        )
     {
         // lame integerify that only looks at low 32 bits
         // of final 64-byte octet (16 words)
         uint32_t result = octets[wordlength - 16];  // little-endian assumed
+        #ifdef debugging
         if (verbose > 1) cerr << "integerify:" << hex << result << endl;
+        #endif
         return result;
     }
 
-    void romix(uint32_t *octets, uint32_t N=1024, uint32_t r=1, int mixer=0,
-        int verbose=0)
+    void romix(
+        uint32_t *octets, uint32_t N=1024, uint32_t r=1,
+        #ifdef debugging
+        uint32_t mixer=0, uint32_t verbose=0
+        #endif
+        )
     {
         /*
         Algorithm scryptROMix
@@ -262,17 +283,25 @@ extern "C" {  // prevents name mangling
             X[wordlength] __attribute__((aligned(64)));
         uint32_t *B = octets;
         uint32_t *V;
-        if (verbose > 0 && mixer != 0)
+        #ifdef debugging
+        uint32_t max_mixer = (sizeof(block_mix) / sizeof(block_mix[0])) - 1;
+        cerr << "INFO: max mixer value: " << max_mixer << endl;
+        if (verbose > MAX_VERBOSITY)
+        {
+            cerr << "Illegal verbosity level " << verbose << endl;
+            throw 1;
+        }
+        else if (mixer > max_mixer)
+        {
+            cerr << "Illegal mixer value " << mixer << endl;
+            throw 2;
+        }
+        else if (verbose > 0 && mixer != 0)
         {
             cerr << "romix: alternative mixer " << dec << mixer
                 << " chosen." << endl;
-            if (mixer != 1)
-            {
-                cerr << "mixer " << dec << mixer << " does not exist." << endl;
-                cerr << "using block_mix_alt (index 1) instead." << endl;
-                mixer = 1;
-            }
         }
+        #endif
         V = (uint32_t *)aligned_alloc(64, N * length);
         //  1. X = B
         memcpy((void *)X, (void *)B, length);
@@ -308,17 +337,23 @@ extern "C" {  // prevents name mangling
         //  4. B' = X
         // since we're doing this in-place, just overwrite B with X
         memcpy((void *)B, (void *)X, length);
+        #ifdef debugging
         if (verbose > 0)
         {
             cerr << "romix result:" << endl;
             dump_memory(&B, B, length);
         }
+        #endif
     }
 
     void scrypt(uint32_t *passphrase=NULL, uint32_t passlength=0,
         uint32_t *salt=NULL, uint32_t saltlength=0, uint32_t N=1024,
         uint32_t r=1, uint32_t p=1, uint32_t dkLen=32,
-        uint8_t *derivedKey=NULL, int mixer = 0, int verbose=0)
+        uint8_t *derivedKey=NULL,
+        #ifdef debugging
+        int mixer = 0, int verbose=0
+        #endif
+        )
     {
         // if actual strings are used, you can pass in 0 for the lengths
         /*
@@ -365,7 +400,12 @@ extern "C" {  // prevents name mangling
             saltlength, N, EVP_sha256(), length, (uint8_t *)B);
         for (uint32_t i = 0; i < wordlength; i += chunk)
         {
-            romix(&B[i], N, r, mixer, verbose);
+            romix(
+                &B[i], N, r,
+                #ifdef debugging
+                mixer, verbose
+                #endif
+                );
         }
         PKCS5_PBKDF2_HMAC((char *)passphrase, passlength, (uint8_t *)B,
             length, N, EVP_sha256(), dkLen, derivedKey);
@@ -376,7 +416,9 @@ extern "C" {  // prevents name mangling
         char *passphrase = NULL, *salt = NULL;
         char *showpass = (char *)"", *showsalt = (char *)"";
         uint32_t N = 1024, r = 1, p = 1, dkLen = 32;
+        #ifdef debugging
         int mixer = 0, verbose = 0;
+        #endif
         cerr << "Command: ";
         for (int i = 0; i < argc; i++) cerr << argv[i];
         cerr << endl;
@@ -386,15 +428,26 @@ extern "C" {  // prevents name mangling
         if (argc > 4) r = atoi(argv[4]);
         if (argc > 5) p = atoi(argv[5]);
         if (argc > 6) dkLen = atoi(argv[6]);
+        #ifdef debugging
         if (argc > 7) mixer = atoi(argv[7]);
         if (argc > 8) verbose = atoi(argv[8]);
         if (argc > 9) cerr << "ignoring extraneous args" << endl;
+        #else
+        if (argc > 7) cerr << "ignoring extraneous args" << endl;
+        #endif
         uint8_t derivedKey[dkLen];
         cerr << "Calling scrypt('" << showpass << "', '" << showsalt << "', "
-            << dec << N << ", " << r << ", " << p << ", " << dkLen << ", "
-            << mixer << ", " << verbose << ")" << endl;
+            << dec << N << ", " << r << ", " << p << ", " << dkLen
+            #ifdef debugging
+            << ", " << mixer << ", " << verbose
+            #endif
+            << ")" << endl;
         scrypt((uint32_t *)passphrase, 0, (uint32_t *)salt, 0, N, r, p,
-               dkLen, derivedKey, mixer, verbose);
+               dkLen, derivedKey,
+               #ifdef debugging
+               mixer, verbose
+               #endif
+               );
         char hexdigit[] = "0123456789abcdef";
         for (uint32_t i = 0, j = 0; i < dkLen; i++)
         {
