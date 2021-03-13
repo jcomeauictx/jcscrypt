@@ -14,6 +14,9 @@ using namespace std;
 #ifndef aligned_alloc
  #define aligned_alloc(alignment, size) malloc(size)
 #endif
+#ifndef PKCS5_PBKDF2_HMAC
+ #define PKCS5_PBKDF2_HMAC(...) (cerr << "HMAC not supported" << endl)
+#endif
 
 typedef void (*block_mix_implementation)(uint32_t *octets, uint32_t length);
 
@@ -200,15 +203,17 @@ extern "C" {  // prevents name mangling
 
     const block_mix_implementation block_mix[] = {block_mix_rfc, block_mix_alt};
 
-    uint32_t integerify(uint32_t *octets, uint32_t wordlength)
+    uint32_t integerify(uint32_t *octets, uint32_t wordlength, int verbose=0)
     {
         // lame integerify that only looks at low 32 bits
         // of final 64-byte octet (16 words)
         uint32_t result = octets[wordlength - 16];  // little-endian assumed
+        if (verbose > 1) cerr << "integerify:" << hex << result << endl;
         return result;
     }
 
-    void romix(uint32_t *octets, uint32_t N=1024, uint32_t r=1, int mixer=0)
+    void romix(uint32_t *octets, uint32_t N=1024, uint32_t r=1, int mixer=0,
+        int verbose=0)
     {
         /*
         Algorithm scryptROMix
@@ -251,7 +256,7 @@ extern "C" {  // prevents name mangling
             X[wordlength] __attribute__((aligned(64)));
         uint32_t *B = octets;
         uint32_t *V;
-        if (false && mixer != 0)
+        if (verbose > 0 && mixer != 0)
         {
             cerr << "romix: alternative mixer " << dec << mixer
                 << " chosen." << endl;
@@ -297,12 +302,17 @@ extern "C" {  // prevents name mangling
         //  4. B' = X
         // since we're doing this in-place, just overwrite B with X
         memcpy((void *)B, (void *)X, length);
+        if (verbose > 0)
+        {
+            cerr << "romix result:" << endl;
+            dump_memory(&B, B, length);
+        }
     }
 
     void scrypt(uint32_t *passphrase=NULL, uint32_t passlength=0,
-        uint32_t *salt=NULL, uint32_t saltlength=0,
-        uint32_t N=1024, uint32_t r=1, uint32_t p=1,
-        uint32_t dkLen=32, uint8_t *derivedKey=NULL)
+        uint32_t *salt=NULL, uint32_t saltlength=0, uint32_t N=1024,
+        uint32_t r=1, uint32_t p=1, uint32_t dkLen=32,
+        uint8_t *derivedKey=NULL, int mixer = 0, int verbose=0)
     {
         // if actual strings are used, you can pass in 0 for the lengths
         /*
@@ -338,20 +348,18 @@ extern "C" {  // prevents name mangling
             3. DK = PBKDF2-HMAC-SHA256 (P, B[0] || B[1] || ... || B[p - 1],
                                         1, dkLen)
         */
-        if (passphrase == NULL) passphrase = (uint32_t *)"";
-        if (salt == NULL) salt = passphrase;  // for Litecoin and derivatives
         uint32_t *B, length = p * 128 * r;
         uint32_t wordlength = length >> 2, chunk = (128 * r) >> 2;
+        if (passphrase == NULL) passphrase = (uint32_t *)"";
+        if (salt == NULL) salt = passphrase;  // for Litecoin and derivatives
         B = (uint32_t *)aligned_alloc(64, length);
-        //stackoverflow.com/a/22795472/493161
         if (passlength == 0) passlength = strlen((const char *)passphrase);
-        if (salt == NULL) salt = passphrase;
         if (saltlength == 0) saltlength = strlen((const char *)salt);
         PKCS5_PBKDF2_HMAC((char*)passphrase, passlength, (uint8_t *)salt,
             saltlength, N, EVP_sha256(), length, (uint8_t *)B);
         for (uint32_t i = 0; i < wordlength; i += chunk)
         {
-            romix(&B[i], N, r);
+            romix(&B[i], N, r, mixer, verbose);
         }
         PKCS5_PBKDF2_HMAC((char *)passphrase, passlength, (uint8_t *)B,
             length, N, EVP_sha256(), dkLen, derivedKey);
@@ -362,19 +370,22 @@ extern "C" {  // prevents name mangling
         char *passphrase = NULL, *salt = NULL;
         char *showpass = (char *)"", *showsalt = (char *)"";
         uint32_t N = 1024, r = 1, p = 1, dkLen = 32;
+        int mixer = 0, verbose = 0;
         if (argc > 1) passphrase = showpass = argv[1];
         if (argc > 2) salt = showsalt = argv[2];
         if (argc > 3) N = atoi(argv[3]);
         if (argc > 4) r = atoi(argv[4]);
         if (argc > 5) p = atoi(argv[5]);
         if (argc > 6) dkLen = atoi(argv[6]);
-        if (argc > 7) cerr << "ignoring extraneous args" << endl;
+        if (argc > 7) mixer = atoi(argv[7]);
+        if (argc > 8) verbose = atoi(argv[8]);
+        if (argc > 9) cerr << "ignoring extraneous args" << endl;
         uint8_t derivedKey[dkLen];
         cerr << "Calling scrypt('" << showpass << "', '" << showsalt << "', "
-            << N << ", " << r << ", " << p << ", " << dkLen << ")" << endl;
-        scrypt((uint32_t *)passphrase, 0,
-               (uint32_t *)salt, 0, N, r, p,
-               dkLen, derivedKey);
+            << N << ", " << r << ", " << p << ", " << dkLen << verbose
+            << ")" << endl;
+        scrypt((uint32_t *)passphrase, 0, (uint32_t *)salt, 0, N, r, p,
+               dkLen, derivedKey, mixer, verbose);
         char hexdigit[] = "0123456789abcdef";
         for (uint32_t i = 0, j = 0; i < dkLen; i++)
         {
