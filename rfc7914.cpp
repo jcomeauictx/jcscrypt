@@ -31,7 +31,12 @@ using namespace std;
     #warning Adding debugging code, will be slower.
 #endif
 
-typedef void (*block_mix_implementation)(uint32_t *octets, uint32_t length);
+typedef void (*block_mix_implementation)(
+    uint32_t *octets, uint32_t length
+    #ifdef debugging
+    , uint32_t verbose
+    #endif
+);
 
 extern "C" {  // prevents name mangling
 
@@ -66,7 +71,8 @@ extern "C" {  // prevents name mangling
         for (uint32_t i = 0; i < wordlength; i++) first[i] ^= second[i];
     }
 
-    void salsa20_word_specification(uint32_t out[16],uint32_t in[16])
+    void salsa20_word_specification(
+        uint32_t out[16], uint32_t in[16])
     {
         uint32_t *x = out;
         //memcpy((void *)x, (void *)in, 64);
@@ -92,7 +98,12 @@ extern "C" {  // prevents name mangling
         for (uint32_t i = 0;i < 16;++i) x[i] += in[i];
     }
 
-    void block_mix_rfc(uint32_t *octets, uint32_t length)
+    void block_mix_rfc(
+        uint32_t *octets, uint32_t length
+        #ifdef debugging
+        , uint32_t verbose
+        #endif
+        )
     {
         /*
         octets is taken as 64-octet chunks, and hashed with salsa20
@@ -141,19 +152,42 @@ extern "C" {  // prevents name mangling
             array_xor(T, &B[i]);
             // X = Salsa (T)
             salsa20_word_specification(X, T);
+            #ifdef debugging
+            if (verbose > 1)
+            {
+                cerr << "before salsa operation:" << endl;
+                dump_memory(&T, T, 64);
+                cerr << "after salsa operation:" << endl;
+                dump_memory(&X, X, 64);
+            }
+            #endif
             // Y[i] = X
             memcpy((void *)&Y[j], (void *)X, 64);
             // now repeat for the odd chunk
             memcpy((void *)T, (void *)X, 64);
             array_xor(T, &B[i + chunk]);
             salsa20_word_specification(X, T);
+            #ifdef debugging
+            if (verbose > 1)
+            {
+                cerr << "before salsa operation:" << endl;
+                dump_memory(&T, T, 64);
+                cerr << "after salsa operation:" << endl;
+                dump_memory(&X, X, 64);
+            }
+            #endif
             memcpy((void *)&Y[k], (void *)X, 64);
         }
         // now overwrite the original with the hashed data
         memcpy((void *)octets, (void *)bPrime, length);
     }
 
-    void block_mix_alt(uint32_t *octets, uint32_t length)
+    void block_mix_alt(
+        uint32_t *octets, uint32_t length
+        #ifdef debugging
+        , uint32_t verbose
+        #endif
+        )
     {
         /*
         octets is taken as 64-octet chunks, and hashed with salsa20
@@ -205,11 +239,29 @@ extern "C" {  // prevents name mangling
             // X = Salsa (T); Y[i] = X
             X = &B[j];
             salsa20_word_specification(X, T);
+            #ifdef debugging
+            if (verbose > 1)
+            {
+                cerr << "before salsa operation:" << endl;
+                dump_memory(&T, T, 64);
+                cerr << "after salsa operation:" << endl;
+                dump_memory(&X, X, 64);
+            }
+            #endif
             // now repeat for the odd chunk
             memcpy((void *)T, (void *)X, 64);
             array_xor(T, &bCopy[i + chunk]);
             X = &B[k];
             salsa20_word_specification(X, T);
+            #ifdef debugging
+            if (verbose > 1)
+            {
+                cerr << "before salsa operation:" << endl;
+                dump_memory(&T, T, 64);
+                cerr << "after salsa operation:" << endl;
+                dump_memory(&X, X, 64);
+            }
+            #endif
         }
         free(bCopy);
     }
@@ -313,7 +365,12 @@ extern "C" {  // prevents name mangling
         for (i = 0; i < N * wordlength; i += wordlength)
         {
             memcpy((void *)&V[i], (void *)X, length);
-            block_mix[mixer](X, length);
+            block_mix[mixer](
+                X, length
+                #ifdef debugging
+                , verbose
+                #endif
+            );
         }
         /*  3. for i = 0 to N - 1 do
                 j = Integerify (X) mod N
@@ -331,7 +388,12 @@ extern "C" {  // prevents name mangling
             memcpy((void *)T, (void *)X, length);
             array_xor(T, &V[j * wordlength], length);
             memcpy((void *)X, (void *)T, length);
-            block_mix[mixer](X, length);
+            block_mix[mixer](
+                X, length
+                #ifdef debugging
+                , verbose
+                #endif
+            );
         }
         free(V);
         //  4. B' = X
