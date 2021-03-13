@@ -15,7 +15,10 @@ using namespace std;
 #ifndef aligned_alloc
  #define aligned_alloc(alignment, size) malloc(size)
 #endif
-/*
+/* this does not actually work the way it was intended, don't use it.
+   the header files and libraries may or may not have it, but a
+   function declaration is not "defined".
+   *but leave this note in as a reminder for next time*
 #ifndef PKCS5_PBKDF2_HMAC
  #define PKCS5_PBKDF2_HMAC(...) (cerr << "HMAC not supported" << endl)
 #endif
