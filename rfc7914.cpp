@@ -360,15 +360,18 @@ extern "C" {  // prevents name mangling
 
     int main(int argc, char **argv) {
         char *passphrase = NULL, *salt = NULL;
+        char *showpass = (char *)"", *showsalt = (char *)"";
         uint32_t N = 1024, r = 1, p = 1, dkLen = 32;
-        if (argc > 1) passphrase = argv[1];
-        if (argc > 2) salt = argv[2];
+        if (argc > 1) passphrase = showpass = argv[1];
+        if (argc > 2) salt = showsalt = argv[2];
         if (argc > 3) N = atoi(argv[3]);
         if (argc > 4) r = atoi(argv[4]);
         if (argc > 5) p = atoi(argv[5]);
         if (argc > 6) dkLen = atoi(argv[6]);
         if (argc > 7) cerr << "ignoring extraneous args" << endl;
         uint8_t derivedKey[dkLen];
+        cerr << "Calling scrypt('" << showpass << "', '" << showsalt << "', "
+            << N << ", " << r << ", " << p << ", " << dkLen << ")" << endl;
         scrypt((uint32_t *)passphrase, 0,
                (uint32_t *)salt, 0, N, r, p,
                dkLen, derivedKey);
@@ -376,7 +379,7 @@ extern "C" {  // prevents name mangling
         for (uint32_t i = 0, j = 0; i < dkLen; i++)
         {
             j = derivedKey[i];
-            cout << hexdigit[j >> 4] << hexdigit[j & 0xf];
+            cout << hexdigit[j >> 4] << hexdigit[j & 0xf] << " ";
         }
         cout << endl;
         return 0;
