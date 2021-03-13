@@ -220,9 +220,9 @@ extern "C" {  // prevents name mangling
     };
 
     uint32_t integerify(
-        uint32_t *octets, uint32_t wordlength,
+        uint32_t *octets, uint32_t wordlength
         #ifdef debugging
-        int verbose=0
+        , int verbose=0
         #endif
         )
     {
@@ -236,9 +236,9 @@ extern "C" {  // prevents name mangling
     }
 
     void romix(
-        uint32_t *octets, uint32_t N=1024, uint32_t r=1,
+        uint32_t *octets, uint32_t N=1024, uint32_t r=1
         #ifdef debugging
-        uint32_t mixer=0, uint32_t verbose=0
+        , uint32_t mixer=0, uint32_t verbose=0
         #endif
         )
     {
@@ -349,9 +349,9 @@ extern "C" {  // prevents name mangling
     void scrypt(uint32_t *passphrase=NULL, uint32_t passlength=0,
         uint32_t *salt=NULL, uint32_t saltlength=0, uint32_t N=1024,
         uint32_t r=1, uint32_t p=1, uint32_t dkLen=32,
-        uint8_t *derivedKey=NULL,
+        uint8_t *derivedKey=NULL
         #ifdef debugging
-        int mixer = 0, int verbose=0
+        , int mixer = 0, int verbose=0
         #endif
         )
     {
@@ -401,9 +401,9 @@ extern "C" {  // prevents name mangling
         for (uint32_t i = 0; i < wordlength; i += chunk)
         {
             romix(
-                &B[i], N, r,
+                &B[i], N, r
                 #ifdef debugging
-                mixer, verbose
+                , mixer, verbose
                 #endif
                 );
         }
@@ -443,9 +443,9 @@ extern "C" {  // prevents name mangling
             #endif
             << ")" << endl;
         scrypt((uint32_t *)passphrase, 0, (uint32_t *)salt, 0, N, r, p,
-               dkLen, derivedKey,
+               dkLen, derivedKey
                #ifdef debugging
-               mixer, verbose
+               , mixer, verbose
                #endif
                );
         char hexdigit[] = "0123456789abcdef";
