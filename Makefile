@@ -56,5 +56,3 @@ clean:
 	rm -f *.pyc *pyo gmon.out rfc7914.prof
 distclean: clean
 	rm -f $(EXECUTABLES) $(LIBRARIES)
-env:
-	$@
