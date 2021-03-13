@@ -1,5 +1,7 @@
 PY_SOURCES := $(wildcard *.py)
 CPP_SOURCES := $(wildcard *.cpp)
+EXECUTABLES := $(CPP_SOURCES:.cpp=)
+LIBRARIES := $(foreach source,$(CPP_SOURCES),_$(basename $(source)).so)
 ARCH := -march=native
 OPTIMIZE := -O3 -Wall -lrt # https://stackoverflow.com/a/10366757/493161
 ifeq ($(shell sed -n '0,/.*\<\(pni\)\>.*/s//\1/p' /proc/cpuinfo),pni)
@@ -50,3 +52,9 @@ gdb: rfc7914
 	gdb $<
 rfc7914.prof: rfc7914 gmon.out
 	gprof $< > $@
+clean:
+	rm -f *.pyc *pyo gmon.out rfc7914.prof
+distclean: clean
+	rm -f $(EXECUTABLES) $(LIBRARIES)
+env:
+	$@

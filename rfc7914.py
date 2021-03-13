@@ -51,7 +51,7 @@ if COMMAND == 'doctest':
 else:
     DOCTESTDEBUG = lambda *args, **kwargs: None
     logging.debug('DOCTESTDEBUG disabled')
-if COMMAND in ('doctest', 'pydoc', 'pydoc3'):
+if COMMAND in ('doctest', 'pydoc', 'pydoc2', 'pydoc3'):
     SCRIPT_DIR, PROGRAM = os.path.split(os.path.realpath(ARGS[0]))
 if not SCRIPT_DIR:
     SCRIPT_DIR = '.'  # assume we're here if importing

@@ -9,14 +9,17 @@ using namespace std;
 #include <openssl/evp.h>
 #include <openssl/sha.h>
 #include <openssl/crypto.h>
+#include <openssl/hmac.h>
 
 #define R(a,b) (((a) << (b)) | ((a) >> (32 - (b))))
 #ifndef aligned_alloc
  #define aligned_alloc(alignment, size) malloc(size)
 #endif
+/*
 #ifndef PKCS5_PBKDF2_HMAC
  #define PKCS5_PBKDF2_HMAC(...) (cerr << "HMAC not supported" << endl)
 #endif
+*/
 
 typedef void (*block_mix_implementation)(uint32_t *octets, uint32_t length);
 
@@ -371,6 +374,9 @@ extern "C" {  // prevents name mangling
         char *showpass = (char *)"", *showsalt = (char *)"";
         uint32_t N = 1024, r = 1, p = 1, dkLen = 32;
         int mixer = 0, verbose = 0;
+        cerr << "Command: ";
+        for (int i = 0; i < argc; i++) cerr << argv[i];
+        cerr << endl;
         if (argc > 1) passphrase = showpass = argv[1];
         if (argc > 2) salt = showsalt = argv[2];
         if (argc > 3) N = atoi(argv[3]);
@@ -382,8 +388,8 @@ extern "C" {  // prevents name mangling
         if (argc > 9) cerr << "ignoring extraneous args" << endl;
         uint8_t derivedKey[dkLen];
         cerr << "Calling scrypt('" << showpass << "', '" << showsalt << "', "
-            << N << ", " << r << ", " << p << ", " << dkLen << verbose
-            << ")" << endl;
+            << dec << N << ", " << r << ", " << p << ", " << dkLen << ", "
+            << mixer << ", " << verbose << ")" << endl;
         scrypt((uint32_t *)passphrase, 0, (uint32_t *)salt, 0, N, r, p,
                dkLen, derivedKey, mixer, verbose);
         char hexdigit[] = "0123456789abcdef";
