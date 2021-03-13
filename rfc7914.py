@@ -42,7 +42,12 @@ from collections import OrderedDict  # pylint: disable=unused-import
 
 logging.basicConfig(level=logging.DEBUG if __debug__ else logging.INFO)
 
-SCRIPT_DIR, PROGRAM = os.path.split(os.path.realpath(sys.argv[0]))
+if sys.argv != ['']:
+    SCRIPT_DIR, PROGRAM = os.path.split(os.path.realpath(sys.argv[0]))
+    logging.debug('sys.argv[0] %r was split into (%r, %r)',
+                  sys.argv[0], SCRIPT_DIR, PROGRAM)
+else:
+    SCRIPT_DIR, PROGRAM = '.', ''
 ARGS = sys.argv[1:]
 COMMAND = os.path.splitext(PROGRAM)[0]
 if COMMAND == 'doctest':
@@ -53,8 +58,6 @@ else:
     logging.debug('DOCTESTDEBUG disabled')
 if COMMAND in ('doctest', 'pydoc', 'pydoc2', 'pydoc3'):
     SCRIPT_DIR, PROGRAM = os.path.split(os.path.realpath(ARGS[0]))
-if not SCRIPT_DIR:
-    SCRIPT_DIR = '.'  # assume we're here if importing
 logging.debug('SCRIPT_DIR: %s, COMMAND: %s, ARGS: %s',
               SCRIPT_DIR, COMMAND, ARGS)
 try:
