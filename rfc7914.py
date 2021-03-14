@@ -83,6 +83,7 @@ except RuntimeError:
 
 if os.getenv('TEST_OPENSSL_HMAC'):
     # overwrite whichever pbkdf2_hmac we currently have defined
+    logging.warning('Overriding previous pbkdf2_hmac definition')
     logging.info('pbkdf2_hmac is the experimental one from _rfc7914.so')
     def pbkdf2_hmac(algorithm, message, salt, count, size):
         if algorithm != 'sha256':
@@ -455,8 +456,10 @@ def scrypt(passphrase, salt=None, N=1024, r=1, p=1, dkLen=32):
         if salt is None:
             salt = passphrase
         blocksize = 128 * r
-        logging.debug('locals() before calling pbkdf2_hmac: %s', locals())
+        logging.debug('pbkdf2_hmac(%r, %r, %r, %d, %d)', 'sha256',
+                                   passphrase, salt, 1, blocksize * p)
         hashed = pbkdf2_hmac('sha256', passphrase, salt, 1, blocksize * p)
+        logging.debug('scrypt B after first hash: %r', hashed)
         B = [hashed[i:i + blocksize]
             for i in range(0, p * blocksize, blocksize)]
         for i in range(p):

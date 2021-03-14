@@ -472,7 +472,7 @@ extern "C" {  // prevents name mangling
         if (passlength == 0) passlength = strlen((const char *)passphrase);
         if (saltlength == 0) saltlength = strlen((const char *)salt);
         PKCS5_PBKDF2_HMAC((char*)passphrase, passlength, (uint8_t *)salt,
-            saltlength, N, EVP_sha256(), length, (uint8_t *)B);
+            saltlength, 1, EVP_sha256(), length, (uint8_t *)B);
         #ifdef debugging
             if (verbose > 0)
             {
@@ -490,7 +490,7 @@ extern "C" {  // prevents name mangling
                 );
         }
         PKCS5_PBKDF2_HMAC((char *)passphrase, passlength, (uint8_t *)B,
-            length, N, EVP_sha256(), dkLen, derivedKey);
+            length, 1, EVP_sha256(), dkLen, derivedKey);
         free(B);
     }
 
