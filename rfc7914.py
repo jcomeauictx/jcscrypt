@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python3 -OO
 '''
 minimalist implementation of rfc7914 optimized for litecoin-style scrypt hash
 
