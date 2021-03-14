@@ -82,10 +82,18 @@ if os.getenv('TEST_OPENSSL_HMAC'):
     # overwrite whichever pbkdf2_hmac we currently have defined
     def pbkdf2_hmac(algorithm, message, salt, count, size):
         out = ctypes.create_string_buffer(bytes(size), size)
-        passphrase = ctypes.create_string_buffer(bytes(message), len(message))
-        saltvector = ctypes.create_string_buffer(bytes(salt), len(salt))
+        try:
+            passphrase = ctypes.create_string_buffer(
+                bytes(message), len(message))
+        except TypeError:
+            passphrase = ctypes.create_string_buffer(
+                message.encode(), len(message))
+        try:
+            saltvector = ctypes.create_string_buffer(bytes(salt), len(salt))
+        except TypeError:
+            saltvector = ctypes.create_string_buffer(salt.encode(), len(salt))
         HMAC(out, size, passphrase, len(passphrase),
-            saltvector, len(saltvector), N)
+            saltvector, len(saltvector), count)
         return out.raw
 
 SALSA_TEST_VECTOR = {
