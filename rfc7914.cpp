@@ -408,12 +408,25 @@ extern "C" {  // prevents name mangling
         #endif
     }
 
+    void hmac(uint8_t *derivedKey, uint32_t dkLen=32,
+        char *passphrase=NULL, uint32_t passlength=0,
+        uint8_t *salt=NULL, uint32_t saltlength=0, uint32_t N=1024,
+        const void *hashfunction = EVP_sha256())
+    {
+        if (passphrase == NULL) passphrase = (char *)"";
+        if (salt == NULL) salt = (uint8_t *)passphrase;
+        if (passlength == 0) passlength = strlen(passphrase);
+        if (saltlength == 0) saltlength = strlen((char *)salt);
+        PKCS5_PBKDF2_HMAC(passphrase, passlength, (uint8_t *)salt,
+            saltlength, N, EVP_sha256(), dkLen, (uint8_t *)derivedKey);
+    }
+
     void scrypt(uint32_t *passphrase=NULL, uint32_t passlength=0,
         uint32_t *salt=NULL, uint32_t saltlength=0, uint32_t N=1024,
         uint32_t r=1, uint32_t p=1, uint32_t dkLen=32,
         uint8_t *derivedKey=NULL
         #ifdef debugging
-        , int mixer = 0, int verbose=0
+        , int mixer=0, int verbose=0
         #endif
         )
     {
