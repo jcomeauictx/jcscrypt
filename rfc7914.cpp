@@ -473,6 +473,13 @@ extern "C" {  // prevents name mangling
         if (saltlength == 0) saltlength = strlen((const char *)salt);
         PKCS5_PBKDF2_HMAC((char*)passphrase, passlength, (uint8_t *)salt,
             saltlength, N, EVP_sha256(), length, (uint8_t *)B);
+        #ifdef debugging
+            if (verbose > 0)
+            {
+                cerr << "INFO: scrypt B after first hash:" << endl;
+                dump_memory(&B, B, length);
+            }
+        #endif
         for (uint32_t i = 0; i < wordlength; i += chunk)
         {
             romix(
