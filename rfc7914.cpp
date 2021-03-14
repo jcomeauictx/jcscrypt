@@ -24,9 +24,12 @@ using namespace std;
 #endif
 */
 #define MAX_VERBOSITY 2  // use for the nitty gritty stuff
+#define SALSA salsa20_word_specification
 #ifndef debugging  // when debugging, mixer is selectable
     #warning Setting mixer to RFC-strict code, may be slower.
     #define mixer 0
+    #warning Setting SALSA to point to assembly language routine
+    #define SALSA salsa20
 #else
     #warning Adding debugging code, will be slower.
 #endif
@@ -39,6 +42,8 @@ typedef void (*block_mix_implementation)(
 );
 
 extern "C" {  // prevents name mangling
+
+    void salsa20(uint32_t out[16], uint32_t in[16]);
 
     void showbytes(const void *addr, const void *bytes,
         uint32_t length=24)
@@ -71,8 +76,7 @@ extern "C" {  // prevents name mangling
         for (uint32_t i = 0; i < wordlength; i++) first[i] ^= second[i];
     }
 
-    void salsa20_word_specification(
-        uint32_t out[16], uint32_t in[16])
+    void salsa20_word_specification(uint32_t out[16], uint32_t in[16])
     {
         uint32_t *x = out;
         //memcpy((void *)x, (void *)in, 64);

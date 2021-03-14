@@ -1,5 +1,6 @@
 PY_SOURCES := $(wildcard *.py)
 CPP_SOURCES := $(wildcard *.cpp)
+ASM_SOURCES := $(wildcard *.s)
 EXECUTABLES := $(CPP_SOURCES:.cpp=)
 LIBRARIES := $(foreach source,$(CPP_SOURCES),_$(basename $(source)).so)
 ARCH := -march=native
@@ -24,7 +25,7 @@ ifeq ($(PROFILER),)
 else
  EXECFLAGS := -Wall -pg -g
 endif
-EXTRALIBS += -lcrypto
+EXTRALIBS += -lcrypto $(ASM_SOURCES)
 DEBUG ?= -Ddebugging=1
 export
 default: rfc7914.py rfc7914 _rfc7914.so
