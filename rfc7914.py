@@ -72,9 +72,21 @@ try:
     ROMIX.restype = None
     SCRYPT = LIBRARY.scrypt
     SCRYPT.restype = None
+    HMAC = LIBRARY.hmac
+    HMAC.restype = None
 except RuntimeError:
     logging.error('Cannot load shared library, aborting')
     raise
+
+if os.getenv('TEST_OPENSSL_HMAC'):
+    # overwrite whichever pbkdf2_hmac we currently have defined
+    def pbkdf2_hmac(algorithm, message, salt, count, size):
+        out = ctypes.create_string_buffer(bytes(size), size)
+        passphrase = ctypes.create_string_buffer(bytes(message), len(message))
+        saltvector = ctypes.create_string_buffer(bytes(salt), len(salt))
+        HMAC(out, size, passphrase, len(passphrase),
+            saltvector, len(saltvector), N)
+        return out.raw
 
 SALSA_TEST_VECTOR = {
     'INPUT':
@@ -580,7 +592,7 @@ def smart_args(args):
         try:
             intended = int(arg)
         except (TypeError, ValueError):
-            if arg == '':
+            if arg == 'None':
                 intended = None
             else:
                 intended = arg
@@ -592,7 +604,8 @@ if __name__ == '__main__':
         ARGS[1:] = smart_args(ARGS[1:])
         logging.info('ARGS after processing: %s', ARGS)
         # pylint: disable=eval-used
-        print(repr(eval(ARGS[0])(*(ARGS[1:]))))
+        RESULT = repr(eval(ARGS[0])(*(ARGS[1:])))
+        print(RESULT)
     else:
         import doctest
         DOCTESTDEBUG = logging.debug
