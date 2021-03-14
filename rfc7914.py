@@ -9,14 +9,17 @@ from __future__ import print_function
 import sys, os, logging, ctypes, struct  # pylint: disable=multiple-imports
 from binascii import unhexlify  # for python2/3 differences
 from datetime import datetime
+logging.basicConfig(level=logging.DEBUG if __debug__ else logging.INFO)
 try:
     from hashlib import pbkdf2_hmac
+    logging.info('pbkdf2_hmac is from built-in hashlib')
 except ImportError:
     # stolen from ricmoo's pyscrypt.hash.pbkdf2_single
     # `size` is in bytes, and we know that the algorithm used,
     # sha256, returns 256 bits, which is 32 bytes.
     import hmac, hashlib  # pylint: disable=multiple-imports, ungrouped-imports
     # pbkdf2_hmac requires: algorithm, message, salt, count, size
+    logging.debug('pbkdf2_hmac is built from hmac and hashlib')
 
     def pbkdf2_hmac(algorithm, message, salt, count, size):
         r'''
@@ -39,8 +42,6 @@ except ImportError:
         return hmac_hash[:size]
 
 from collections import OrderedDict  # pylint: disable=unused-import
-
-logging.basicConfig(level=logging.DEBUG if __debug__ else logging.INFO)
 
 if sys.argv != ['']:
     SCRIPT_DIR, PROGRAM = os.path.split(os.path.realpath(sys.argv[0]))
@@ -80,6 +81,7 @@ except RuntimeError:
 
 if os.getenv('TEST_OPENSSL_HMAC'):
     # overwrite whichever pbkdf2_hmac we currently have defined
+    logging.info('pbkdf2_hmac is the experimental one from _rfc7914.so')
     def pbkdf2_hmac(algorithm, message, salt, count, size):
         out = ctypes.create_string_buffer(bytes(size), size)
         try:
