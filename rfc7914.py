@@ -617,8 +617,7 @@ if __name__ == '__main__':
         ARGS[1:] = smart_args(ARGS[1:])
         logging.info('ARGS after processing: %s', ARGS)
         # pylint: disable=eval-used
-        RESULT = repr(eval(ARGS[0])(*(ARGS[1:])))
-        print(RESULT)
+        print(repr(eval(ARGS[0])(*(ARGS[1:]))))
     else:
         import doctest
         DOCTESTDEBUG = logging.debug
