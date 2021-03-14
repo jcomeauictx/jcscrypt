@@ -13,6 +13,8 @@ logging.basicConfig(level=logging.DEBUG if __debug__ else logging.INFO)
 try:
     from hashlib import pbkdf2_hmac
     logging.info('pbkdf2_hmac is from built-in hashlib')
+    logging.warning('hashlib.pbkdf2_hmac requires algorithm to be a string, '
+                    'password and salt to be bytes objects')
 except ImportError:
     # stolen from ricmoo's pyscrypt.hash.pbkdf2_single
     # `size` is in bytes, and we know that the algorithm used,
@@ -83,6 +85,8 @@ if os.getenv('TEST_OPENSSL_HMAC'):
     # overwrite whichever pbkdf2_hmac we currently have defined
     logging.info('pbkdf2_hmac is the experimental one from _rfc7914.so')
     def pbkdf2_hmac(algorithm, message, salt, count, size):
+        if algorithm != 'sha256':
+            raise NotImplementedError('Only "sha256" is supported')
         out = ctypes.create_string_buffer(bytes(size), size)
         try:
             passphrase = ctypes.create_string_buffer(
@@ -451,6 +455,7 @@ def scrypt(passphrase, salt=None, N=1024, r=1, p=1, dkLen=32):
         if salt is None:
             salt = passphrase
         blocksize = 128 * r
+        logging.debug('locals() before calling pbkdf2_hmac: %s', locals())
         hashed = pbkdf2_hmac('sha256', passphrase, salt, 1, blocksize * p)
         B = [hashed[i:i + blocksize]
             for i in range(0, p * blocksize, blocksize)]
