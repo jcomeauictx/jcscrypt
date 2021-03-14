@@ -427,7 +427,10 @@ def scrypt(passphrase, salt=None, N=1024, r=1, p=1, dkLen=32):
     '''
     if not os.getenv('SCRYPT_SLOW_BUT_SURE'):
         p_len = len(passphrase)
-        p_array = ctypes.create_string_buffer(bytes(passphrase), p_len)
+        try:
+            p_array = ctypes.create_string_buffer(bytes(passphrase), p_len)
+        except TypeError:
+            p_array = ctypes.create_string_buffer(passphrase.encode(), p_len)
         s_len = len(salt) if salt is not None else 0
         s_array = ctypes.create_string_buffer(
             bytes(salt), s_len) if salt is not None else None
