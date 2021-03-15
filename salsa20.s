@@ -44,8 +44,16 @@ salsa20_32:
 	# the "out" address, and the "in" address, in that order.
 	mov 20(%esp), %edi  # destination (out)
 	mov 24(%esp), %esi  # source (in)
-	mov $16, %ecx  # count
-	rep movsd
+	#mov $16, %ecx  # count
+	#rep movsd
+	movdqa (%esi), %xmm0
+	movapd %xmm0, (%edi)
+	movdqu 4(%esi), %xmm1
+	movupd %xmm1, 4(%edi)
+	movdqu 8(%esi), %xmm2
+	movupd %xmm2, 8(%edi)
+	movdqu 12(%esi), %xmm3
+	movupd %xmm3, 12(%edi)
 	pop %ebx
 	pop %esi
 	pop %edi
