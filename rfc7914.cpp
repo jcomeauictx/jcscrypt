@@ -43,7 +43,11 @@ using namespace std;
 #else
     #warning Adding debugging code, will be slower.
     #warning Setting SALSA to point to assembly language routine
-    #define SALSA salsa20
+    #ifdef BITS32
+        #define SALSA salsa20_32
+    #else
+        #define SALSA salsa20_64
+    #endif
 #endif
 
 typedef void (*block_mix_implementation)(
@@ -55,7 +59,7 @@ typedef void (*block_mix_implementation)(
 
 extern "C" {  // prevents name mangling
 
-    void salsa20(uint32_t out[16], uint32_t in[16]);
+    void SALSA(uint32_t out[16], uint32_t in[16]);
 
     void showbytes(const void *addr, const void *bytes,
         uint32_t length=24)

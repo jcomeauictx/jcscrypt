@@ -6,7 +6,7 @@
 #
 #define R(a,b) (((a) << (b)) | ((a) >> (32 - (b))))
 #   void salsa20_word_specification(uint32_t out[16], uint32_t in[16])
-	.globl salsa20
+	.globl salsa20_32
 	.text
 #   {
 #       uint32_t *x = out;
@@ -32,6 +32,6 @@
 #       }
 #       for (uint32_t i = 0;i < 16;++i) x[i] += in[i];
 #   }
-salsa20:
+salsa20_32:
 	ret
 # vim: set tabstop=4 expandtab shiftwidth=4 softtabstop=4
