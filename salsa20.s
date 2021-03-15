@@ -33,6 +33,22 @@
 #       for (uint32_t i = 0;i < 16;++i) x[i] += in[i];
 #   }
 salsa20_32:
-	
+	# save registers required by cdecl convention
+	push %ebp
+	push %edi
+	push %esi
+	push %ebx
+	# at this point the stack contains:
+	# the 16 bytes of the 4 registers we just pushed...
+	# the 4 bytes of the return address, which makes 20 bytes...
+	# the "out" address, and the "in" address, in that order.
+	mov 20(%esp), %edi  # destination (out)
+	mov 24(%esp), %esi  # source (in)
+	mov $16, %ecx  # count
+	rep movsd
+	pop %ebx
+	pop %esi
+	pop %edi
+	pop %ebp
 	ret
 # vim: set tabstop=4 expandtab shiftwidth=4 softtabstop=4
