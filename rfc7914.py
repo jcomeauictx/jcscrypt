@@ -592,10 +592,10 @@ def compare():
             logging.info('%s runtime: %s', function, end - start)
         except(RuntimeError, TypeError) as problem:
             logging.exception(problem, exc_info=True)
-        try:
-            assert got == expected
+        # assertions don't work with optimization
+        if got == expected:
             logging.info('got %r as expected', truncate(got))
-        except AssertionError:
+        else:
             logging.error('wrong result from %s: %r != %r',
                           function, got, expected)
 
