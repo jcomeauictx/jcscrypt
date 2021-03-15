@@ -56,7 +56,7 @@ salsa20_32:
 	movapd %xmm3, 48(%edi)
 	# restore %esi as pointer for the salsa shuffle
 	mov 20(%esp), %esi  # out, where the work will be done.
-	mov $4, %ecx  # loop counter
+	mov $4, %cl  # loop counter
 shuffle:
 	# x[ 4] ^= R(x[ 0]+x[12], 7)
 	mov 0(%esi), %eax
@@ -97,7 +97,29 @@ shuffle:
 	mov 0(%esi), %eax
 	xor %ebx, %eax
 	mov %eax, 0(%esi)
-	loop shuffle
+	# x[ 9] ^= R(x[ 5]+x[ 1], 7)
+	mov 20(%esi), %eax
+	mov 4(%esi), %ebx
+	add %eax, %ebx  # leave x[5] in %eax for next step
+	mov %ebx, %edx
+	shl $7, %ebx
+	shr $25, %edx
+	or %edx, %ebx
+	mov 36(%esi), %edx
+	xor %ebx, %edx  # leave x[9] in edx for next step
+	mov %edx, 36(%esi)
+	# x[13] ^= R(x[ 9]+x[ 5], 9)
+	add %edx, %eax
+	mov %eax, %ebx
+	shl $9, %eax
+	shr $23, %ebx
+	or %ebx, %eax
+	mov 42(%esi), %ebx
+	xor %eax, %ebx
+	mov %ebx, 42(%esi)  # leaving x[13] in %ebx and x[9] in %edx
+	# x[ 1] ^= R(x[13]+x[ 9],13)
+	dec %cl
+	jnz shuffle
 	# now add IN to OUT before returning
 	mov 20(%esp), %esi  # both source and destination (out)
 	movdqa (%esi), %xmm4
