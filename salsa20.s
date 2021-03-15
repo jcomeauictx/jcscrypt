@@ -48,12 +48,12 @@ salsa20_32:
 	#rep movsd
 	movdqa (%esi), %xmm0
 	movapd %xmm0, (%edi)
-	movdqu 4(%esi), %xmm1
-	movupd %xmm1, 4(%edi)
-	movdqu 8(%esi), %xmm2
-	movupd %xmm2, 8(%edi)
-	movdqu 12(%esi), %xmm3
-	movupd %xmm3, 12(%edi)
+	movdqa 16(%esi), %xmm1
+	movapd %xmm1, 16(%edi)
+	movdqa 32(%esi), %xmm2
+	movapd %xmm2, 32(%edi)
+	movdqa 48(%esi), %xmm3
+	movapd %xmm3, 48(%edi)
 	pop %ebx
 	pop %esi
 	pop %edi
