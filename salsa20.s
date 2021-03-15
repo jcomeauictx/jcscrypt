@@ -118,6 +118,24 @@ shuffle:
 	xor %eax, %ebx
 	mov %ebx, 42(%esi)  # leaving x[13] in %ebx and x[9] in %edx
 	# x[ 1] ^= R(x[13]+x[ 9],13)
+	add %ebx, %edx  # save x[13] in %ebx for next step
+	mov %edx, %eax
+	shl $13, %eax
+	shr $19, %edx
+	or %eax, %edx
+	mov 4(%esi), %eax
+	xor %eax, %edx  # save x[1] in %edx for next step
+	mov %edx, 4(%esi)
+	# x[ 5] ^= R(x[ 1]+x[13],18)
+	add %edx, %ebx
+	mov %ebx, %edx
+	shl $18, %ebx
+	shr $14, %edx
+	or %edx, %ebx
+	mov 20(%esi), %eax
+	xor %ebx, %eax
+	mov %eax, 20(%esi)
+	# x[14] ^= R(x[10]+x[ 6], 7)
 	dec %cl
 	jnz shuffle
 	# now add IN to OUT before returning
