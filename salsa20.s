@@ -5,8 +5,9 @@
 # using as guidelines the examples at //cs.lmu.edu/~ray/notes/gasexamples/
 #
 #define R(a,b) (((a) << (b)) | ((a) >> (32 - (b))))
-#   void salsa20_word_specification(
-#       uint32_t out[16], uint32_t in[16])
+#   void salsa20_word_specification(uint32_t out[16], uint32_t in[16])
+	.globl salsa20
+	.text
 #   {
 #       uint32_t *x = out;
 #       //memcpy((void *)x, (void *)in, 64);

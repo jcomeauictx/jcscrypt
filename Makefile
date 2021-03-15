@@ -25,16 +25,21 @@ ifeq ($(PROFILER),)
 else
  EXECFLAGS := -Wall -pg -g
 endif
-EXTRALIBS += -lcrypto $(ASM_SOURCES)
+EXTRALIBS += -lcrypto $(ASM_SOURCES:.s=.o)
 DEBUG ?= -Ddebugging=1
 export
+
 default: rfc7914.py rfc7914 _rfc7914.so
 	./$(word 2, $+)
 	./$<
+# if I add $(ASM_SOURCES:.s=.o) to the pattern rule, the built-in implicit
+# gets used instead, and then $(EXTRALIBS) won't be included for crypto stuff
+# so I have to first kill the built-in implicit
 %:	%.cpp
+%:	%.cpp $(ASM_SOURCES:.s=.o)
 	# override system default to add debugging symbols
 	g++ $(OPTIMIZE) $(DEBUG) $(EXECFLAGS) $(EXTRALIBS) -o $@ $<
-_%.so: %.cpp Makefile
+_%.so: %.cpp Makefile $(ASM_SOURCES:.s=.o)
 	g++ -shared $(OPTIMIZE) $(DEBUG) -fpic $(ARCH) -lm -o $@ $(EXTRALIBS) $<
 %.pylint: %.py
 	pylint3 $<
