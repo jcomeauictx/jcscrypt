@@ -32,7 +32,7 @@ EXTRALIBS += -lcrypto $(ASM_SOURCES:.s=.o)
 DEBUG ?= -Ddebugging=1
 export
 
-default: rfc7914.py rfc7914 _rfc7914.so
+all: rfc7914.py rfc7914 _rfc7914.so
 	./$(word 2, $+)
 	./$<
 # if I add $(ASM_SOURCES:.s=.o) to the pattern rule, the built-in implicit
