@@ -160,6 +160,15 @@ shuffle:
 	decl 16(%esp)
 	testl $3, 16(%esp)
 	jnz shuffle
+	# x[ 6] ^= R(x[ 2]+x[14],13)
+	add %ecx, %ebx
+	mov %ebx, %eax
+	shl $13, %eax
+	shr $19, %ebx
+	or %eax, %ebx
+	xor %ebx, %edx
+	mov %edx, 24(%esi)  # edx still holds x[6]
+	# x[10] ^= R(x[ 6]+x[ 2],18)
 	# now add IN to OUT before returning
 	mov 20(%esp), %esi  # both source and destination (out)
 	movdqa (%esi), %xmm4
