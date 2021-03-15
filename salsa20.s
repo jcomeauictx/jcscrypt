@@ -54,6 +54,20 @@ salsa20_32:
 	movapd %xmm2, 32(%edi)
 	movdqa 48(%esi), %xmm3
 	movapd %xmm3, 48(%edi)
+	# now add IN to OUT before returning
+	mov 20(%esp), %esi  # source (out)
+	movdqa (%esi), %xmm4
+	paddd %xmm4, %xmm0
+	movapd %xmm0, (%esi)
+	movdqa 16(%esi), %xmm5
+	paddd %xmm5, %xmm1
+	movapd %xmm1, 16(%esi)
+	movdqa 32(%esi), %xmm6
+	paddd %xmm6, %xmm2
+	movapd %xmm2, 32(%esi)
+	movdqa 48(%esi), %xmm7
+	paddd %xmm7, %xmm3
+	movapd %xmm3, 48(%esi)
 	pop %ebx
 	pop %esi
 	pop %edi
