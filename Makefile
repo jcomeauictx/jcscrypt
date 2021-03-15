@@ -4,7 +4,8 @@ ASM_SOURCES := $(wildcard *.s)
 EXECUTABLES := $(CPP_SOURCES:.cpp=)
 LIBRARIES := $(foreach source,$(CPP_SOURCES),_$(basename $(source)).so)
 ARCH := -march=native
-OPTIMIZE := -O3 -Wall -lrt # https://stackoverflow.com/a/10366757/493161
+OPTIMIZE := $(ARCH) -std=c++11
+OPTIMIZE += -O3 -Wall -lrt # https://stackoverflow.com/a/10366757/493161
 ifeq ($(shell sed -n '0,/.*\<\(pni\)\>.*/s//\1/p' /proc/cpuinfo),pni)
  OPTIMIZE += -msse3
 endif

@@ -5,13 +5,25 @@ using namespace std;
 #include <iostream>
 #include <iomanip>
 #include <cstring>
+#include <cstdint>
 // sudo apt install libcrypto++-dev libssl-dev
 #include <openssl/evp.h>
 #include <openssl/sha.h>
 #include <openssl/crypto.h>
 #include <openssl/hmac.h>
 
+// for Salsa20
 #define R(a,b) (((a) << (b)) | ((a) >> (32 - (b))))
+
+// https://stackoverflow.com/a/1505839/493161
+#if INTPTR_MAX == INT32_MAX
+    #define BITS32
+#elif INTPTR_MAX == INT64_MAX
+    #define BITS64
+#else
+    #error "Not 32 nor 64 bits"
+#endif
+
 #ifndef aligned_alloc
  #define aligned_alloc(alignment, size) malloc(size)
 #endif
