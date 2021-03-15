@@ -54,8 +54,52 @@ salsa20_32:
 	movapd %xmm2, 32(%edi)
 	movdqa 48(%esi), %xmm3
 	movapd %xmm3, 48(%edi)
+	# restore %esi as pointer for the salsa shuffle
+	mov 20(%esp), %esi  # out, where the work will be done.
+	mov $4, %ecx  # loop counter
+shuffle:
+	# x[ 4] ^= R(x[ 0]+x[12], 7)
+	mov 0(%esi), %eax
+	mov %eax, %edi  # we need x[0] for the next step too
+	mov 48(%esi), %ebx
+	add %ebx, %eax
+	mov %eax, %ebx
+	shl $7, %eax
+	shr $25, %ebx
+	or %ebx, %eax
+	mov 16(%esi), %edx
+	xor %edx, %eax
+	mov %eax, 16(%esi)
+	# x[ 8] ^= R(x[ 4]+x[ 0], 9)
+	add %edx, %edi  # x[4]+x[0], leaving x[4] in %edx for next step
+	mov %edi, %eax
+	shl $9, %eax
+	shr $23, %edi
+	or %edi, %eax
+	mov 32(%esi), %ebx
+	xor %eax, %ebx  # leaving x[8] in %ebx for next step
+	mov %ebx, 32(%esi)
+	# x[12] ^= R(x[ 8]+x[ 4],13)
+	add %ebx, %edx  # leaving x[8] in %ebx for next step
+	mov %edx, %eax
+	shl $13, %eax
+	shr $19, %edx
+	or %eax, %edx
+	mov 48(%esi), %eax
+	xor %edx, %eax  # x[12] value for next step
+	mov %eax, 48(%esi)
+	# x[ 0] ^= R(x[12]+x[ 8],18)
+	add %eax, %ebx
+	mov %ebx, %eax
+	shl $18, %eax
+	shr $14, %ebx
+	or %eax, %ebx
+	mov 0(%esi), %eax
+	xor %ebx, %eax
+	mov %eax, 0(%esi)
+	loop shuffle
 	# now add IN to OUT before returning
-	mov 20(%esp), %esi  # source (out)
+	mov 20(%esp), %esi  # both source and destination (out)
 	movdqa (%esi), %xmm4
 	paddd %xmm4, %xmm0
 	movapd %xmm0, (%esi)
