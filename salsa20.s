@@ -33,6 +33,7 @@
 #       for (uint32_t i = 0;i < 16;++i) x[i] += in[i];
 #   }
 salsa20_32:
+	add $4, 0(%esp)  # use for loop counter, frees up ecx register
 	# save registers required by cdecl convention
 	push %ebp
 	push %edi
@@ -56,7 +57,6 @@ salsa20_32:
 	movapd %xmm3, 48(%edi)
 	# restore %esi as pointer for the salsa shuffle
 	mov 20(%esp), %esi  # out, where the work will be done.
-	mov $4, %cl  # loop counter
 shuffle:
 	# x[ 4] ^= R(x[ 0]+x[12], 7)
 	mov 0(%esi), %eax
@@ -136,7 +136,29 @@ shuffle:
 	xor %ebx, %eax
 	mov %eax, 20(%esi)
 	# x[14] ^= R(x[10]+x[ 6], 7)
-	dec %cl
+	mov 40(%esi), %ebx  # x[10]
+	mov 24(%esi), %edx  # x[6]
+	mov %ebx, %eax
+	add %edx, %eax
+	mov %eax, %edi
+	shl $7, %eax
+	shr $25, %edi
+	or %edi, %eax
+	mov 56(%esi), %edi
+	xor %eax, %edi  # x[14]
+	mov %edi, 56(%esi)
+	# x[ 2] ^= R(x[14]+x[10], 9)
+	add %ebx, %eax  # x[14] + x[10]
+	mov %eax, %ebp
+	shl $9, %eax
+	shr $23, %ebp
+	or %eax, %ebp
+	mov 8(%esi), %ecx
+	xor %ebp, %ecx  # x[2]
+	mov %ecx, 8(%esi)
+	# loop back
+	decl 16(%esp)
+	testl $3, 16(%esp)
 	jnz shuffle
 	# now add IN to OUT before returning
 	mov 20(%esp), %esi  # both source and destination (out)
