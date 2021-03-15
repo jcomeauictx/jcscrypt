@@ -65,7 +65,7 @@ logging.debug('SCRIPT_DIR: %s, COMMAND: %s, ARGS: %s',
               SCRIPT_DIR, COMMAND, ARGS)
 try:
     LIBRARY = ctypes.cdll.LoadLibrary(os.path.join(SCRIPT_DIR, '_rfc7914.so'))
-    SALSA = LIBRARY.salsa20_word_specification
+    SALSA = LIBRARY.salsa20_32
     SALSA.restype = None  # otherwise it returns contents of return register
     XOR = LIBRARY.array_xor
     XOR.restype = None
