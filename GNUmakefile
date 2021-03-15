@@ -1,2 +1,5 @@
 maxofthree: callmaxofthree.c maxofthree.s
-	gcc -o $@ $+
+	g++ -o $@ $+
+	./$@
+edit: callmaxofthree.c maxofthree.s
+	vi $+
