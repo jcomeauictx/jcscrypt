@@ -6,3 +6,5 @@ crashtest
 rfc7914
 gmon.out
 *.prof
+maxofthree
+*.o
