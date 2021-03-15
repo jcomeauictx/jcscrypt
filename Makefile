@@ -28,17 +28,18 @@ ifeq ($(PROFILER),)
 else
  EXECFLAGS := -Wall -pg -g
 endif
-EXTRALIBS += -lcrypto $(ASM_SOURCES)
+EXTRALIBS += -lcrypto
 DEBUG ?= -Ddebugging=1
 export
 all: rfc7914.py rfc7914 _rfc7914.so
 	./$(word 2, $+)
 	./$<
+# override implicit rule to add assembly sources and debugging symbols
 %:	%.cpp
-	# override system default to add debugging symbols
-	g++ $(OPTIMIZE) $(DEBUG) $(EXECFLAGS) $(EXTRALIBS) -o $@ $<
-_%.so: %.cpp Makefile
-	g++ -shared $(OPTIMIZE) $(DEBUG) -fpic $(ARCH) -lm -o $@ $(EXTRALIBS) $<
+%:	%.cpp $(ASM_SOURCES)
+	g++ $(OPTIMIZE) $(DEBUG) $(EXECFLAGS) $(EXTRALIBS) -o $@ $+
+_%.so: %.cpp $(ASM_SOURCES)
+	g++ -shared $(OPTIMIZE) $(DEBUG) -fpic $(ARCH) -lm -o $@ $(EXTRALIBS) $+
 %.pylint: %.py
 	pylint3 $<
 %.doctest: %.py _rfc7914.so
