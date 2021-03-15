@@ -1,0 +1,20 @@
+jcomeau@debian:/usr/src/jcomeauictx/jcscrypt$ objdump --syms salsa20.o
+
+salsa20.o:     file format elf32-i386
+
+SYMBOL TABLE:
+00000000 l    d  .text	00000000 .text
+00000000 l    d  .data	00000000 .data
+00000000 l    d  .bss	00000000 .bss
+00000000         *UND*	00000000 salsa20
+
+
+jcomeau@debian:/usr/src/jcomeauictx/jcscrypt$ objdump --syms maxofthree.o
+
+maxofthree.o:     file format elf32-i386
+
+SYMBOL TABLE:
+00000000 l    d  .text	00000000 .text
+00000000 l    d  .data	00000000 .data
+00000000 l    d  .bss	00000000 .bss
+00000000 g       .text	00000000 maxofthree

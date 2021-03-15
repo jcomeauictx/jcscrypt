@@ -28,22 +28,20 @@ ifeq ($(PROFILER),)
 else
  EXECFLAGS := -Wall -pg -g
 endif
-EXTRALIBS += -lcrypto $(ASM_SOURCES:.s=.o)
+EXTRALIBS += -lcrypto
 DEBUG ?= -Ddebugging=1
 export
 
 all: rfc7914.py rfc7914 _rfc7914.so
 	./$(word 2, $+)
 	./$<
-# if I add $(ASM_SOURCES:.s=.o) to the pattern rule, the built-in implicit
-# gets used instead, and then $(EXTRALIBS) won't be included for crypto stuff
-# so I have to first kill the built-in implicit
+# kill implicit rule so we can add dependency on assembly language file(s)
 %:	%.cpp
-%:	%.cpp $(ASM_SOURCES:.s=.o)
-	# override system default to add debugging symbols
-	g++ $(OPTIMIZE) $(DEBUG) $(EXECFLAGS) $(EXTRALIBS) -o $@ $<
-_%.so: %.cpp Makefile $(ASM_SOURCES:.s=.o)
-	g++ -shared $(OPTIMIZE) $(DEBUG) -fpic $(ARCH) -lm -o $@ $(EXTRALIBS) $<
+%:	%.cpp $(ASM_SOURCES)
+	g++ $(OPTIMIZE) $(DEBUG) $(EXECFLAGS) $(EXTRALIBS) -o $@ $+
+_%.so: %.cpp $(ASM_SOURCES)
+	g++ -shared $(OPTIMIZE) $(DEBUG) -fpic $(ARCH) \
+	 -lm -o $@ $(EXTRALIBS) $+
 %.pylint: %.py
 	pylint3 $<
 %.doctest: %.py _rfc7914.so
