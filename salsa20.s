@@ -33,5 +33,6 @@
 #       for (uint32_t i = 0;i < 16;++i) x[i] += in[i];
 #   }
 salsa20_32:
+	
 	ret
 # vim: set tabstop=4 expandtab shiftwidth=4 softtabstop=4

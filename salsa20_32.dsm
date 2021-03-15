@@ -1,0 +1,532 @@
+// jcomeau@debian:/usr/src/jcomeauictx/jcscrypt$ objdump --disassemble rfc7914
+// | sed -n /salsa20_word_specification.*:/,/block_mix_rfc.*:/p > salsa20_32.dsm
+ 8049250 <salsa20_word_specification>:
+ 8049250:	55                   	push   %ebp
+ 8049251:	57                   	push   %edi
+ 8049252:	56                   	push   %esi
+ 8049253:	53                   	push   %ebx
+ 8049254:	83 ec 5c             	sub    $0x5c,%esp
+ 8049257:	8b 44 24 70          	mov    0x70(%esp),%eax
+ 804925b:	83 c0 10             	add    $0x10,%eax
+ 804925e:	39 44 24 74          	cmp    %eax,0x74(%esp)
+ 8049262:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 8049266:	0f 93 c2             	setae  %dl
+ 8049269:	83 c0 10             	add    $0x10,%eax
+ 804926c:	39 44 24 70          	cmp    %eax,0x70(%esp)
+ 8049270:	0f 93 c0             	setae  %al
+ 8049273:	08 c2                	or     %al,%dl
+ 8049275:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 8049279:	88 54 24 4f          	mov    %dl,0x4f(%esp)
+ 804927d:	0f 84 25 05 00 00    	je     80497a8 <salsa20_word_specification+0x558>
+ 8049283:	83 e0 0f             	and    $0xf,%eax
+ 8049286:	c1 e8 02             	shr    $0x2,%eax
+ 8049289:	f7 d8                	neg    %eax
+ 804928b:	83 e0 03             	and    $0x3,%eax
+ 804928e:	0f 84 d4 04 00 00    	je     8049768 <salsa20_word_specification+0x518>
+ 8049294:	8b 74 24 74          	mov    0x74(%esp),%esi
+ 8049298:	8b 16                	mov    (%esi),%edx
+ 804929a:	8b 74 24 70          	mov    0x70(%esp),%esi
+ 804929e:	89 16                	mov    %edx,(%esi)
+ 80492a0:	83 f8 01             	cmp    $0x1,%eax
+ 80492a3:	0f 84 57 06 00 00    	je     8049900 <salsa20_word_specification+0x6b0>
+ 80492a9:	8b 74 24 74          	mov    0x74(%esp),%esi
+ 80492ad:	8b 56 04             	mov    0x4(%esi),%edx
+ 80492b0:	8b 74 24 70          	mov    0x70(%esp),%esi
+ 80492b4:	89 56 04             	mov    %edx,0x4(%esi)
+ 80492b7:	83 f8 03             	cmp    $0x3,%eax
+ 80492ba:	0f 85 50 06 00 00    	jne    8049910 <salsa20_word_specification+0x6c0>
+ 80492c0:	8b 74 24 74          	mov    0x74(%esp),%esi
+ 80492c4:	b9 0d 00 00 00       	mov    $0xd,%ecx
+ 80492c9:	8b 56 08             	mov    0x8(%esi),%edx
+ 80492cc:	8b 74 24 70          	mov    0x70(%esp),%esi
+ 80492d0:	89 56 08             	mov    %edx,0x8(%esi)
+ 80492d3:	ba 03 00 00 00       	mov    $0x3,%edx
+ 80492d8:	bd 10 00 00 00       	mov    $0x10,%ebp
+ 80492dd:	bf 03 00 00 00       	mov    $0x3,%edi
+ 80492e2:	be 0c 00 00 00       	mov    $0xc,%esi
+ 80492e7:	29 c5                	sub    %eax,%ebp
+ 80492e9:	8b 5c 24 74          	mov    0x74(%esp),%ebx
+ 80492ed:	c1 e0 02             	shl    $0x2,%eax
+ 80492f0:	01 c3                	add    %eax,%ebx
+ 80492f2:	03 44 24 70          	add    0x70(%esp),%eax
+ 80492f6:	66 0f 6f 33          	movdqa (%ebx),%xmm6
+ 80492fa:	0f 11 30             	movups %xmm6,(%eax)
+ 80492fd:	66 0f 6f 7b 10       	movdqa 0x10(%ebx),%xmm7
+ 8049302:	0f 11 78 10          	movups %xmm7,0x10(%eax)
+ 8049306:	66 0f 6f 73 20       	movdqa 0x20(%ebx),%xmm6
+ 804930b:	0f 11 70 20          	movups %xmm6,0x20(%eax)
+ 804930f:	83 ff 04             	cmp    $0x4,%edi
+ 8049312:	75 09                	jne    804931d <salsa20_word_specification+0xcd>
+ 8049314:	66 0f 6f 43 30       	movdqa 0x30(%ebx),%xmm0
+ 8049319:	0f 11 40 30          	movups %xmm0,0x30(%eax)
+ 804931d:	01 f2                	add    %esi,%edx
+ 804931f:	29 f1                	sub    %esi,%ecx
+ 8049321:	39 ee                	cmp    %ebp,%esi
+ 8049323:	74 36                	je     804935b <salsa20_word_specification+0x10b>
+ 8049325:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 8049329:	8b 74 24 70          	mov    0x70(%esp),%esi
+ 804932d:	8b 04 90             	mov    (%eax,%edx,4),%eax
+ 8049330:	89 04 96             	mov    %eax,(%esi,%edx,4)
+ 8049333:	8d 42 01             	lea    0x1(%edx),%eax
+ 8049336:	83 f9 01             	cmp    $0x1,%ecx
+ 8049339:	74 20                	je     804935b <salsa20_word_specification+0x10b>
+ 804933b:	8b 74 24 74          	mov    0x74(%esp),%esi
+ 804933f:	83 c2 02             	add    $0x2,%edx
+ 8049342:	8b 1c 86             	mov    (%esi,%eax,4),%ebx
+ 8049345:	8b 74 24 70          	mov    0x70(%esp),%esi
+ 8049349:	89 1c 86             	mov    %ebx,(%esi,%eax,4)
+ 804934c:	83 f9 02             	cmp    $0x2,%ecx
+ 804934f:	74 0a                	je     804935b <salsa20_word_specification+0x10b>
+ 8049351:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 8049355:	8b 04 90             	mov    (%eax,%edx,4),%eax
+ 8049358:	89 04 96             	mov    %eax,(%esi,%edx,4)
+ 804935b:	8b 54 24 70          	mov    0x70(%esp),%edx
+ 804935f:	8b 74 24 70          	mov    0x70(%esp),%esi
+ 8049363:	8b 44 24 70          	mov    0x70(%esp),%eax
+ 8049367:	8b 5c 24 70          	mov    0x70(%esp),%ebx
+ 804936b:	8b 52 18             	mov    0x18(%edx),%edx
+ 804936e:	8b 4e 20             	mov    0x20(%esi),%ecx
+ 8049371:	8b 76 24             	mov    0x24(%esi),%esi
+ 8049374:	8b 40 10             	mov    0x10(%eax),%eax
+ 8049377:	89 54 24 18          	mov    %edx,0x18(%esp)
+ 804937b:	8b 54 24 70          	mov    0x70(%esp),%edx
+ 804937f:	8b 7c 24 70          	mov    0x70(%esp),%edi
+ 8049383:	89 74 24 34          	mov    %esi,0x34(%esp)
+ 8049387:	8b 74 24 70          	mov    0x70(%esp),%esi
+ 804938b:	89 44 24 10          	mov    %eax,0x10(%esp)
+ 804938f:	8b 44 24 70          	mov    0x70(%esp),%eax
+ 8049393:	8b 52 08             	mov    0x8(%edx),%edx
+ 8049396:	8b 5b 38             	mov    0x38(%ebx),%ebx
+ 8049399:	8b 76 14             	mov    0x14(%esi),%esi
+ 804939c:	8b 28                	mov    (%eax),%ebp
+ 804939e:	89 54 24 2c          	mov    %edx,0x2c(%esp)
+ 80493a2:	8b 54 24 70          	mov    0x70(%esp),%edx
+ 80493a6:	8b 40 30             	mov    0x30(%eax),%eax
+ 80493a9:	89 74 24 28          	mov    %esi,0x28(%esp)
+ 80493ad:	8b 74 24 70          	mov    0x70(%esp),%esi
+ 80493b1:	8b 7f 28             	mov    0x28(%edi),%edi
+ 80493b4:	8b 52 0c             	mov    0xc(%edx),%edx
+ 80493b7:	8b 76 04             	mov    0x4(%esi),%esi
+ 80493ba:	89 54 24 30          	mov    %edx,0x30(%esp)
+ 80493be:	8b 54 24 70          	mov    0x70(%esp),%edx
+ 80493c2:	89 74 24 14          	mov    %esi,0x14(%esp)
+ 80493c6:	8b 74 24 70          	mov    0x70(%esp),%esi
+ 80493ca:	8b 52 3c             	mov    0x3c(%edx),%edx
+ 80493cd:	8b 76 34             	mov    0x34(%esi),%esi
+ 80493d0:	89 54 24 0c          	mov    %edx,0xc(%esp)
+ 80493d4:	8b 54 24 70          	mov    0x70(%esp),%edx
+ 80493d8:	c7 44 24 48 04 00 00 	movl   $0x4,0x48(%esp)
+ 80493df:	00 
+ 80493e0:	89 5c 24 38          	mov    %ebx,0x38(%esp)
+ 80493e4:	8b 52 2c             	mov    0x2c(%edx),%edx
+ 80493e7:	89 54 24 20          	mov    %edx,0x20(%esp)
+ 80493eb:	8b 54 24 70          	mov    0x70(%esp),%edx
+ 80493ef:	8b 52 1c             	mov    0x1c(%edx),%edx
+ 80493f2:	89 54 24 1c          	mov    %edx,0x1c(%esp)
+ 80493f6:	8d 14 28             	lea    (%eax,%ebp,1),%edx
+ 80493f9:	8b 5c 24 28          	mov    0x28(%esp),%ebx
+ 80493fd:	c1 c2 07             	rol    $0x7,%edx
+ 8049400:	33 54 24 10          	xor    0x10(%esp),%edx
+ 8049404:	89 54 24 24          	mov    %edx,0x24(%esp)
+ 8049408:	01 ea                	add    %ebp,%edx
+ 804940a:	c1 c2 09             	rol    $0x9,%edx
+ 804940d:	31 d1                	xor    %edx,%ecx
+ 804940f:	8b 54 24 24          	mov    0x24(%esp),%edx
+ 8049413:	89 4c 24 3c          	mov    %ecx,0x3c(%esp)
+ 8049417:	01 ca                	add    %ecx,%edx
+ 8049419:	c1 c2 0d             	rol    $0xd,%edx
+ 804941c:	31 c2                	xor    %eax,%edx
+ 804941e:	89 d0                	mov    %edx,%eax
+ 8049420:	89 54 24 40          	mov    %edx,0x40(%esp)
+ 8049424:	8b 54 24 14          	mov    0x14(%esp),%edx
+ 8049428:	01 c8                	add    %ecx,%eax
+ 804942a:	c1 c8 0e             	ror    $0xe,%eax
+ 804942d:	31 e8                	xor    %ebp,%eax
+ 804942f:	89 d5                	mov    %edx,%ebp
+ 8049431:	89 44 24 10          	mov    %eax,0x10(%esp)
+ 8049435:	01 dd                	add    %ebx,%ebp
+ 8049437:	89 e8                	mov    %ebp,%eax
+ 8049439:	c1 c0 07             	rol    $0x7,%eax
+ 804943c:	33 44 24 34          	xor    0x34(%esp),%eax
+ 8049440:	89 c1                	mov    %eax,%ecx
+ 8049442:	01 d8                	add    %ebx,%eax
+ 8049444:	c1 c0 09             	rol    $0x9,%eax
+ 8049447:	89 4c 24 34          	mov    %ecx,0x34(%esp)
+ 804944b:	31 c6                	xor    %eax,%esi
+ 804944d:	89 f5                	mov    %esi,%ebp
+ 804944f:	89 74 24 44          	mov    %esi,0x44(%esp)
+ 8049453:	01 cd                	add    %ecx,%ebp
+ 8049455:	c1 c5 0d             	rol    $0xd,%ebp
+ 8049458:	31 d5                	xor    %edx,%ebp
+ 804945a:	8d 44 35 00          	lea    0x0(%ebp,%esi,1),%eax
+ 804945e:	c1 c8 0e             	ror    $0xe,%eax
+ 8049461:	31 d8                	xor    %ebx,%eax
+ 8049463:	8b 5c 24 38          	mov    0x38(%esp),%ebx
+ 8049467:	89 44 24 28          	mov    %eax,0x28(%esp)
+ 804946b:	8b 44 24 18          	mov    0x18(%esp),%eax
+ 804946f:	8d 14 38             	lea    (%eax,%edi,1),%edx
+ 8049472:	c1 c2 07             	rol    $0x7,%edx
+ 8049475:	31 d3                	xor    %edx,%ebx
+ 8049477:	8d 0c 3b             	lea    (%ebx,%edi,1),%ecx
+ 804947a:	89 5c 24 38          	mov    %ebx,0x38(%esp)
+ 804947e:	c1 c1 09             	rol    $0x9,%ecx
+ 8049481:	33 4c 24 2c          	xor    0x2c(%esp),%ecx
+ 8049485:	8d 34 19             	lea    (%ecx,%ebx,1),%esi
+ 8049488:	c1 c6 0d             	rol    $0xd,%esi
+ 804948b:	31 c6                	xor    %eax,%esi
+ 804948d:	8d 04 0e             	lea    (%esi,%ecx,1),%eax
+ 8049490:	89 74 24 18          	mov    %esi,0x18(%esp)
+ 8049494:	c1 c8 0e             	ror    $0xe,%eax
+ 8049497:	89 c3                	mov    %eax,%ebx
+ 8049499:	31 fb                	xor    %edi,%ebx
+ 804949b:	8b 7c 24 20          	mov    0x20(%esp),%edi
+ 804949f:	89 de                	mov    %ebx,%esi
+ 80494a1:	8b 5c 24 0c          	mov    0xc(%esp),%ebx
+ 80494a5:	01 df                	add    %ebx,%edi
+ 80494a7:	89 f8                	mov    %edi,%eax
+ 80494a9:	c1 c0 07             	rol    $0x7,%eax
+ 80494ac:	33 44 24 30          	xor    0x30(%esp),%eax
+ 80494b0:	8d 14 18             	lea    (%eax,%ebx,1),%edx
+ 80494b3:	c1 c2 09             	rol    $0x9,%edx
+ 80494b6:	33 54 24 1c          	xor    0x1c(%esp),%edx
+ 80494ba:	8d 1c 02             	lea    (%edx,%eax,1),%ebx
+ 80494bd:	c1 c3 0d             	rol    $0xd,%ebx
+ 80494c0:	33 5c 24 20          	xor    0x20(%esp),%ebx
+ 80494c4:	8d 3c 13             	lea    (%ebx,%edx,1),%edi
+ 80494c7:	c1 cf 0e             	ror    $0xe,%edi
+ 80494ca:	33 7c 24 0c          	xor    0xc(%esp),%edi
+ 80494ce:	89 7c 24 0c          	mov    %edi,0xc(%esp)
+ 80494d2:	8b 7c 24 10          	mov    0x10(%esp),%edi
+ 80494d6:	01 c7                	add    %eax,%edi
+ 80494d8:	c1 c7 07             	rol    $0x7,%edi
+ 80494db:	31 ef                	xor    %ebp,%edi
+ 80494dd:	89 fd                	mov    %edi,%ebp
+ 80494df:	03 6c 24 10          	add    0x10(%esp),%ebp
+ 80494e3:	89 7c 24 14          	mov    %edi,0x14(%esp)
+ 80494e7:	89 ef                	mov    %ebp,%edi
+ 80494e9:	c1 c7 09             	rol    $0x9,%edi
+ 80494ec:	31 cf                	xor    %ecx,%edi
+ 80494ee:	8b 4c 24 14          	mov    0x14(%esp),%ecx
+ 80494f2:	89 7c 24 2c          	mov    %edi,0x2c(%esp)
+ 80494f6:	01 f9                	add    %edi,%ecx
+ 80494f8:	c1 c1 0d             	rol    $0xd,%ecx
+ 80494fb:	89 cd                	mov    %ecx,%ebp
+ 80494fd:	31 c5                	xor    %eax,%ebp
+ 80494ff:	89 e9                	mov    %ebp,%ecx
+ 8049501:	89 6c 24 30          	mov    %ebp,0x30(%esp)
+ 8049505:	01 f9                	add    %edi,%ecx
+ 8049507:	8b 7c 24 28          	mov    0x28(%esp),%edi
+ 804950b:	89 cd                	mov    %ecx,%ebp
+ 804950d:	8b 4c 24 24          	mov    0x24(%esp),%ecx
+ 8049511:	c1 cd 0e             	ror    $0xe,%ebp
+ 8049514:	33 6c 24 10          	xor    0x10(%esp),%ebp
+ 8049518:	01 cf                	add    %ecx,%edi
+ 804951a:	89 f8                	mov    %edi,%eax
+ 804951c:	c1 c0 07             	rol    $0x7,%eax
+ 804951f:	33 44 24 18          	xor    0x18(%esp),%eax
+ 8049523:	8b 7c 24 28          	mov    0x28(%esp),%edi
+ 8049527:	89 44 24 18          	mov    %eax,0x18(%esp)
+ 804952b:	01 f8                	add    %edi,%eax
+ 804952d:	c1 c0 09             	rol    $0x9,%eax
+ 8049530:	31 d0                	xor    %edx,%eax
+ 8049532:	89 c2                	mov    %eax,%edx
+ 8049534:	03 54 24 18          	add    0x18(%esp),%edx
+ 8049538:	89 44 24 1c          	mov    %eax,0x1c(%esp)
+ 804953c:	89 d0                	mov    %edx,%eax
+ 804953e:	8b 54 24 0c          	mov    0xc(%esp),%edx
+ 8049542:	c1 c0 0d             	rol    $0xd,%eax
+ 8049545:	31 c8                	xor    %ecx,%eax
+ 8049547:	89 44 24 10          	mov    %eax,0x10(%esp)
+ 804954b:	03 44 24 1c          	add    0x1c(%esp),%eax
+ 804954f:	c1 c8 0e             	ror    $0xe,%eax
+ 8049552:	89 c1                	mov    %eax,%ecx
+ 8049554:	31 f9                	xor    %edi,%ecx
+ 8049556:	8b 7c 24 34          	mov    0x34(%esp),%edi
+ 804955a:	89 4c 24 28          	mov    %ecx,0x28(%esp)
+ 804955e:	89 f8                	mov    %edi,%eax
+ 8049560:	01 f0                	add    %esi,%eax
+ 8049562:	c1 c0 07             	rol    $0x7,%eax
+ 8049565:	89 c1                	mov    %eax,%ecx
+ 8049567:	31 d9                	xor    %ebx,%ecx
+ 8049569:	8b 5c 24 38          	mov    0x38(%esp),%ebx
+ 804956d:	89 c8                	mov    %ecx,%eax
+ 804956f:	89 4c 24 20          	mov    %ecx,0x20(%esp)
+ 8049573:	01 f1                	add    %esi,%ecx
+ 8049575:	c1 c1 09             	rol    $0x9,%ecx
+ 8049578:	33 4c 24 3c          	xor    0x3c(%esp),%ecx
+ 804957c:	01 c8                	add    %ecx,%eax
+ 804957e:	c1 c0 0d             	rol    $0xd,%eax
+ 8049581:	31 f8                	xor    %edi,%eax
+ 8049583:	89 c7                	mov    %eax,%edi
+ 8049585:	89 44 24 34          	mov    %eax,0x34(%esp)
+ 8049589:	89 d0                	mov    %edx,%eax
+ 804958b:	01 d8                	add    %ebx,%eax
+ 804958d:	01 cf                	add    %ecx,%edi
+ 804958f:	c1 c0 07             	rol    $0x7,%eax
+ 8049592:	33 44 24 40          	xor    0x40(%esp),%eax
+ 8049596:	c1 cf 0e             	ror    $0xe,%edi
+ 8049599:	31 f7                	xor    %esi,%edi
+ 804959b:	8d 34 10             	lea    (%eax,%edx,1),%esi
+ 804959e:	c1 c6 09             	rol    $0x9,%esi
+ 80495a1:	33 74 24 44          	xor    0x44(%esp),%esi
+ 80495a5:	8d 14 06             	lea    (%esi,%eax,1),%edx
+ 80495a8:	c1 c2 0d             	rol    $0xd,%edx
+ 80495ab:	31 d3                	xor    %edx,%ebx
+ 80495ad:	8d 14 33             	lea    (%ebx,%esi,1),%edx
+ 80495b0:	89 5c 24 38          	mov    %ebx,0x38(%esp)
+ 80495b4:	8b 5c 24 0c          	mov    0xc(%esp),%ebx
+ 80495b8:	c1 ca 0e             	ror    $0xe,%edx
+ 80495bb:	31 d3                	xor    %edx,%ebx
+ 80495bd:	83 6c 24 48 01       	subl   $0x1,0x48(%esp)
+ 80495c2:	89 5c 24 0c          	mov    %ebx,0xc(%esp)
+ 80495c6:	0f 85 2a fe ff ff    	jne    80493f6 <salsa20_word_specification+0x1a6>
+ 80495cc:	8b 54 24 70          	mov    0x70(%esp),%edx
+ 80495d0:	66 0f 6e c5          	movd   %ebp,%xmm0
+ 80495d4:	66 0f 6e 5c 24 30    	movd   0x30(%esp),%xmm3
+ 80495da:	66 0f 6e 64 24 14    	movd   0x14(%esp),%xmm4
+ 80495e0:	66 0f 6e 4c 24 2c    	movd   0x2c(%esp),%xmm1
+ 80495e6:	66 0f 62 c4          	punpckldq %xmm4,%xmm0
+ 80495ea:	8b 5c 24 38          	mov    0x38(%esp),%ebx
+ 80495ee:	66 0f 62 cb          	punpckldq %xmm3,%xmm1
+ 80495f2:	66 0f 6e 74 24 28    	movd   0x28(%esp),%xmm6
+ 80495f8:	66 0f 6c c1          	punpcklqdq %xmm1,%xmm0
+ 80495fc:	0f 11 02             	movups %xmm0,(%edx)
+ 80495ff:	66 0f 6e 4c 24 10    	movd   0x10(%esp),%xmm1
+ 8049605:	66 0f 6e 6c 24 1c    	movd   0x1c(%esp),%xmm5
+ 804960b:	66 0f 6e 44 24 18    	movd   0x18(%esp),%xmm0
+ 8049611:	66 0f 62 ce          	punpckldq %xmm6,%xmm1
+ 8049615:	66 0f 6f d1          	movdqa %xmm1,%xmm2
+ 8049619:	66 0f 6e cf          	movd   %edi,%xmm1
+ 804961d:	80 7c 24 4f 00       	cmpb   $0x0,0x4f(%esp)
+ 8049622:	66 0f 6e 7c 24 20    	movd   0x20(%esp),%xmm7
+ 8049628:	66 0f 62 c5          	punpckldq %xmm5,%xmm0
+ 804962c:	66 0f 6c d0          	punpcklqdq %xmm0,%xmm2
+ 8049630:	66 0f 6e c1          	movd   %ecx,%xmm0
+ 8049634:	66 0f 6e 5c 24 34    	movd   0x34(%esp),%xmm3
+ 804963a:	66 0f 6e ee          	movd   %esi,%xmm5
+ 804963e:	0f 11 52 10          	movups %xmm2,0x10(%edx)
+ 8049642:	89 d1                	mov    %edx,%ecx
+ 8049644:	66 0f 6e 64 24 0c    	movd   0xc(%esp),%xmm4
+ 804964a:	66 0f 62 cf          	punpckldq %xmm7,%xmm1
+ 804964e:	66 0f 62 c3          	punpckldq %xmm3,%xmm0
+ 8049652:	66 0f 6c c1          	punpcklqdq %xmm1,%xmm0
+ 8049656:	66 0f 6e cb          	movd   %ebx,%xmm1
+ 804965a:	0f 11 42 20          	movups %xmm0,0x20(%edx)
+ 804965e:	66 0f 6e c0          	movd   %eax,%xmm0
+ 8049662:	66 0f 62 cc          	punpckldq %xmm4,%xmm1
+ 8049666:	89 d0                	mov    %edx,%eax
+ 8049668:	66 0f 62 c5          	punpckldq %xmm5,%xmm0
+ 804966c:	66 0f 6c c1          	punpcklqdq %xmm1,%xmm0
+ 8049670:	0f 11 42 30          	movups %xmm0,0x30(%edx)
+ 8049674:	0f 84 d6 01 00 00    	je     8049850 <salsa20_word_specification+0x600>
+ 804967a:	83 e0 0f             	and    $0xf,%eax
+ 804967d:	c1 e8 02             	shr    $0x2,%eax
+ 8049680:	f7 d8                	neg    %eax
+ 8049682:	83 e0 03             	and    $0x3,%eax
+ 8049685:	0f 84 fd 00 00 00    	je     8049788 <salsa20_word_specification+0x538>
+ 804968b:	8b 74 24 74          	mov    0x74(%esp),%esi
+ 804968f:	8b 16                	mov    (%esi),%edx
+ 8049691:	01 11                	add    %edx,(%ecx)
+ 8049693:	83 f8 01             	cmp    $0x1,%eax
+ 8049696:	0f 84 94 02 00 00    	je     8049930 <salsa20_word_specification+0x6e0>
+ 804969c:	8b 74 24 74          	mov    0x74(%esp),%esi
+ 80496a0:	8b 56 04             	mov    0x4(%esi),%edx
+ 80496a3:	01 51 04             	add    %edx,0x4(%ecx)
+ 80496a6:	83 f8 03             	cmp    $0x3,%eax
+ 80496a9:	0f 85 71 02 00 00    	jne    8049920 <salsa20_word_specification+0x6d0>
+ 80496af:	8b 74 24 74          	mov    0x74(%esp),%esi
+ 80496b3:	bb 0d 00 00 00       	mov    $0xd,%ebx
+ 80496b8:	8b 56 08             	mov    0x8(%esi),%edx
+ 80496bb:	01 51 08             	add    %edx,0x8(%ecx)
+ 80496be:	ba 03 00 00 00       	mov    $0x3,%edx
+ 80496c3:	bd 10 00 00 00       	mov    $0x10,%ebp
+ 80496c8:	bf 03 00 00 00       	mov    $0x3,%edi
+ 80496cd:	29 c5                	sub    %eax,%ebp
+ 80496cf:	be 0c 00 00 00       	mov    $0xc,%esi
+ 80496d4:	8b 4c 24 70          	mov    0x70(%esp),%ecx
+ 80496d8:	c1 e0 02             	shl    $0x2,%eax
+ 80496db:	01 c1                	add    %eax,%ecx
+ 80496dd:	03 44 24 74          	add    0x74(%esp),%eax
+ 80496e1:	f3 0f 6f 00          	movdqu (%eax),%xmm0
+ 80496e5:	66 0f fe 01          	paddd  (%ecx),%xmm0
+ 80496e9:	0f 29 01             	movaps %xmm0,(%ecx)
+ 80496ec:	f3 0f 6f 40 10       	movdqu 0x10(%eax),%xmm0
+ 80496f1:	66 0f fe 41 10       	paddd  0x10(%ecx),%xmm0
+ 80496f6:	0f 29 41 10          	movaps %xmm0,0x10(%ecx)
+ 80496fa:	f3 0f 6f 40 20       	movdqu 0x20(%eax),%xmm0
+ 80496ff:	66 0f fe 41 20       	paddd  0x20(%ecx),%xmm0
+ 8049704:	0f 29 41 20          	movaps %xmm0,0x20(%ecx)
+ 8049708:	83 ff 04             	cmp    $0x4,%edi
+ 804970b:	75 0e                	jne    804971b <salsa20_word_specification+0x4cb>
+ 804970d:	f3 0f 6f 40 30       	movdqu 0x30(%eax),%xmm0
+ 8049712:	66 0f fe 41 30       	paddd  0x30(%ecx),%xmm0
+ 8049717:	0f 29 41 30          	movaps %xmm0,0x30(%ecx)
+ 804971b:	01 f2                	add    %esi,%edx
+ 804971d:	29 f3                	sub    %esi,%ebx
+ 804971f:	39 ee                	cmp    %ebp,%esi
+ 8049721:	74 36                	je     8049759 <salsa20_word_specification+0x509>
+ 8049723:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 8049727:	8b 74 24 70          	mov    0x70(%esp),%esi
+ 804972b:	8b 04 90             	mov    (%eax,%edx,4),%eax
+ 804972e:	01 04 96             	add    %eax,(%esi,%edx,4)
+ 8049731:	8d 42 01             	lea    0x1(%edx),%eax
+ 8049734:	83 fb 01             	cmp    $0x1,%ebx
+ 8049737:	74 20                	je     8049759 <salsa20_word_specification+0x509>
+ 8049739:	8b 74 24 74          	mov    0x74(%esp),%esi
+ 804973d:	83 c2 02             	add    $0x2,%edx
+ 8049740:	8b 0c 86             	mov    (%esi,%eax,4),%ecx
+ 8049743:	8b 74 24 70          	mov    0x70(%esp),%esi
+ 8049747:	01 0c 86             	add    %ecx,(%esi,%eax,4)
+ 804974a:	83 fb 02             	cmp    $0x2,%ebx
+ 804974d:	74 0a                	je     8049759 <salsa20_word_specification+0x509>
+ 804974f:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 8049753:	8b 04 90             	mov    (%eax,%edx,4),%eax
+ 8049756:	01 04 96             	add    %eax,(%esi,%edx,4)
+ 8049759:	83 c4 5c             	add    $0x5c,%esp
+ 804975c:	5b                   	pop    %ebx
+ 804975d:	5e                   	pop    %esi
+ 804975e:	5f                   	pop    %edi
+ 804975f:	5d                   	pop    %ebp
+ 8049760:	c3                   	ret    
+ 8049761:	8d b4 26 00 00 00 00 	lea    0x0(%esi,%eiz,1),%esi
+ 8049768:	31 d2                	xor    %edx,%edx
+ 804976a:	b9 10 00 00 00       	mov    $0x10,%ecx
+ 804976f:	bd 10 00 00 00       	mov    $0x10,%ebp
+ 8049774:	bf 04 00 00 00       	mov    $0x4,%edi
+ 8049779:	be 10 00 00 00       	mov    $0x10,%esi
+ 804977e:	e9 66 fb ff ff       	jmp    80492e9 <salsa20_word_specification+0x99>
+ 8049783:	90                   	nop
+ 8049784:	8d 74 26 00          	lea    0x0(%esi,%eiz,1),%esi
+ 8049788:	31 d2                	xor    %edx,%edx
+ 804978a:	bb 10 00 00 00       	mov    $0x10,%ebx
+ 804978f:	bd 10 00 00 00       	mov    $0x10,%ebp
+ 8049794:	bf 04 00 00 00       	mov    $0x4,%edi
+ 8049799:	be 10 00 00 00       	mov    $0x10,%esi
+ 804979e:	e9 31 ff ff ff       	jmp    80496d4 <salsa20_word_specification+0x484>
+ 80497a3:	90                   	nop
+ 80497a4:	8d 74 26 00          	lea    0x0(%esi,%eiz,1),%esi
+ 80497a8:	8b 74 24 70          	mov    0x70(%esp),%esi
+ 80497ac:	8b 00                	mov    (%eax),%eax
+ 80497ae:	89 06                	mov    %eax,(%esi)
+ 80497b0:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 80497b4:	8b 40 04             	mov    0x4(%eax),%eax
+ 80497b7:	89 46 04             	mov    %eax,0x4(%esi)
+ 80497ba:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 80497be:	8b 40 08             	mov    0x8(%eax),%eax
+ 80497c1:	89 46 08             	mov    %eax,0x8(%esi)
+ 80497c4:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 80497c8:	8b 40 0c             	mov    0xc(%eax),%eax
+ 80497cb:	89 46 0c             	mov    %eax,0xc(%esi)
+ 80497ce:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 80497d2:	8b 40 10             	mov    0x10(%eax),%eax
+ 80497d5:	89 46 10             	mov    %eax,0x10(%esi)
+ 80497d8:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 80497dc:	8b 40 14             	mov    0x14(%eax),%eax
+ 80497df:	89 46 14             	mov    %eax,0x14(%esi)
+ 80497e2:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 80497e6:	8b 40 18             	mov    0x18(%eax),%eax
+ 80497e9:	89 46 18             	mov    %eax,0x18(%esi)
+ 80497ec:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 80497f0:	8b 40 1c             	mov    0x1c(%eax),%eax
+ 80497f3:	89 46 1c             	mov    %eax,0x1c(%esi)
+ 80497f6:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 80497fa:	8b 40 20             	mov    0x20(%eax),%eax
+ 80497fd:	89 46 20             	mov    %eax,0x20(%esi)
+ 8049800:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 8049804:	8b 40 24             	mov    0x24(%eax),%eax
+ 8049807:	89 46 24             	mov    %eax,0x24(%esi)
+ 804980a:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 804980e:	8b 40 28             	mov    0x28(%eax),%eax
+ 8049811:	89 46 28             	mov    %eax,0x28(%esi)
+ 8049814:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 8049818:	8b 40 2c             	mov    0x2c(%eax),%eax
+ 804981b:	89 46 2c             	mov    %eax,0x2c(%esi)
+ 804981e:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 8049822:	8b 40 30             	mov    0x30(%eax),%eax
+ 8049825:	89 46 30             	mov    %eax,0x30(%esi)
+ 8049828:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 804982c:	8b 40 34             	mov    0x34(%eax),%eax
+ 804982f:	89 46 34             	mov    %eax,0x34(%esi)
+ 8049832:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 8049836:	8b 40 38             	mov    0x38(%eax),%eax
+ 8049839:	89 46 38             	mov    %eax,0x38(%esi)
+ 804983c:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 8049840:	8b 40 3c             	mov    0x3c(%eax),%eax
+ 8049843:	89 46 3c             	mov    %eax,0x3c(%esi)
+ 8049846:	e9 10 fb ff ff       	jmp    804935b <salsa20_word_specification+0x10b>
+ 804984b:	90                   	nop
+ 804984c:	8d 74 26 00          	lea    0x0(%esi,%eiz,1),%esi
+ 8049850:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 8049854:	8b 00                	mov    (%eax),%eax
+ 8049856:	01 02                	add    %eax,(%edx)
+ 8049858:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 804985c:	8b 40 04             	mov    0x4(%eax),%eax
+ 804985f:	01 42 04             	add    %eax,0x4(%edx)
+ 8049862:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 8049866:	8b 40 08             	mov    0x8(%eax),%eax
+ 8049869:	01 42 08             	add    %eax,0x8(%edx)
+ 804986c:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 8049870:	8b 40 0c             	mov    0xc(%eax),%eax
+ 8049873:	01 42 0c             	add    %eax,0xc(%edx)
+ 8049876:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 804987a:	8b 40 10             	mov    0x10(%eax),%eax
+ 804987d:	01 42 10             	add    %eax,0x10(%edx)
+ 8049880:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 8049884:	8b 40 14             	mov    0x14(%eax),%eax
+ 8049887:	01 42 14             	add    %eax,0x14(%edx)
+ 804988a:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 804988e:	8b 40 18             	mov    0x18(%eax),%eax
+ 8049891:	01 42 18             	add    %eax,0x18(%edx)
+ 8049894:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 8049898:	8b 40 1c             	mov    0x1c(%eax),%eax
+ 804989b:	01 42 1c             	add    %eax,0x1c(%edx)
+ 804989e:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 80498a2:	8b 40 20             	mov    0x20(%eax),%eax
+ 80498a5:	01 42 20             	add    %eax,0x20(%edx)
+ 80498a8:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 80498ac:	8b 40 24             	mov    0x24(%eax),%eax
+ 80498af:	01 42 24             	add    %eax,0x24(%edx)
+ 80498b2:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 80498b6:	8b 40 28             	mov    0x28(%eax),%eax
+ 80498b9:	01 42 28             	add    %eax,0x28(%edx)
+ 80498bc:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 80498c0:	8b 40 2c             	mov    0x2c(%eax),%eax
+ 80498c3:	01 42 2c             	add    %eax,0x2c(%edx)
+ 80498c6:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 80498ca:	8b 40 30             	mov    0x30(%eax),%eax
+ 80498cd:	01 42 30             	add    %eax,0x30(%edx)
+ 80498d0:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 80498d4:	8b 40 34             	mov    0x34(%eax),%eax
+ 80498d7:	01 42 34             	add    %eax,0x34(%edx)
+ 80498da:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 80498de:	8b 40 38             	mov    0x38(%eax),%eax
+ 80498e1:	01 42 38             	add    %eax,0x38(%edx)
+ 80498e4:	8b 44 24 74          	mov    0x74(%esp),%eax
+ 80498e8:	8b 40 3c             	mov    0x3c(%eax),%eax
+ 80498eb:	01 42 3c             	add    %eax,0x3c(%edx)
+ 80498ee:	83 c4 5c             	add    $0x5c,%esp
+ 80498f1:	5b                   	pop    %ebx
+ 80498f2:	5e                   	pop    %esi
+ 80498f3:	5f                   	pop    %edi
+ 80498f4:	5d                   	pop    %ebp
+ 80498f5:	c3                   	ret    
+ 80498f6:	8d 76 00             	lea    0x0(%esi),%esi
+ 80498f9:	8d bc 27 00 00 00 00 	lea    0x0(%edi,%eiz,1),%edi
+ 8049900:	b9 0f 00 00 00       	mov    $0xf,%ecx
+ 8049905:	ba 01 00 00 00       	mov    $0x1,%edx
+ 804990a:	e9 c9 f9 ff ff       	jmp    80492d8 <salsa20_word_specification+0x88>
+ 804990f:	90                   	nop
+ 8049910:	b9 0e 00 00 00       	mov    $0xe,%ecx
+ 8049915:	ba 02 00 00 00       	mov    $0x2,%edx
+ 804991a:	e9 b9 f9 ff ff       	jmp    80492d8 <salsa20_word_specification+0x88>
+ 804991f:	90                   	nop
+ 8049920:	bb 0e 00 00 00       	mov    $0xe,%ebx
+ 8049925:	ba 02 00 00 00       	mov    $0x2,%edx
+ 804992a:	e9 94 fd ff ff       	jmp    80496c3 <salsa20_word_specification+0x473>
+ 804992f:	90                   	nop
+ 8049930:	bb 0f 00 00 00       	mov    $0xf,%ebx
+ 8049935:	ba 01 00 00 00       	mov    $0x1,%edx
+ 804993a:	e9 84 fd ff ff       	jmp    80496c3 <salsa20_word_specification+0x473>
+ 804993f:	90                   	nop
+
+08049940 <block_mix_rfc>:
