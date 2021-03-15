@@ -20,6 +20,9 @@ endif
 ifeq ($(shell sed -n '0,/.*\<\(sse4_2\)\>.*/s//\1/p' /proc/cpuinfo),sse4_2)
  OPTIMIZE += -msse4.2
 endif
+ifeq ($(shell uname -r | sed -n 's/^[^-]\+-\([a-z]\+\)-.*/\1/p'),co)  # coLinux
+ SLOW_OR_LIMITED_RAM := 1
+endif
 ifeq ($(PROFILER),)
  EXECFLAGS ?= -g
 else
@@ -28,7 +31,7 @@ endif
 EXTRALIBS += -lcrypto $(ASM_SOURCES)
 DEBUG ?= -Ddebugging=1
 export
-default: rfc7914.py rfc7914 _rfc7914.so
+all: rfc7914.py rfc7914 _rfc7914.so
 	./$(word 2, $+)
 	./$<
 %:	%.cpp
