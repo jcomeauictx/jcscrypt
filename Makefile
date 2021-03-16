@@ -4,7 +4,7 @@ ASM_SOURCES := $(wildcard *.s)
 EXECUTABLES := $(CPP_SOURCES:.cpp=)
 LIBRARIES := $(foreach source,$(CPP_SOURCES),_$(basename $(source)).so)
 ARCH := -march=native
-OPTIMIZE := $(ARCH) -std=c++11
+OPTIMIZE := $(ARCH)
 OPTIMIZE += -O3 -Wall -lrt # https://stackoverflow.com/a/10366757/493161
 ifeq ($(shell sed -n '0,/.*\<\(pni\)\>.*/s//\1/p' /proc/cpuinfo),pni)
  OPTIMIZE += -msse3
@@ -36,10 +36,13 @@ export
 all: rfc7914.py rfc7914 _rfc7914.so
 	./$(word 2, $+)
 	./$<
-# kill implicit rule so we can add dependency on assembly language file(s)
+# kill implicit rules so we can add dependency on assembly language file(s)
 %:	%.cpp
+%:	%.c
 %:	%.cpp $(ASM_SOURCES)
 	g++ $(OPTIMIZE) $(DEBUG) $(EXECFLAGS) $(EXTRALIBS) -o $@ $+
+%:	%.c $(ASM_SOURCES)
+	gcc $(OPTIMIZE) $(DEBUG) $(EXECFLAGS) $(EXTRALIBS) -o $@ $+
 _%.so: %.cpp $(ASM_SOURCES)
 	g++ -shared $(OPTIMIZE) $(DEBUG) -fpic $(ARCH) \
 	 -lm -o $@ $(EXTRALIBS) $+
