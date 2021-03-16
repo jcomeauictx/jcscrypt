@@ -183,7 +183,7 @@ PBKDF2_TEST_VECTORS = OrderedDict(
     )
 )
 
-SCRYPT_TEST_VECTORS = OrderedDict({
+SCRYPT_TEST_VECTORS = {
     # For reference purposes, we provide the following test vectors for
     # scrypt, where the password and salt strings are passed as sequences
     # of ASCII [RFC20] octets.
@@ -238,7 +238,7 @@ SCRYPT_TEST_VECTORS = OrderedDict({
         'ec 56 8d 57 4a 2f fd 4d ab e5 ee 98 20 ad aa 47'
         '8e 56 fd 8f 4b a5 d0 9f fa 1c 6d 92 7c 40 f4 c3'
         '37 30 40 49 e8 a9 52 fb cb f4 5c 6f a7 7a 41 a4'
-})
+}
 
 SALSA_BUFFER = ctypes.create_string_buffer(64)
 
