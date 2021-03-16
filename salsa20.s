@@ -169,6 +169,104 @@ shuffle:
 	xor %ebx, %edx
 	mov %edx, 24(%esi)  # edx still holds x[6]
 	# x[10] ^= R(x[ 6]+x[ 2],18)
+	add %edx, %ecx
+	mov 40(%esi), %ebx
+	mov %ecx, %eax
+	shr $14, %ecx
+	shl $18, %eax
+	or %ecx, %eax
+	xor %ebx, %eax
+	mov %eax, 40(%esi)
+	# x[ 3] ^= R(x[15]+x[11], 7)
+	mov 12(%esi), %ebp  # x[3]
+	mov 60(%esi), %edi  # x[15]
+	mov 44(%esi), %edx  # x[11]
+	mov %edx, %ecx
+	add %edi, %ecx
+	mov %ecx, %eax
+	shl %eax, 7
+	shr %ecx, 25
+	or %eax, %ecx
+	xor %ecx, %ebp  # new x[3]
+	mov %ebp, 12(%esi)
+	# x[ 7] ^= R(x[ 3]+x[15], 9)
+	mov %edi, %ecx
+	add %ebp, %ecx
+	mov %ecx, %eax
+	shl $9, %eax
+	shr $23, %ecx
+	or %ecx, %eax
+	mov 28(%esi), %ecx	
+	xor %eax, %ecx  # new x[7]
+	mov %ecx, 28(%esi)
+	# x[11] ^= R(x[ 7]+x[ 3],13)
+	mov %ebp, %ebx
+	add %ecx, %ebx
+	mov %ebx, %eax
+	shl $13, %eax
+	shr $19, %ebx
+	or %eax, %ebx
+	xor %ebx, %edx  # new x[11]
+	mov %edx, 44(%esi)
+	# x[15] ^= R(x[11]+x[ 7],18)
+	add %edx, %ecx
+	mov %ecx, %eax
+	shl $18, %eax
+	shr $13, %ecx
+	or %eax, %ecx
+	xor %ecx, %edi
+	mov %edi, 60(%esi)
+	# x[ 1] ^= R(x[ 0]+x[ 3], 7)  # x[3] is still in %ebp
+	mov %ebp, %ecx
+	mov 0(%esi), %edi  # x[0]
+	add %edi, %ecx
+	mov %ecx, %eax
+	shr $25, %ecx
+	shl $7, %eax
+	or %eax, %ecx
+	mov 4(%esi), %edx  # x[1]
+	xor %ecx, %edx  # new x[1]
+	mov %edx, 4(%esi)
+	# x[ 2] ^= R(x[ 1]+x[ 0], 9)
+	mov %edi, %ecx
+	add %edx, %ecx
+	mov %ecx, %eax
+	shr $23, %ecx
+	shl $9, %eax
+	or %ecx, %eax
+	mov 8(%esi), %ecx  # x[2]
+	xor %eax, %ecx
+	mov %ecx, 8(%esi)
+	# x[ 3] ^= R(x[ 2]+x[ 1],13)  # x[3] in %ebp, x[1] in %edx
+	mov %edx, %ebx
+	add %ecx, %ebx
+	mov %ebx, %eax
+	shr $19, %ebx
+	shl $13, %eax
+	or %eax, %ebx
+	xor %ebx, %ebp  # new x[3]
+	mov %ebp, 12(%esi)
+	# x[ 0] ^= R(x[ 3]+x[ 2],18)  # x[0] in %edi, x[2] in %ecx
+	add %ebp, %ecx
+	mov %ecx, %eax
+	shr $13, %ecx
+	shl $18, %eax
+	or %ecx, %eax
+	xor %eax, %edi
+	mov %edi, 0(%esi)
+	# x[ 6] ^= R(x[ 5]+x[ 4], 7)
+	# x[ 7] ^= R(x[ 6]+x[ 5], 9)
+	# x[ 4] ^= R(x[ 7]+x[ 6],13)
+	# x[ 5] ^= R(x[ 4]+x[ 7],18)
+	# x[11] ^= R(x[10]+x[ 9], 7)
+	# x[ 8] ^= R(x[11]+x[10], 9)
+	# x[ 9] ^= R(x[ 8]+x[11],13)
+	# x[10] ^= R(x[ 9]+x[ 8],18)
+	# x[12] ^= R(x[15]+x[14], 7)
+	# x[13] ^= R(x[12]+x[15], 9)
+	# x[14] ^= R(x[13]+x[12],13)
+	# x[15] ^= R(x[14]+x[13],18)
+	
 	# now add IN to OUT before returning
 	mov 20(%esp), %esi  # both source and destination (out)
 	movdqa (%esi), %xmm4
