@@ -184,8 +184,8 @@ shuffle:
 	mov %edx, %ecx
 	add %edi, %ecx
 	mov %ecx, %eax
-	shl %eax, 7
-	shr %ecx, 25
+	shl $7, %eax
+	shr $25, %ecx
 	or %eax, %ecx
 	xor %ecx, %ebp  # new x[3]
 	mov %ebp, 12(%esi)
@@ -254,19 +254,57 @@ shuffle:
 	or %ecx, %eax
 	xor %eax, %edi
 	mov %edi, 0(%esi)
+	# next group shuffles offsets 4, 5, 6, and 7
 	# x[ 6] ^= R(x[ 5]+x[ 4], 7)
+	mov 20(%esi), %ebp  # x[5]
+	mov 16(%esi), %edi  # x[4]
+	mov %edi, %ebx
+	add %ebp, %ebx
+	mov %ebx, %eax
+	shr $25, %ebx
+	shl $7, %eax
+	or %eax, %ebx
+	mov 24(%esi), %edx  # x[6]
+	xor %ebx, %edx
+	mov %edx, 24(%esi)
 	# x[ 7] ^= R(x[ 6]+x[ 5], 9)
-	# x[ 4] ^= R(x[ 7]+x[ 6],13)
-	# x[ 5] ^= R(x[ 4]+x[ 7],18)
+	mov %ebp, %ebx
+	mov 28(%esi), %ecx  # x[7]
+	add %edx, %ebx
+	mov %ebx, %eax
+	shr $23, %ebx
+	shl $9, %eax
+	or %eax, %ebx
+	xor %ebx, %ecx  # new x[7]
+	mov %ecx, 28(%esi)
+	# x[ 4] ^= R(x[ 7]+x[ 6],13)  # %edi:x[4], %edx:x[6], %ecx:x[7]
+	mov %edx, %ebx
+	add %ecx, %ebx
+	mov %ebx, %eax
+	shr $19, %ebx
+	shl $13, %eax
+	or %eax, %ebx
+	xor %ebx, %edi  # new x[4]
+	mov %edi, 24(%esi)
+	# x[ 5] ^= R(x[ 4]+x[ 7],18)  # %ebp:x[5], %edi:x[4], %ecx:x[7]
+	mov %ecx, %ebx
+	add %edi, %ebx
+	mov %ebx, %eax
+	shr $14, %ebx
+	shl $18, %eax
+	or %eax, %ebx
+	xor %ebx, %ebp
+	mov %ebp, 20(%esi)
+	# next group: offsets 8, 9, 10, 11
 	# x[11] ^= R(x[10]+x[ 9], 7)
 	# x[ 8] ^= R(x[11]+x[10], 9)
 	# x[ 9] ^= R(x[ 8]+x[11],13)
 	# x[10] ^= R(x[ 9]+x[ 8],18)
+	# final group: offsets 12, 13, 14, 15
 	# x[12] ^= R(x[15]+x[14], 7)
 	# x[13] ^= R(x[12]+x[15], 9)
 	# x[14] ^= R(x[13]+x[12],13)
 	# x[15] ^= R(x[14]+x[13],18)
-	
 	# now add IN to OUT before returning
 	mov 20(%esp), %esi  # both source and destination (out)
 	movdqa (%esi), %xmm4
