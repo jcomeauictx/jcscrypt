@@ -33,18 +33,19 @@
 #       for (uint32_t i = 0;i < 16;++i) x[i] += in[i];
 #   }
 salsa20_32:
-	add $4, 0(%esp)  # use for loop counter, frees up ecx register
 	# save registers required by cdecl convention
 	push %ebp
 	push %edi
 	push %esi
 	push %ebx
+	push $4
 	# at this point the stack contains:
+	# the 4-byte loop counter (4)
 	# the 16 bytes of the 4 registers we just pushed...
-	# the 4 bytes of the modified return address, which makes 20 bytes...
+	# the 4 bytes of the return address, which makes 24 bytes...
 	# the "out" address, and the "in" address, in that order.
-	mov 20(%esp), %edi  # destination (out)
-	mov 24(%esp), %esi  # source (in)
+	mov 24(%esp), %edi  # destination (out)
+	mov 28(%esp), %esi  # source (in)
 	#mov $16, %ecx  # count
 	#rep movsd
 	movdqa (%esi), %xmm0
@@ -56,7 +57,7 @@ salsa20_32:
 	movdqa 48(%esi), %xmm3
 	movapd %xmm3, 48(%edi)
 	# restore %esi as pointer for the salsa shuffle
-	mov 20(%esp), %esi  # out, where the work will be done.
+	mov 24(%esp), %esi  # out, where the work will be done.
 shuffle:
 	# first group of 4 is offsets 0, 4, 8, 12
 	# x[ 4] ^= R(x[ 0]+x[12], 7)
@@ -410,9 +411,9 @@ shuffle:
 	mov %ebp, 60(%esi)
 
 	# loop back
-	decl 16(%esp)
-	testl $3, 16(%esp)
+	decl (%esp)
 	jnz shuffle
+	pop %eax  # the spent loop counter, now 0
 
 	# now add IN to OUT before returning
 	mov 20(%esp), %esi  # both source and destination (out)
