@@ -24,7 +24,7 @@ extern "C" {
             0xe4, 0x24, 0xcc, 0x10, 0x2c, 0x91, 0x74, 0x5c,
             0x24, 0xad, 0x67, 0x3d, 0xc7, 0x61, 0x8f, 0x81
         };
-        uint8_t *out = (uint8_t *)malloc(64);
+        uint8_t *out = (uint8_t *)aligned_alloc(64, 64);
         salsa20_32((uint32_t *)out, (uint32_t *)salsa_in);
         int compared = memcmp((void *)salsa_out, (void *)out, 64);
         free(out);
