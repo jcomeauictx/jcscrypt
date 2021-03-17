@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,13 +42,22 @@ int main() {
 }
 void *allocate(size_t alignment, size_t size) {
     uint8_t *memptr;
+    size_t needed = (alignment << 1) + size;
+    fprintf(stderr, "INFO: allocating %d bytes\n", needed);
     REAL_MEMPTR = malloc((alignment << 1) + size);
+    fprintf(stderr, "INFO: got chunk of RAM at %p\n", REAL_MEMPTR);
     memptr = (uint8_t *)(
-        ((size_t)REAL_MEMPTR + alignment - 1) & (alignment - 1));
+        ((size_t)REAL_MEMPTR + alignment - 1) & ~(alignment - 1));
+    fprintf(stderr, "INFO: allocate returning aligned buffer at %p\n", memptr);
     return (void *)memptr;
 }
 void freeptr(void *pointer) {
-    if (REAL_MEMPTR == NULL) free(pointer);
-    else free(REAL_MEMPTR);
+    if (REAL_MEMPTR == NULL) {
+        fprintf(stderr, "INFO: found REAL_MEMPTR null, freeing %p\n", pointer);
+        free(pointer);
+    } else {
+        fprintf(stderr, "INFO: freeing REAL_MEMPTR, %p\n", REAL_MEMPTR);
+        free(REAL_MEMPTR);
+    }
 }
 /* vim: set tabstop=4 expandtab shiftwidth=4 softtabstop=4: */
