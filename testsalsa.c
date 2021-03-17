@@ -36,15 +36,21 @@ int main() {
     };
     uint8_t *out = (uint8_t *)scrypt_alloc(64, 64);
     uint32_t result;
-    #ifdef __undefined__
+//#ifdef __undefined__
     int i, j;
-    fprintf(stderr, "INFO: expected result:\n");
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 16; i++)
-            fprintf(stderr, "%02x", salsa_out[(i * 16) + j]);
+    fprintf(stderr, "INFO: test vector:\n");
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 32; j++)
+            fprintf(stderr, "%02x", salsa_in[(i * 32) + j]);
         fprintf(stderr, "\n");
     }
-    #endif
+    fprintf(stderr, "INFO: expected result:\n");
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 32; j++)
+            fprintf(stderr, "%02x", salsa_out[(i * 32) + j]);
+        fprintf(stderr, "\n");
+    }
+//#endif
     salsa20_32((uint32_t *)out, (uint32_t *)salsa_in);
     int compared = memcmp((void *)salsa_out, (void *)out, 64);
     scrypt_free(out);
