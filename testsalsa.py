@@ -41,7 +41,10 @@ step through the salsa20/8 algorithm
     e4 24 cc 10 2c 91 74 5c 24 ad 67 3d c7 61 8f 81
 '''
 def rundoc():
-    print(__doc__)
+    program = __doc__.splitlines()
+    for line in program:
+        tokenized = line.split()
+        print(tokenized)
 
 if __name__ == '__main__':
     rundoc()
