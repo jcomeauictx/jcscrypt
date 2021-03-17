@@ -84,11 +84,14 @@ def run():
     shuffle, inbytes, outbytes = parse()
     expected = bytes(outbytes)
     x = list(struct.unpack('<16L', inbytes))
+    saved = list(x)  # to add on at the end
     logging.debug('x: %s', list(map(hex, x)))
     for i in range(4):
         for j in range(len(shuffle)):
             exec(shuffle[j])
             logging.debug('x: %s', list(map(hex, x)))
+    for i in range(16):
+        x[i] = (x[i] + saved[i]) & 0xffffffff
     outbytes = struct.pack('<16L', *x)
     logging.debug('outbytes: %r, expected: %r', outbytes, expected)
     return outbytes == expected
