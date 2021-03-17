@@ -5,8 +5,8 @@ step through the salsa20/8 algorithm
     #define R(a,b) (((a) << (b)) | ((a) >> (32 - (b))))
     void salsa20_word_specification(uint32 out[16],uint32 in[16])
     {
-        for (uint32_t i = 0;i < 16;++i) x[i] = in[i];
-        for (uint32_t i = 0; i < 4; i++) {
+        for (uint32 i = 0;i < 16;++i) x[i] = in[i];
+        for (uint32 i = 0; i < 4; i++) {
             x[ 4] ^= R(x[ 0]+x[12], 7);  x[ 8] ^= R(x[ 4]+x[ 0], 9);
             x[12] ^= R(x[ 8]+x[ 4],13);  x[ 0] ^= R(x[12]+x[ 8],18);
             x[ 9] ^= R(x[ 5]+x[ 1], 7);  x[13] ^= R(x[ 9]+x[ 5], 9);
@@ -24,7 +24,7 @@ step through the salsa20/8 algorithm
             x[12] ^= R(x[15]+x[14], 7);  x[13] ^= R(x[12]+x[15], 9);
             x[14] ^= R(x[13]+x[12],13);  x[15] ^= R(x[14]+x[13],18);
         }
-    for (uint32_t i = 0;i < 16;++i) x[i] += in[i];
+    for (uint32 i = 0;i < 16;++i) x[i] += in[i];
 
     TEST VECTOR
 	
