@@ -42,6 +42,7 @@ step through the salsa20/8 algorithm
     e4 24 cc 10 2c 91 74 5c 24 ad 67 3d c7 61 8f 81
 '''
 import logging
+from binascii import hexlify, unhexlify
 
 logging.basicConfig(level=logging.DEBUG if __debug__ else logging.INFO)
 
@@ -52,6 +53,7 @@ def parse():
     program = __doc__.splitlines()
     shuffle = []
     vector = ''
+    inbytes, outbytes = bytearray(), bytearray()
     for line in program:
         statement = line.strip()
         if statement.startswith('x['):
@@ -59,7 +61,17 @@ def parse():
             for expression in expressions:
                 logging.debug('compiling %r', expression)
                 shuffle.append(compile(expression, '/dev/fd/2', 'single'))
+        elif vector == '' or statement.endswith(':'):
+            if statement.rstrip(':') == 'INPUT':
+                vector = 'inbytes'
+            elif statement.rstrip(':') == 'OUTPUT':
+                vector = 'outbytes'
+        else:
+            eval(vector).extend(map(unhexlify, statement.split()))
     print('parsed')
+    logging.debug('inbytes: %r', inbytes)
+    logging.debug('outbytes: %r', outbytes)
+    logging.debug('shuffle: %s', shuffle)
 
 if __name__ == '__main__':
     parse()
