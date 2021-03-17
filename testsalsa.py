@@ -60,7 +60,12 @@ def rundoc():
                 continue
         elif state == 'parsing program':
             if tokens[0] == '#define':
-                def eval(tokens[1]): return ' '.join(tokens[2:])
+                tokens[0] = 'def'
+                tokens.insert(2, ':')
+                tokens.insert(3, 'return')
+                tokens.append('\n')
+                compiled = compile(' '.join(tokens), '/dev/fd/2', 'single')
+                exec(compiled)
             else:
                 print("that's all I got so far")
                 break
