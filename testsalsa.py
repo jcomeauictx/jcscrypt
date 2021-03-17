@@ -41,10 +41,30 @@ step through the salsa20/8 algorithm
     e4 24 cc 10 2c 91 74 5c 24 ad 67 3d c7 61 8f 81
 '''
 def rundoc():
+    state = 'looking for header'
     program = __doc__.splitlines()
     for line in program:
-        tokenized = line.split()
-        print(tokenized)
+        tokens = line.split()
+        print(tokens)
+        if state == 'looking for header':
+            if line == '':
+                continue
+            else:
+                state = 'skipping header'
+                continue
+        elif state == 'skipping header':
+            if line == '':
+                state = 'parsing program'
+                continue
+            else:
+                continue
+        elif state == 'parsing program':
+            if tokens[0] == '#define':
+                def eval(tokens[1]): return ' '.join(tokens[2:])
+            else:
+                print("that's all I got so far")
+                break
+    print('locals(): %s' % locals())
 
 if __name__ == '__main__':
     rundoc()
