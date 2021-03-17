@@ -41,7 +41,8 @@ step through the salsa20/8 algorithm
     b4 39 31 68 e3 c9 e6 bc fe 6b c5 b7 a0 6d 96 ba
     e4 24 cc 10 2c 91 74 5c 24 ad 67 3d c7 61 8f 81
 '''
-import logging
+from __future__ import print_function
+import struct, logging
 from binascii import hexlify, unhexlify
 
 logging.basicConfig(level=logging.DEBUG if __debug__ else logging.INFO)
@@ -78,8 +79,15 @@ def parse():
 
 def run():
     shuffle, inbytes, outbytes = parse()
-
+    expected = bytes(outbytes)
+    x = list(struct.unpack('<16L', inbytes))
+    logging.debug('x: %s', x)
+    for i in range(4):
+        for j in range(len(shuffle)):
+            exec(shuffle[j])
+    outbytes = struct.pack('<16L', *x)
+    return outbytes == expected
 
 if __name__ == '__main__':
-    run()
+    print(run())
 # vim: set tabstop=4 expandtab shiftwidth=4 softtabstop=4
