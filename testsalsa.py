@@ -59,8 +59,7 @@ def parse():
         if statement.startswith('x['):
             expressions = filter(None, map(str.strip, statement.split(';')))
             for expression in expressions:
-                logging.debug('compiling %r', expression)
-                shuffle.append(compile(expression, '/dev/fd/2', 'single'))
+                shuffle.append(expression)
         elif vector == '' or statement.endswith(':'):
             if statement.rstrip(':') == 'INPUT':
                 vector = 'inbytes'
