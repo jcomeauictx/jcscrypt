@@ -47,8 +47,11 @@ from binascii import hexlify, unhexlify
 
 logging.basicConfig(level=logging.DEBUG if __debug__ else logging.INFO)
 
-def R(a, b):
-    return ((a << b) | (a >> (32 - b))) & 0xffffffff
+def uint32(number):
+    return number & 0xffffffff
+
+def R(number, count):
+    return uint32((uint32(number) << count) | (uint32(number) >> (32 - count)))
 
 def parse():
     if not __doc__:
@@ -81,11 +84,13 @@ def run():
     shuffle, inbytes, outbytes = parse()
     expected = bytes(outbytes)
     x = list(struct.unpack('<16L', inbytes))
-    logging.debug('x: %s', x)
+    logging.debug('x: %s', list(map(hex, x)))
     for i in range(4):
         for j in range(len(shuffle)):
             exec(shuffle[j])
+            logging.debug('x: %s', list(map(hex, x)))
     outbytes = struct.pack('<16L', *x)
+    logging.debug('outbytes: %r, expected: %r', outbytes, expected)
     return outbytes == expected
 
 if __name__ == '__main__':
