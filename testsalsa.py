@@ -5,6 +5,7 @@ step through the salsa20/8 algorithm
     #define R(a,b) (((a) << (b)) | ((a) >> (32 - (b))))
     void salsa20_word_specification(uint32 out[16],uint32 in[16])
     {
+        uint32_t *x = out;
         for (uint32 i = 0;i < 16;++i) x[i] = in[i];
         for (uint32 i = 0; i < 4; i++) {
             x[ 4] ^= R(x[ 0]+x[12], 7);  x[ 8] ^= R(x[ 4]+x[ 0], 9);
@@ -42,23 +43,24 @@ step through the salsa20/8 algorithm
 '''
 def rundoc():
     state = 'looking for header'
+    indentlevel = ''
     program = __doc__.splitlines()
     for line in program:
         tokens = line.split()
         print(tokens)
         if state == 'looking for header':
-            if line == '':
-                continue
-            else:
+            if tokens != []:
                 state = 'skipping header'
-                continue
         elif state == 'skipping header':
-            if line == '':
+            if tokens == []:
                 state = 'parsing program'
-                continue
-            else:
-                continue
         elif state == 'parsing program':
+            if tokens == []:
+                continue
+            if tokens[0].startswith('}'):
+                indentlevel = indentlevel[:-1]
+            if tokens[-1].endswith('{'):
+                indentlevel += ' '
             if tokens[0] == '#define':
                 tokens[0] = 'def'
                 tokens.insert(2, ':')
@@ -66,9 +68,6 @@ def rundoc():
                 tokens.append('\n')
                 compiled = compile(' '.join(tokens), '/dev/fd/2', 'single')
                 exec(compiled)
-            else:
-                print("that's all I got so far")
-                break
     print('locals(): %s' % locals())
 
 if __name__ == '__main__':
