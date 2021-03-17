@@ -50,6 +50,9 @@ def R(a, b):
     return ((a << b) | (a >> (32 - b))) & 0xffffffff
 
 def parse():
+    if not __doc__:
+        raise ValueError('No program found in __doc__! '
+                         'Are you running with optimization -OO?')
     program = __doc__.splitlines()
     shuffle = []
     vector = ''
@@ -71,7 +74,12 @@ def parse():
     logging.debug('inbytes: %r', inbytes)
     logging.debug('outbytes: %r', outbytes)
     logging.debug('shuffle: %s', shuffle)
+    return shuffle, inbytes, outbytes
+
+def run():
+    shuffle, inbytes, outbytes = parse()
+
 
 if __name__ == '__main__':
-    parse()
+    run()
 # vim: set tabstop=4 expandtab shiftwidth=4 softtabstop=4
