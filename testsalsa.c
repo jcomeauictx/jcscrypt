@@ -35,10 +35,14 @@ int main() {
         0x24, 0xad, 0x67, 0x3d, 0xc7, 0x61, 0x8f, 0x81
     };
     uint8_t *out = (uint8_t *)scrypt_alloc(64, 64);
+    uint32_t result;
     salsa20_32((uint32_t *)out, (uint32_t *)salsa_in);
     int compared = memcmp((void *)salsa_out, (void *)out, 64);
-    free(out);
-    return compared & 0x1;  // 0 if same, 1 if not
+    scrypt_free(out);
+    result = compared & 0x1;  // 0 if same, 1 if not
+    if (result != 0) fprintf(stderr, "WARNING: not the expected results\n");
+    else fprintf(stderr, "INFO: salsa20_32 returned expected results\n");
+    return result;
 }
 void *allocate(size_t alignment, size_t size) {
     uint8_t *memptr;
@@ -53,10 +57,12 @@ void *allocate(size_t alignment, size_t size) {
 }
 void freeptr(void *pointer) {
     if (REAL_MEMPTR == NULL) {
-        fprintf(stderr, "INFO: found REAL_MEMPTR null, freeing %p\n", pointer);
+        fprintf(stderr, "INFO: found REAL_MEMPTR null\n");
+        fprintf(stderr, "INFO: freeing %p\n", pointer);
         free(pointer);
     } else {
-        fprintf(stderr, "INFO: freeing REAL_MEMPTR, %p\n", REAL_MEMPTR);
+        fprintf(stderr, "INFO: REAL_MEMPTR is non-NULL\n");
+        fprintf(stderr, "INFO: freeing %p\n", REAL_MEMPTR);
         free(REAL_MEMPTR);
     }
 }
