@@ -41,35 +41,26 @@ step through the salsa20/8 algorithm
     b4 39 31 68 e3 c9 e6 bc fe 6b c5 b7 a0 6d 96 ba
     e4 24 cc 10 2c 91 74 5c 24 ad 67 3d c7 61 8f 81
 '''
-def rundoc():
-    state = 'looking for header'
-    indentlevel = ''
+import logging
+
+logging.basicConfig(level=logging.DEBUG if __debug__ else logging.INFO)
+
+def R(a, b):
+    return ((a << b) | (a >> (32 - b))) & 0xffffffff
+
+def parse():
     program = __doc__.splitlines()
+    shuffle = []
+    vector = ''
     for line in program:
-        tokens = line.split()
-        print(tokens)
-        if state == 'looking for header':
-            if tokens != []:
-                state = 'skipping header'
-        elif state == 'skipping header':
-            if tokens == []:
-                state = 'parsing program'
-        elif state == 'parsing program':
-            if tokens == []:
-                continue
-            if tokens[0].startswith('}'):
-                indentlevel = indentlevel[:-1]
-            if tokens[-1].endswith('{'):
-                indentlevel += ' '
-            if tokens[0] == '#define':
-                tokens[0] = 'def'
-                tokens.insert(2, ':')
-                tokens.insert(3, 'return')
-                tokens.append('\n')
-                compiled = compile(' '.join(tokens), '/dev/fd/2', 'single')
-                exec(compiled)
-    print('locals(): %s' % locals())
+        statement = line.strip()
+        if statement.startswith('x['):
+            expressions = filter(None, map(str.strip, statement.split(';')))
+            for expression in expressions:
+                logging.debug('compiling %r', expression)
+                shuffle.append(compile(expression, '/dev/fd/2', 'single'))
+    print('parsed')
 
 if __name__ == '__main__':
-    rundoc()
+    parse()
 # vim: set tabstop=4 expandtab shiftwidth=4 softtabstop=4
