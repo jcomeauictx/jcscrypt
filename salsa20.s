@@ -241,15 +241,15 @@ shuffle:
 	xor %edx, %ebp
 	mov %ebp, 60(%esi)
 
-	# next group: offsets 1, 2, 3, 4
-	mov 16(%esi), %ebp  # x[3]
+	# next group: offsets 0, 1, 2, 3
+	# %ecx still has x[3] from last round
 	mov 8(%esi), %edi  # x[2]
 	mov 4(%esi), %edx  # x[1]
-	mov 0(%esi), %ecx  # x[0]
+	mov 0(%esi), %ebp  # x[0]
 
-	# x[ 1] ^= R(x[ 0]+x[ 3], 7)  # x[3] is still in %ebp
-	mov %ebp, %ebx
-	add %ecx, %ebx
+	# x[ 1] ^= R(x[ 0]+x[ 3], 7)
+	mov %ecx, %ebx
+	add %ebp, %ebx
 	mov %ebx, %eax
 	shr $25, %ebx
 	shl $7, %eax
@@ -258,7 +258,7 @@ shuffle:
 	mov %edx, 4(%esi)
 
 	# x[ 2] ^= R(x[ 1]+x[ 0], 9)
-	mov %ecx, %ebx
+	mov %ebp, %ebx
 	add %edx, %ebx
 	mov %ebx, %eax
 	shr $23, %ebx
@@ -269,22 +269,22 @@ shuffle:
 
 	# x[ 3] ^= R(x[ 2]+x[ 1],13)  # x[3] in %ebp, x[1] in %edx
 	mov %edx, %ebx
-	add %ecx, %ebx
+	add %edi, %ebx
 	mov %ebx, %eax
 	shr $19, %ebx
 	shl $13, %eax
 	or %eax, %ebx
-	xor %ebx, %ebp  # new x[3]
-	mov %ebp, 12(%esi)
+	xor %ebx, %ecx
+	mov %ecx, 12(%esi)
 
 	# x[ 0] ^= R(x[ 3]+x[ 2],18)  # x[0] in %edi, x[2] in %ecx
-	add %ebp, %ecx
-	mov %ecx, %eax
-	shr $13, %ecx
+	add %ecx, %edi
+	mov %edi, %eax
+	shr $13, %edi
 	shl $18, %eax
-	or %ecx, %eax
-	xor %eax, %edi
-	mov %edi, 0(%esi)
+	or %edi, %eax
+	xor %eax, %ebp
+	mov %ebp, 0(%esi)
 
 	# next group shuffles offsets 4, 5, 6, and 7
 	mov 28(%esi), %ebp  # x[7]
