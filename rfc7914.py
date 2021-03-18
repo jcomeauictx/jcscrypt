@@ -456,8 +456,12 @@ def scrypt(passphrase, salt=None, N=1024, r=1, p=1, dkLen=32):
         except TypeError:
             p_array = ctypes.create_string_buffer(passphrase.encode(), p_len)
         s_len = len(salt) if salt is not None else 0
-        s_array = ctypes.create_string_buffer(
-            bytes(salt, 'utf8'), s_len) if salt is not None else None
+        try:
+            s_array = ctypes.create_string_buffer(
+                bytes(salt, 'utf8'), s_len) if salt is not None else None
+        except TypeError:
+            s_array = ctypes.create_string_buffer(
+                salt, s_len) if salt is not None else None
         dk_array = ctypes.create_string_buffer(dkLen)
         SCRYPT(p_array, p_len, salt, s_len, N, r, p, dkLen, dk_array, 0, 0)
         derived_key = dk_array.raw
