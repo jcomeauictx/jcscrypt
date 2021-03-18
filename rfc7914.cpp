@@ -12,10 +12,12 @@ using namespace std;
 #include <openssl/hmac.h>
 
 //stackoverflow.com/a/1505839/493161
-#if INTPTR_MAX == INT32_MAX
- #define JCSCRYPT_BITS32
-#elif INTPTR_MAX == INT64_MAX
- #define JCSCRYPT_BITS64
+#ifndef BITS
+    #if INTPTR_MAX == INT32_MAX
+        #define BITS 32
+    #elif INTPTR_MAX == INT64_MAX
+        #define BITS 64
+    #endif
 #endif
 
 #define R(a,b) (((a) << (b)) | ((a) >> (32 - (b))))
@@ -33,13 +35,13 @@ using namespace std;
 */
 #define MAX_VERBOSITY 2  // use for the nitty gritty stuff
 #define SALSA salsa20_word_specification
+#if BITS == 32
+    #warning Setting SALSA to point to assembly language routine
+    #define SALSA salsa20
+#endif
 #ifndef debugging  // when debugging, mixer is selectable
     #warning Setting mixer to RFC-strict code, may be slower.
     #define mixer 0
-    #warning Setting SALSA to point to assembly language routine
-    #ifdef JCSCRYPT_BITS32
-        #define SALSA salsa20
-    #endif
 #else
     #warning Adding debugging code, will be slower.
 #endif
@@ -165,7 +167,7 @@ extern "C" {  // prevents name mangling
             memcpy((void *)T, (void *)X, 64);
             array_xor(T, &B[i]);
             // X = Salsa (T)
-            salsa20_word_specification(X, T);
+            SALSA(X, T);
             #ifdef debugging
             if (verbose > 1)
             {
@@ -180,7 +182,7 @@ extern "C" {  // prevents name mangling
             // now repeat for the odd chunk
             memcpy((void *)T, (void *)X, 64);
             array_xor(T, &B[i + chunk]);
-            salsa20_word_specification(X, T);
+            SALSA(X, T);
             #ifdef debugging
             if (verbose > 1)
             {
@@ -252,7 +254,7 @@ extern "C" {  // prevents name mangling
             array_xor(T, &bCopy[i]);
             // X = Salsa (T); Y[i] = X
             X = &B[j];
-            salsa20_word_specification(X, T);
+            SALSA(X, T);
             #ifdef debugging
             if (verbose > 1)
             {
@@ -266,7 +268,7 @@ extern "C" {  // prevents name mangling
             memcpy((void *)T, (void *)X, 64);
             array_xor(T, &bCopy[i + chunk]);
             X = &B[k];
-            salsa20_word_specification(X, T);
+            SALSA(X, T);
             #ifdef debugging
             if (verbose > 1)
             {

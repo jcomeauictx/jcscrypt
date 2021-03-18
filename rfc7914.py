@@ -67,7 +67,7 @@ try:
     LIBRARY = ctypes.cdll.LoadLibrary(os.path.join(SCRIPT_DIR, '_rfc7914.so'))
     SALSA = LIBRARY.salsa20_word_specification
     if sys.maxsize == 0x7fffffff:
-        SALSA = LIBRARY.salsa20_32
+        SALSA = LIBRARY.salsa20
         logging.info('NOTE: using assembly language Salsa20 implementation')
     SALSA.restype = None  # otherwise it returns contents of return register
     XOR = LIBRARY.array_xor
