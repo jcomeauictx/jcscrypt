@@ -516,7 +516,7 @@ extern "C" {  // prevents name mangling
         int mixer = 0, verbose = 0;
         #endif
         cerr << "Command: ";
-        for (int i = 0; i < argc; i++) cerr << argv[i];
+        for (int i = 0; i < argc; i++) cerr << argv[i] << " ";
         cerr << endl;
         if (argc > 1) passphrase = showpass = argv[1];
         if (argc > 2) salt = showsalt = argv[2];
