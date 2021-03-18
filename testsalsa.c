@@ -13,7 +13,7 @@ void freeptr(void *pointer);
 #endif
 void salsa20_32(uint32_t out[16], uint32_t in[16]);
 void *REAL_MEMPTR = NULL;  // for fake_aligned_alloc
-int main() {
+int main(int argc, char **argv) {
     uint8_t salsa_in[64] __attribute((aligned(64))) = {
         0x7e, 0x87, 0x9a, 0x21, 0x4f, 0x3e, 0xc9, 0x86,
         0x7c, 0xa9, 0x40, 0xe6, 0x41, 0x71, 0x8f, 0x26,
@@ -36,7 +36,10 @@ int main() {
     };
     uint8_t *out = (uint8_t *)scrypt_alloc(64, 64);
     uint32_t result;
-    int i, j;
+    int i, j, count = 1;
+    if (argc > 1) {
+        count = atoi(argv[1]);
+    }
     fprintf(stderr, "INFO: test vector:\n");
     for (i = 0; i < 2; i++) {
         for (j = 0; j < 32; j++)
@@ -49,7 +52,10 @@ int main() {
             fprintf(stderr, "%02x", salsa_out[(i * 32) + j]);
         fprintf(stderr, "\n");
     }
-    salsa20_32((uint32_t *)out, (uint32_t *)salsa_in);
+    fprintf(stderr, "running %d repetition(s) of salsa20_32\n", count);
+    for (i = 0; i < count; i++) {
+        salsa20_32((uint32_t *)out, (uint32_t *)salsa_in);
+    }
     fprintf(stderr, "INFO: result:\n");
     for (i = 0; i < 2; i++) {
         for (j = 0; j < 32; j++)
