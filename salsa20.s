@@ -152,7 +152,7 @@ shuffle:
 	mov %edx, 20(%esi)
 
 	# next group: offsets 2, 6, 10, 14
-	mov 54(%esi), %ebp  # x[14]
+	mov 56(%esi), %ebp  # x[14]
 	mov 40(%esi), %edi  # x[10]
 	mov 24(%esi), %edx  # x[6]
 	mov 8(%esi), %ecx  # x[2]
