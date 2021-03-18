@@ -83,7 +83,7 @@ def parse():
 def run():
     shuffle, inbytes, outbytes = parse()
     expected = bytes(outbytes)
-    x = list(struct.unpack('<16L', inbytes))
+    x = list(struct.unpack('<16L', bytes(inbytes)))
     saved = list(x)  # to add on at the end
     logging.debug('x: %s', list(map(hex, x)))
     for i in range(4):
