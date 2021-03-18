@@ -1,10 +1,12 @@
+SHELL := /bin/bash
+BITS ?= 32
 PY_SOURCES := $(wildcard *.py)
 CPP_SOURCES := $(wildcard *.cpp)
-ASM_SOURCES := $(wildcard *.s)
+ASM_SOURCES := $(wildcard *$(BITS).s)
 EXECUTABLES := $(CPP_SOURCES:.cpp=)
 LIBRARIES := $(foreach source,$(CPP_SOURCES),_$(basename $(source)).so)
 ARCH := -march=native
-OPTIMIZE := $(ARCH)
+OPTIMIZE := $(ARCH) -m$(BITS)
 OPTIMIZE += -O3 -Wall -lrt # https://stackoverflow.com/a/10366757/493161
 ifeq ($(shell sed -n '0,/.*\<\(pni\)\>.*/s//\1/p' /proc/cpuinfo),pni)
  OPTIMIZE += -msse3
@@ -33,7 +35,7 @@ EXTRALIBS += -lcrypto
 DEBUG ?= -Ddebugging=1
 export
 
-all: rfc7914.py rfc7914 _rfc7914.so
+all: rfc7914.py rfc7914 _rfc7914.so testsalsa
 	./$(word 2, $+)
 	./$<
 # kill implicit rules so we can add dependency on assembly language file(s)

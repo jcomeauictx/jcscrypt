@@ -11,35 +11,37 @@ using namespace std;
 #include <openssl/crypto.h>
 #include <openssl/hmac.h>
 
+/* Too clever by half. Let's pass BITS=32 or BITS=64 with `make` for now.
 //stackoverflow.com/a/1505839/493161
 #if INTPTR_MAX == INT32_MAX
- #define JCSCRYPT_BITS32
+    #define JCSCRYPT_BITS32
 #elif INTPTR_MAX == INT64_MAX
- #define JCSCRYPT_BITS64
+    #define JCSCRYPT_BITS64
 #endif
+*/
 
 #define R(a,b) (((a) << (b)) | ((a) >> (32 - (b))))
 #ifndef aligned_alloc
- #warning no aligned_alloc provided on this system, program may segfault
- #define aligned_alloc(alignment, size) malloc(size)
+    #warning no aligned_alloc provided on this system, program may segfault
+    #define aligned_alloc(alignment, size) malloc(size)
 #endif
 /* this does not actually work the way it was intended, don't use it.
    the header files and libraries may or may not have it, but a
    function declaration is not "defined".
    *but leave this note in as a reminder for next time*
 #ifndef PKCS5_PBKDF2_HMAC
- #define PKCS5_PBKDF2_HMAC(...) (cerr << "HMAC not supported" << endl)
+    #define PKCS5_PBKDF2_HMAC(...) (cerr << "HMAC not supported" << endl)
 #endif
 */
 #define MAX_VERBOSITY 2  // use for the nitty gritty stuff
 #define SALSA salsa20_word_specification
+#if BITS == 32
+    #warning Setting SALSA to point to assembly language routine
+    #define SALSA salsa20
+#endif
 #ifndef debugging  // when debugging, mixer is selectable
     #warning Setting mixer to RFC-strict code, may be slower.
     #define mixer 0
-    #warning Setting SALSA to point to assembly language routine
-    #ifdef JCSCRYPT_BITS32
-        #define SALSA salsa20
-    #endif
 #else
     #warning Adding debugging code, will be slower.
 #endif

@@ -11,7 +11,7 @@ void freeptr(void *pointer);
     #define scrypt_alloc(alignment, size) aligned_malloc(alignment, size)
     #define scrypt_free(pointer) free(pointer)
 #endif
-void salsa20_32(uint32_t out[16], uint32_t in[16]);
+void salsa20(uint32_t out[16], uint32_t in[16]);
 void *REAL_MEMPTR = NULL;  // for fake_aligned_alloc
 int main(int argc, char **argv) {
     uint8_t salsa_in[64] __attribute((aligned(64))) = {
@@ -52,9 +52,9 @@ int main(int argc, char **argv) {
             fprintf(stderr, "%02x", salsa_out[(i * 32) + j]);
         fprintf(stderr, "\n");
     }
-    fprintf(stderr, "running %d repetition(s) of salsa20_32\n", count);
+    fprintf(stderr, "running %d repetition(s) of salsa20\n", count);
     for (i = 0; i < count; i++) {
-        salsa20_32((uint32_t *)out, (uint32_t *)salsa_in);
+        salsa20((uint32_t *)out, (uint32_t *)salsa_in);
     }
     fprintf(stderr, "INFO: result:\n");
     for (i = 0; i < 2; i++) {
@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
     scrypt_free(out);
     result = compared & 0x1;  // 0 if same, 1 if not
     if (result != 0) fprintf(stderr, "WARNING: not the expected results\n");
-    else fprintf(stderr, "INFO: salsa20_32 returned expected results\n");
+    else fprintf(stderr, "INFO: salsa20 returned expected results\n");
     return result;
 }
 void *allocate(size_t alignment, size_t size) {

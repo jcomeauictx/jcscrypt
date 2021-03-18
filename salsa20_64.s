@@ -6,7 +6,7 @@
 #
 #define R(a,b) (((a) << (b)) | ((a) >> (32 - (b))))
 #   void salsa20_word_specification(uint32_t out[16], uint32_t in[16])
-	.globl salsa20_32
+	.globl salsa20
 	.text
 #   {
 #       uint32_t *x = out;
@@ -32,20 +32,19 @@
 #       }
 #       for (uint32_t i = 0;i < 16;++i) x[i] += in[i];
 #   }
-salsa20_32:
-	# save registers required by cdecl convention
-	push %ebp
-	push %edi
-	push %esi
-	push %ebx
+salsa20:
+	# save registers required by System V convention
+	# %rbp, %rbx, %rsp, %r12-%r15
+	push %rbp
+	push %rbx
 	push $4
 	# at this point the stack contains:
-	# the 4-byte loop counter (4)
-	# the 16 bytes of the 4 registers we just pushed...
-	# the 4 bytes of the return address, which makes 24 bytes...
+	# the 8-byte loop counter (4)
+	# the 16 bytes of the 2 registers we just pushed...
+	# the 8 bytes of the return address, which makes 32 bytes...
 	# the "out" address, and the "in" address, in that order.
-	mov 24(%esp), %edi  # destination (out)
-	mov 28(%esp), %esi  # source (in)
+	mov 32(%rsp), %edi  # destination (out)
+	mov 40(%rsp), %esi  # source (in)
 	#mov $16, %ecx  # count
 	#rep movsd
 	movdqa (%esi), %xmm0
@@ -57,7 +56,7 @@ salsa20_32:
 	movdqa 48(%esi), %xmm3
 	movapd %xmm3, 48(%edi)
 	# restore %esi as pointer for the salsa shuffle
-	mov 24(%esp), %esi  # out, where the work will be done.
+	mov 32(%rsp), %esi  # out, where the work will be done.
 shuffle:
 	# first group of 4 is offsets 0, 4, 8, 12
 	mov 48(%esi), %ebp  # x[12]
@@ -422,12 +421,12 @@ shuffle:
 	mov %ebp, 60(%esi)
 
 	# loop back
-	decl (%esp)
+	decl (%rsp)
 	jnz shuffle
-	pop %eax  # the spent loop counter, now 0
+	pop %rax  # the spent loop counter, now 0
 
 	# now add IN to OUT before returning
-	mov 20(%esp), %esi  # both source and destination (out)
+	mov 24(%esp), %esi  # both source and destination (out)
 	movdqa (%esi), %xmm4
 	paddd %xmm4, %xmm0
 	movapd %xmm0, (%esi)
@@ -440,9 +439,7 @@ shuffle:
 	movdqa 48(%esi), %xmm7
 	paddd %xmm7, %xmm3
 	movapd %xmm3, 48(%esi)
-	pop %ebx
-	pop %esi
-	pop %edi
-	pop %ebp
+	pop %rbx
+	pop %rbp
 	ret
 # vim: set tabstop=4 expandtab shiftwidth=4 softtabstop=4
