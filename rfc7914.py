@@ -66,6 +66,9 @@ logging.debug('SCRIPT_DIR: %s, COMMAND: %s, ARGS: %s',
 try:
     LIBRARY = ctypes.cdll.LoadLibrary(os.path.join(SCRIPT_DIR, '_rfc7914.so'))
     SALSA = LIBRARY.salsa20_word_specification
+    if sys.maxsize == 0x7fffffff:
+        SALSA = LIBRARY.salsa20_32
+        logging.info('NOTE: using assembly language Salsa20 implementation')
     SALSA.restype = None  # otherwise it returns contents of return register
     XOR = LIBRARY.array_xor
     XOR.restype = None
@@ -454,7 +457,7 @@ def scrypt(passphrase, salt=None, N=1024, r=1, p=1, dkLen=32):
             p_array = ctypes.create_string_buffer(passphrase.encode(), p_len)
         s_len = len(salt) if salt is not None else 0
         s_array = ctypes.create_string_buffer(
-            bytes(salt), s_len) if salt is not None else None
+            bytes(salt, 'utf8'), s_len) if salt is not None else None
         dk_array = ctypes.create_string_buffer(dkLen)
         SCRYPT(p_array, p_len, salt, s_len, N, r, p, dkLen, dk_array, 0, 0)
         derived_key = dk_array.raw
