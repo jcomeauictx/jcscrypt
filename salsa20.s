@@ -242,7 +242,7 @@ shuffle:
 	mov %ebp, 60(%esi)
 
 	# next group: offsets 0, 1, 2, 3
-	# %ecx still has x[3] from last round
+	# %ecx still has x[3] from last round, so we break our usual pattern
 	mov 8(%esi), %edi  # x[2]
 	mov 4(%esi), %edx  # x[1]
 	mov 0(%esi), %ebp  # x[0]
@@ -267,7 +267,7 @@ shuffle:
 	xor %ebx, %edi
 	mov %edi, 8(%esi)
 
-	# x[ 3] ^= R(x[ 2]+x[ 1],13)  # x[3] in %ebp, x[1] in %edx
+	# x[ 3] ^= R(x[ 2]+x[ 1],13)
 	mov %edx, %ebx
 	add %edi, %ebx
 	mov %ebx, %eax
@@ -277,7 +277,7 @@ shuffle:
 	xor %ebx, %ecx
 	mov %ecx, 12(%esi)
 
-	# x[ 0] ^= R(x[ 3]+x[ 2],18)  # x[0] in %edi, x[2] in %ecx
+	# x[ 0] ^= R(x[ 3]+x[ 2],18)
 	add %ecx, %edi
 	mov %edi, %eax
 	shr $13, %edi
