@@ -373,7 +373,7 @@ shuffle:
 	shr $14, %ecx
 	shl $18, %eax
 	or %ecx, %eax
-	xor %ecx, %edi
+	xor %eax, %edi
 	mov %edi, 40(%esi)
 
 	# final group: offsets 12, 13, 14, 15
