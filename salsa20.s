@@ -129,7 +129,7 @@ shuffle:
 	shl $9, %eax
 	or %eax, %ebx
 	xor %ebx, %ebp
-	mov %ebp, 42(%esi)
+	mov %ebp, 52(%esi)
 
 	# x[ 1] ^= R(x[13]+x[ 9],13)
 	mov %edi, %ebx
@@ -235,7 +235,7 @@ shuffle:
 	# x[15] ^= R(x[11]+x[ 7],18)
 	add %edi, %edx
 	mov %edx, %eax
-	shr $13, %edx
+	shr $14, %edx
 	shl $18, %eax
 	or %eax, %edx
 	xor %edx, %ebp
