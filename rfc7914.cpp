@@ -11,8 +11,16 @@ using namespace std;
 #include <openssl/crypto.h>
 #include <openssl/hmac.h>
 
+//stackoverflow.com/a/1505839/493161
+#if INTPTR_MAX == INT32_MAX
+ #define JCSCRYPT_BITS32
+#elif INTPTR_MAX == INT64_MAX
+ #define JCSCRYPT_BITS64
+#endif
+
 #define R(a,b) (((a) << (b)) | ((a) >> (32 - (b))))
 #ifndef aligned_alloc
+ #warning no aligned_alloc provided on this system, program may segfault
  #define aligned_alloc(alignment, size) malloc(size)
 #endif
 /* this does not actually work the way it was intended, don't use it.
@@ -29,7 +37,9 @@ using namespace std;
     #warning Setting mixer to RFC-strict code, may be slower.
     #define mixer 0
     #warning Setting SALSA to point to assembly language routine
-    #define SALSA salsa20
+    #ifdef JCSCRYPT_BITS32
+        #define SALSA salsa20
+    #endif
 #else
     #warning Adding debugging code, will be slower.
 #endif
