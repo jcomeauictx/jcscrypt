@@ -66,7 +66,7 @@ int main() {
 void *allocate(size_t alignment, size_t size) {
     uint8_t *memptr;
     size_t needed = (alignment << 1) + size;
-    fprintf(stderr, "INFO: allocating %d bytes\n", needed);
+    fprintf(stderr, "INFO: allocating %ld bytes\n", needed);
     REAL_MEMPTR = malloc((alignment << 1) + size);
     fprintf(stderr, "INFO: got chunk of RAM at %p\n", REAL_MEMPTR);
     memptr = (uint8_t *)(

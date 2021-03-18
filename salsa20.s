@@ -60,91 +60,94 @@ salsa20_32:
 	mov 24(%esp), %esi  # out, where the work will be done.
 shuffle:
 	# first group of 4 is offsets 0, 4, 8, 12
+	mov 48(%esi), %ebp  # x[12]
+	mov 32(%esi), %edi  # x[8]
+	mov 16(%esi), %edx  # x[4]
+	mov 0(%esi), %ecx  # x[0]
 	# x[ 4] ^= R(x[ 0]+x[12], 7)
-	mov 0(%esi), %eax
-	mov %eax, %edi  # we need x[0] for the next step too
-	mov 48(%esi), %ebx
-	add %ebx, %eax
-	mov %eax, %ebx
-	shl $7, %eax
+	mov %ebp, %ebx
+	add %ecx, %ebx
+	mov %ebx, %eax
 	shr $25, %ebx
-	or %ebx, %eax
-	mov 16(%esi), %edx
-	xor %edx, %eax
-	mov %eax, 16(%esi)
+	shl $7, %eax
+	or %eax, %ebx
+	xor %ebx, %edx
+	mov %edx, 16(%esi)
 
 	# x[ 8] ^= R(x[ 4]+x[ 0], 9)
-	add %edx, %edi  # x[4]+x[0], leaving x[4] in %edx for next step
-	mov %edi, %eax
+	mov %ecx, %ebx
+	add %edx, %ebx
+	mov %ebx, %eax
+	shr $23, %ebx
 	shl $9, %eax
-	shr $23, %edi
-	or %edi, %eax
-	mov 32(%esi), %ebx
-	xor %eax, %ebx  # leaving x[8] in %ebx for next step
-	mov %ebx, 32(%esi)
+	or %eax, %ebx
+	xor %ebx, %edi
+	mov %edi, 32(%esi)
 
 	# x[12] ^= R(x[ 8]+x[ 4],13)
-	add %ebx, %edx  # leaving x[8] in %ebx for next step
-	mov %edx, %eax
+	mov %edx, %ebx
+	add %edi, %ebx
+	mov %ebx, %eax
+	shr $19, %ebx
 	shl $13, %eax
-	shr $19, %edx
-	or %eax, %edx
-	mov 48(%esi), %eax
-	xor %edx, %eax  # x[12] value for next step
-	mov %eax, 48(%esi)
+	or %eax, %ebx
+	xor %ebx, %ebp
+	mov %ebp, 48(%esi)
 
 	# x[ 0] ^= R(x[12]+x[ 8],18)
-	add %eax, %ebx
+	mov %edi, %ebx
+	add %ebp, %ebx
 	mov %ebx, %eax
-	shl $18, %eax
 	shr $14, %ebx
+	shl $18, %eax
 	or %eax, %ebx
-	mov 0(%esi), %eax
-	xor %ebx, %eax
-	mov %eax, 0(%esi)
+	xor %ebx, %ecx
+	mov %ecx, 0(%esi)
 
 	# next group of 4: offsets 1, 5, 9, 13
+	mov 52(%esi), %ebp  # x[13]
+	mov 36(%esi), %edi  # x[9]
+	mov 20(%esi), %edx  # x[5]
+	mov 4(%esi), %ecx  # x[1]
 	# x[ 9] ^= R(x[ 5]+x[ 1], 7)
-	mov 20(%esi), %eax
-	mov 4(%esi), %ebx
-	add %eax, %ebx  # leave x[5] in %eax for next step
-	mov %ebx, %edx
-	shl $7, %ebx
-	shr $25, %edx
-	or %edx, %ebx
-	mov 36(%esi), %edx
-	xor %ebx, %edx  # leave x[9] in edx for next step
-	mov %edx, 36(%esi)
+	mov %ecx, %ebx
+	add %edx, %ebx
+	mov %ebx, %eax
+	shr $25, %ebx
+	shl $7, %eax
+	or %eax, %ebx
+	xor %ebx, %edi
+	mov %edi, 36(%esi)
 
 	# x[13] ^= R(x[ 9]+x[ 5], 9)
-	add %edx, %eax
-	mov %eax, %ebx
-	shl $9, %eax
+	mov %edx, %ebx
+	add %edi, %ebx
+	mov %ebx, %eax
 	shr $23, %ebx
-	or %ebx, %eax
-	mov 42(%esi), %ebx
-	xor %eax, %ebx
-	mov %ebx, 42(%esi)  # leaving x[13] in %ebx and x[9] in %edx
+	shl $9, %eax
+	or %eax, %ebx
+	xor %ebx, %ebp
+	mov %ebp, 42(%esi)
 
 	# x[ 1] ^= R(x[13]+x[ 9],13)
-	add %ebx, %edx  # save x[13] in %ebx for next step
-	mov %edx, %eax
+	mov %edi, %ebx
+	add %ebp, %ebx
+	mov %ebx, %eax
+	shr $19, %ebx
 	shl $13, %eax
-	shr $19, %edx
-	or %eax, %edx
-	mov 4(%esi), %eax
-	xor %eax, %edx  # save x[1] in %edx for next step
-	mov %edx, 4(%esi)
+	or %eax, %ebx
+	xor %ebx, %ecx
+	mov %ecx, 4(%esi)
 
 	# x[ 5] ^= R(x[ 1]+x[13],18)
-	add %edx, %ebx
-	mov %ebx, %edx
-	shl $18, %ebx
-	shr $14, %edx
-	or %edx, %ebx
-	mov 20(%esi), %eax
-	xor %ebx, %eax
-	mov %eax, 20(%esi)
+	mov %ebp, %ebx
+	add %ecx, %ebx
+	mov %ebx, %eax
+	shr $14, %ebx
+	shl $18, %eax
+	or %eax, %ebx
+	xor %ebx, %edx
+	mov %edx, 20(%esi)
 
 	# next group: offsets 2, 6, 10, 14
 	# x[14] ^= R(x[10]+x[ 6], 7)
