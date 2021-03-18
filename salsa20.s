@@ -280,7 +280,7 @@ shuffle:
 	# x[ 0] ^= R(x[ 3]+x[ 2],18)
 	add %ecx, %edi
 	mov %edi, %eax
-	shr $13, %edi
+	shr $14, %edi
 	shl $18, %eax
 	or %edi, %eax
 	xor %eax, %ebp
