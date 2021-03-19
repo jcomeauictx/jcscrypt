@@ -62,10 +62,10 @@ gdb: rfc7914
 	gdb $<
 %.prof: % gmon.out
 	if [ $< -nt gmon.out ]; then \
-	 echo No newer profile of $< can be generated. &>2; \
+	 echo No newer profile of $< can be generated. >&2; \
 	else \
 	 gprof $< > $@; \
-	 echo New $@ profile has been generated &>2; \
+	 echo New $@ profile has been generated >&2; \
 	fi
 gmon.out: rfc7914
 	./$< pleaseletmein SodiumChloride 16348 8 1 64 1
