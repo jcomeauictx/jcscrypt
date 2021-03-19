@@ -55,7 +55,7 @@ env:
 profile: rfc7914.py _rfc7914.so
 	time ./$< $@
 compare: rfc7914.py _rfc7914.so
-	./$< $@
+	python -OO ./$< $@
 edit: $(PY_SOURCES) $(CPP_SOURCES)
 	vi $+
 gdb: rfc7914
