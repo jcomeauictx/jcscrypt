@@ -1,7 +1,8 @@
 PY_SOURCES := $(wildcard *.py)
 CPP_SOURCES := $(wildcard *.cpp)
+C_SOURCES := $(wildcard *.c)
 ASM_SOURCES := $(wildcard *.s)
-EXECUTABLES := $(CPP_SOURCES:.cpp=)
+EXECUTABLES := $(CPP_SOURCES:.cpp=) $(C_SOURCES:.c=)
 LIBRARIES := $(foreach source,$(CPP_SOURCES),_$(basename $(source)).so)
 ARCH := -march=native
 OPTIMIZE := -O3 -Wall -lrt # https://stackoverflow.com/a/10366757/493161
@@ -31,19 +32,18 @@ endif
 EXTRALIBS += -lcrypto
 DEBUG ?= -Ddebugging=1
 export
-all: rfc7914.py rfc7914 _rfc7914.so
+all: rfc7914.py rfc7914 _rfc7914.so testsalsa
 	./$(word 2, $+)
 	./$<
 # override implicit rule to add assembly sources and debugging symbols
+%:	%.c
+%:	%.c $(ASM_SOURCES)
+	gcc $(OPTIMIZE) $(DEBUG) $(EXECFLAGS) $(EXTRALIBS) -o $@ $+
 %:	%.cpp
 %:	%.cpp $(ASM_SOURCES)
-	g++ $(OPTIMIZE) $(DEBUG) $(EXECFLAGS) $(EXTRALIBS) -o $@ $+ || \
-	g++ $(OPTIMIZE) $(DEBUG) $(EXECFLAGS) $(EXTRALIBS) -o $@ $<
+	g++ $(OPTIMIZE) $(DEBUG) $(EXECFLAGS) $(EXTRALIBS) -o $@ $+
 _%.so: %.cpp $(ASM_SOURCES)
-	g++ -shared $(OPTIMIZE) $(DEBUG) -fpic $(ARCH) -lm -o $@ \
-	 $(EXTRALIBS) $+ || \
-	g++ -shared $(OPTIMIZE) $(DEBUG) -fpic $(ARCH) -lm -o $@ \
-	 $(EXTRALIBS) $<
+	g++ -shared $(OPTIMIZE) $(DEBUG) -fpic $(ARCH) -lm -o $@ $(EXTRALIBS) $+
 %.pylint: %.py
 	pylint3 $<
 %.doctest: %.py _rfc7914.so

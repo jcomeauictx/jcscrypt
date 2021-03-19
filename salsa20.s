@@ -46,8 +46,10 @@ salsa20:
 	# the "out" address, and the "in" address, in that order.
 	mov 24(%esp), %edi  # destination (out)
 	mov 28(%esp), %esi  # source (in)
-	#mov $16, %ecx  # count
-	#rep movsd
+	testl $0x3f, %edi  # aligned to 64-byte boundary?
+	jne blockmove  # nope, use movsd instead
+	testl $0x3f, %esi  # check source pointer as well
+	jne blockmove
 	movdqa (%esi), %xmm0
 	movapd %xmm0, (%edi)
 	movdqa 16(%esi), %xmm1
@@ -56,6 +58,11 @@ salsa20:
 	movapd %xmm2, 32(%edi)
 	movdqa 48(%esi), %xmm3
 	movapd %xmm3, 48(%edi)
+	jmp ready
+blockmove:
+	mov $16, %ecx  # count
+	rep movsd
+ready:
 	# restore %esi as pointer for the salsa shuffle
 	mov 24(%esp), %esi  # out, where the work will be done.
 shuffle:
@@ -422,12 +429,14 @@ shuffle:
 	mov %ebp, 60(%esi)
 
 	# loop back
-	decl (%esp)
+	sub $1, (%esp)
 	jnz shuffle
 	pop %eax  # the spent loop counter, now 0
 
 	# now add IN to OUT before returning
 	mov 20(%esp), %esi  # both source and destination (out)
+	testl $0x3f, %esi  # aligned on 64-byte boundary?
+	jne unaligned
 	movdqa (%esi), %xmm4
 	paddd %xmm4, %xmm0
 	movapd %xmm0, (%esi)
@@ -440,6 +449,17 @@ shuffle:
 	movdqa 48(%esi), %xmm7
 	paddd %xmm7, %xmm3
 	movapd %xmm3, 48(%esi)
+	jmp done
+unaligned:
+	mov 20(%esp), %edi  # out
+	mov 24(%esp), %esi  # in
+finalize:
+	mov $16, %ecx
+add_in:	lodsl
+	addl (%edi), %eax
+	stosl
+	loop add_in
+done:
 	pop %ebx
 	pop %esi
 	pop %edi
