@@ -12,6 +12,8 @@ void freeptr(void *pointer);
     #define scrypt_free(pointer) free(pointer)
 #endif
 void salsa20(uint32_t out[16], uint32_t in[16]);
+void salsa20_unaligned(uint32_t out[16], uint32_t in[16]);
+void salsa20_aligned64(uint32_t out[16], uint32_t in[16]);
 void *REAL_MEMPTR = NULL;  // for fake_aligned_alloc
 int main(int argc, char **argv) {
     uint8_t salsa_in[64] __attribute((aligned(64))) = {
@@ -36,9 +38,24 @@ int main(int argc, char **argv) {
     };
     uint8_t *out = (uint8_t *)scrypt_alloc(64, 64);
     uint32_t result;
+    void (*salsahash)() = &salsa20;
+    char *salsa = "salsa20";
     int i, j, count = 1;
     if (argc > 1) {
         count = atoi(argv[1]);
+    }
+    if (argc > 2) {
+        if (strcmp(argv[2], "unaligned") == 0) {
+            salsahash = &salsa20_unaligned;
+            fprintf(stderr, "using salsa20_unaligned\n");
+            salsa = argv[2];
+        } else if (strcmp(argv[2], "aligned64") == 0) {
+            salsahash = &salsa20_aligned64;
+            fprintf(stderr, "using salsa20_aligned64\n");
+            salsa = argv[2];
+        } else {
+            fprintf(stderr, "ignoring unrecognized option %s\n", argv[2]);
+        }
     }
     fprintf(stderr, "INFO: test vector:\n");
     for (i = 0; i < 2; i++) {
@@ -52,9 +69,9 @@ int main(int argc, char **argv) {
             fprintf(stderr, "%02x", salsa_out[(i * 32) + j]);
         fprintf(stderr, "\n");
     }
-    fprintf(stderr, "running %d repetition(s) of salsa20\n", count);
+    fprintf(stderr, "running %d repetition(s) of %s\n", count, salsa);
     for (i = 0; i < count; i++) {
-        salsa20((uint32_t *)out, (uint32_t *)salsa_in);
+        (*salsahash)((uint32_t *)out, (uint32_t *)salsa_in);
     }
     fprintf(stderr, "INFO: result:\n");
     for (i = 0; i < 2; i++) {
@@ -66,13 +83,17 @@ int main(int argc, char **argv) {
     scrypt_free(out);
     result = compared & 0x1;  // 0 if same, 1 if not
     if (result != 0) fprintf(stderr, "WARNING: not the expected results\n");
-    else fprintf(stderr, "INFO: salsa20 returned expected results\n");
+    else fprintf(stderr, "INFO: %s returned expected results\n", salsa);
     return result;
 }
 void *allocate(size_t alignment, size_t size) {
     uint8_t *memptr;
     size_t needed = (alignment << 1) + size;
+    #ifdef __x86_64__
     fprintf(stderr, "INFO: allocating %ld bytes\n", needed);
+    #else
+    fprintf(stderr, "INFO: allocating %d bytes\n", needed);
+    #endif
     REAL_MEMPTR = malloc((alignment << 1) + size);
     fprintf(stderr, "INFO: got chunk of RAM at %p\n", REAL_MEMPTR);
     memptr = (uint8_t *)(
