@@ -40,7 +40,7 @@ salsa20_unrolled:
 	push %ebx
 	# at this point the stack contains:
 	# the 16 bytes of the 4 registers we just pushed...
-	# the 4 bytes of the return address, which makes 24 bytes...
+	# the 4 bytes of the return address, which makes 20 bytes...
 	# the "out" address, and the "in" address, in that order.
 	mov 20(%esp), %edi  # destination (out)
 	mov 24(%esp), %esi  # source (in)
@@ -53,7 +53,7 @@ salsa20_unrolled:
 	movdqa 48(%esi), %xmm3
 	movapd %xmm3, 48(%edi)
 	# restore %esi as pointer for the salsa shuffle
-	mov 24(%esp), %esi  # out, where the work will be done.
+	mov 20(%esp), %esi  # out, where the work will be done.
 shuffle:
 	# first group of 4 is offsets 0, 4, 8, 12
 	mov 48(%esi), %ebp  # x[12]
