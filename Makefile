@@ -32,7 +32,7 @@ endif
 EXTRALIBS += -lcrypto
 DEBUG ?= -Ddebugging=1
 export
-all: rfc7914.py rfc7914 _rfc7914.so testsalsa
+all: rfc7914.py rfc7914 _rfc7914.so testsalsa rfc7914.prof
 	./$(word 2, $+)
 	./$<
 # override implicit rule to add assembly sources and debugging symbols
@@ -60,8 +60,15 @@ edit: $(PY_SOURCES) $(CPP_SOURCES)
 	vi $+
 gdb: rfc7914
 	gdb $<
-rfc7914.prof: rfc7914 gmon.out
-	gprof $< > $@
+%.prof: % gmon.out
+	if [ $< -nt gmon.out ]; then \
+	 echo No newer profile of $< can be generated. &>2; \
+	else \
+	 gprof $< > $@; \
+	 echo New $@ profile has been generated &>2; \
+	fi
+gmon.out: rfc7914
+	./$< pleaseletmein SodiumChloride 16348 8 1 64 1
 clean:
 	rm -f *.pyc *pyo gmon.out rfc7914.prof
 distclean: clean
