@@ -353,7 +353,7 @@ extern "C" {  // prevents name mangling
         uint32_t *V;
         #ifdef debugging
         uint32_t max_mixer = (sizeof(block_mix) / sizeof(block_mix[0])) - 1;
-        cerr << "INFO: max mixer value: " << max_mixer << endl;
+        if (false) cerr << "INFO: max mixer value: " << max_mixer << endl;
         if (verbose > MAX_VERBOSITY)
         {
             cerr << "Illegal verbosity level " << verbose << endl;
