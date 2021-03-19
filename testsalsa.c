@@ -14,6 +14,7 @@ void freeptr(void *pointer);
 void salsa20(uint32_t out[16], uint32_t in[16]);
 void salsa20_unaligned(uint32_t out[16], uint32_t in[16]);
 void salsa20_aligned64(uint32_t out[16], uint32_t in[16]);
+void salsa20_unrolled(uint32_t out[16], uint32_t in[16]);
 void *REAL_MEMPTR = NULL;  // for fake_aligned_alloc
 int main(int argc, char **argv) {
     uint8_t salsa_in[64] __attribute((aligned(64))) = {
@@ -53,6 +54,10 @@ int main(int argc, char **argv) {
             salsahash = &salsa20_aligned64;
             fprintf(stderr, "using salsa20_aligned64\n");
             salsa = "salsa20_aligned64";
+        } else if (strcmp(argv[2], "unrolled") == 0) {
+            salsahash = &salsa20_unrolled;
+            fprintf(stderr, "using salsa20_unrolled\n");
+            salsa = "salsa20_unrolled";
         } else {
             fprintf(stderr, "ignoring unrecognized option %s\n", argv[2]);
         }
