@@ -48,11 +48,11 @@ int main(int argc, char **argv) {
         if (strcmp(argv[2], "unaligned") == 0) {
             salsahash = &salsa20_unaligned;
             fprintf(stderr, "using salsa20_unaligned\n");
-            salsa = argv[2];
+            salsa = "salsa20_unaligned";
         } else if (strcmp(argv[2], "aligned64") == 0) {
             salsahash = &salsa20_aligned64;
             fprintf(stderr, "using salsa20_aligned64\n");
-            salsa = argv[2];
+            salsa = "salsa20_aligned64";
         } else {
             fprintf(stderr, "ignoring unrecognized option %s\n", argv[2]);
         }
