@@ -37,7 +37,7 @@ using namespace std;
 #define SALSA salsa20_word_specification
 #if BITS == 32
     #warning Setting SALSA to point to assembly language routine
-    #define SALSA salsa20
+    #define SALSA salsa20_unrolled
 #endif
 #ifndef debugging  // when debugging, mixer is selectable
     #warning Setting mixer to RFC-strict code, may be slower.
@@ -55,7 +55,7 @@ typedef void (*block_mix_implementation)(
 
 extern "C" {  // prevents name mangling
 
-    void salsa20(uint32_t out[16], uint32_t in[16]);
+    void salsa20_unrolled(uint32_t out[16], uint32_t in[16]);
 
     void showbytes(const void *addr, const void *bytes,
         uint32_t length=24)
