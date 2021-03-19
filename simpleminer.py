@@ -289,8 +289,10 @@ def scrypt_hash(data, check_bytes='\0\0\0'):
     else:
         try:
             hashed = scrypthash(data, salt=data, **SCRYPT_PARAMETERS)
-        except TypeError:  # different libraries being used
+        except TypeError as failed:  # different libraries being used
             # these changes are specifically for Python3 hashlib.scrypt
+            logging.warning('call to rfc7914.scrypt failed, '
+                            'trying with different paramaters')
             SCRYPT_PARAMETERS['n'] = SCRYPT_PARAMETERS.pop('N')
             SCRYPT_PARAMETERS['dklen'] = SCRYPT_PARAMETERS.pop('buflen')
             # try again. if this works, it won't have to be done again,
