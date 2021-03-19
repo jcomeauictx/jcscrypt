@@ -11,10 +11,13 @@ void freeptr(void *pointer);
     #define scrypt_alloc(alignment, size) aligned_malloc(alignment, size)
     #define scrypt_free(pointer) free(pointer)
 #endif
+#if BITS == 64
+void salsa20_aligned64(uint32_t out[16], uint32_t in[16]);
+#else
 void salsa20(uint32_t out[16], uint32_t in[16]);
 void salsa20_unaligned(uint32_t out[16], uint32_t in[16]);
-void salsa20_aligned64(uint32_t out[16], uint32_t in[16]);
 void salsa20_unrolled(uint32_t out[16], uint32_t in[16]);
+#endif
 void *REAL_MEMPTR = NULL;  // for fake_aligned_alloc
 int main(int argc, char **argv) {
     uint8_t salsa_in[64] __attribute((aligned(64))) = {
@@ -39,21 +42,23 @@ int main(int argc, char **argv) {
     };
     uint8_t *out = (uint8_t *)scrypt_alloc(64, 64);
     uint32_t result;
+    #if BITS == 64
+    void (*salsahash)() = &salsa20_aligned64;
+    char *salsa = "salsa20_aligned64";
+    #else
     void (*salsahash)() = &salsa20;
     char *salsa = "salsa20";
+    #endif
     int i, j, count = 1;
     if (argc > 1) {
         count = atoi(argv[1]);
     }
     if (argc > 2) {
+        #if BITS != 64
         if (strcmp(argv[2], "unaligned") == 0) {
             salsahash = &salsa20_unaligned;
             fprintf(stderr, "using salsa20_unaligned\n");
             salsa = "salsa20_unaligned";
-        } else if (strcmp(argv[2], "aligned64") == 0) {
-            salsahash = &salsa20_aligned64;
-            fprintf(stderr, "using salsa20_aligned64\n");
-            salsa = "salsa20_aligned64";
         } else if (strcmp(argv[2], "unrolled") == 0) {
             salsahash = &salsa20_unrolled;
             fprintf(stderr, "using salsa20_unrolled\n");
@@ -61,6 +66,9 @@ int main(int argc, char **argv) {
         } else {
             fprintf(stderr, "ignoring unrecognized option %s\n", argv[2]);
         }
+        #else
+        fprintf(stderr, "ignoring unrecognized option %s\n", argv[2]);
+        #endif
     }
     fprintf(stderr, "INFO: test vector:\n");
     for (i = 0; i < 2; i++) {
