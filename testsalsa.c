@@ -52,6 +52,13 @@ int main(int argc, char **argv) {
     int i, j, count = 1;
     if (argc > 1) {
         count = atoi(argv[1]);
+        if (count < 1) {
+            fprintf(stderr, "Usage: %s COUNT IMPLEMENTATION\n", argv[0]);
+            fprintf(stderr, "    where COUNT is any integer greater than 0\n");
+            fprintf(stderr, "    and IMPLEMENTATION is blank or 'unaligned'"
+                            " or 'unrolled'\n");
+            return 1;
+        }
     }
     if (argc > 2) {
         #if BITS != 64
