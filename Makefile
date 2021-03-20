@@ -77,3 +77,11 @@ clean:
 	rm -f *.pyc *pyo gmon.out rfc7914.prof
 distclean: clean
 	rm -f $(EXECUTABLES) $(LIBRARIES)
+tunnel:
+	ssh -L9057:localhost:9057 jcomeau@amcserver
+mine:
+	ssh -L9057:localhost:9057 jcomeau@amcserver &
+	@echo Wait a moment for the tunnel to start... >&2
+	sleep 3
+	python -OO simpleminer.py
+	kill %%  # terminate ssh forwarding

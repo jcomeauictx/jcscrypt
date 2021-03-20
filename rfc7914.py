@@ -43,7 +43,12 @@ except ImportError:
                       truncate(hmac_hash), len(hmac_hash))
         return hmac_hash[:size]
 
-from collections import OrderedDict
+try:
+    from collections import OrderedDict
+except ImportError:
+    logging.error('This python has no OrderedDict, using dict instead')
+    logging.error('This may cause some doctests to fail unnecessarily')
+    OrderedDict = dict
 
 if sys.argv != ['']:
     SCRIPT_DIR, PROGRAM = os.path.split(os.path.realpath(sys.argv[0]))
