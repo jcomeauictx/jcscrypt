@@ -1,4 +1,6 @@
+SHELL := /bin/bash
 BITS ?= 32
+PROFILER ?= 1
 PY_SOURCES := $(wildcard *.py)
 CPP_SOURCES := $(wildcard *.cpp)
 C_SOURCES := $(wildcard *.c)
@@ -29,7 +31,7 @@ ifeq ($(shell uname -r | sed -n 's/^[^-]\+-\([a-z]\+\)-.*/\1/p'),co)  # coLinux
  SLOW_OR_LIMITED_RAM := 1
 endif
 ifeq ($(PROFILER),)
- EXECFLAGS ?= -g
+ EXECFLAGS ?= -Wall -g
 else
  EXECFLAGS := -Wall -pg -g
 endif
@@ -65,11 +67,15 @@ edit: $(PY_SOURCES) $(CPP_SOURCES)
 gdb: rfc7914
 	gdb $<
 %.prof: % gmon.out
-	if [ $< -nt gmon.out ]; then \
-	 echo No newer profile of $< can be generated. >&2; \
+	if [ -s gmon.out ]; then \
+	 if [ $< -nt gmon.out ]; then \
+	  echo No newer profile of $< can be generated. >&2; \
+	 else \
+	  gprof $< > $@; \
+	  echo New $@ profile has been generated >&2; \
+	 fi; \
 	else \
-	 gprof $< > $@; \
-	 echo New $@ profile has been generated >&2; \
+	 echo No gmon.out was found. Did you compile with PROFILER=1? >&2; \
 	fi
 gmon.out: rfc7914
 	./$< pleaseletmein SodiumChloride 16348 8 1 64 1
@@ -85,3 +91,4 @@ mine:
 	sleep 3
 	python -OO simpleminer.py
 	kill %%  # terminate ssh forwarding
+.PRECIOUS: gmon.out
