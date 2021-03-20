@@ -609,6 +609,7 @@ def compare():
             logging.info('%s runtime: %s', function, end - start)
         except(RuntimeError, TypeError) as problem:
             logging.exception(problem, exc_info=True)
+            continue
         try:
             assert got == expected
             logging.info('got %r as expected', truncate(got))
