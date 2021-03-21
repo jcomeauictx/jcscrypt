@@ -31,11 +31,15 @@ ifeq ($(shell uname -r | sed -n 's/^[^-]\+-\([a-z]\+\)-.*/\1/p'),co)  # coLinux
  SLOW_OR_LIMITED_RAM := 1
 endif
 EXECFLAGS ?= -Wall
+$(info Must `make DEBUG= PROFILER= all` to disable -g and -pg flags)
+$(info This cannot be done from within the Makefile, it does not work.)
 DEBUG ?= -Ddebugging=1
 ifneq ($(DEBUG),)
+ $(warning DEBUG ("$(DEBUG)") is defined, adding -g flag to compiler)
  EXECFLAGS += -g
 endif
 ifneq ($(PROFILER),)
+ $(warning PROFILER ("$(PROFILER)") is defined, adding -pg flag to compiler)
  EXECFLAGS += -pg
 endif
 EXTRALIBS += -lcrypto
@@ -43,8 +47,6 @@ export
 all: rfc7914.py rfc7914 _rfc7914.so testsalsa rfc7914.prof
 	./$(word 2, $+)
 	./$<
-fast:
-	$(MAKE) DEBUG= PROFILER= --always-make all
 # override implicit rule to add assembly sources and debugging symbols
 %:	%.c
 %:	%.c $(ASM_SOURCES)
@@ -97,6 +99,6 @@ mine:
 	kill %%  # terminate ssh forwarding
 testall: testsalsa
 	for implementation in '' unaligned unrolled; do \
-	 time testsalsa 10000000 $$implementation; \
+	 time ./testsalsa 10000000 $$implementation; \
 	done
 .PRECIOUS: gmon.out
