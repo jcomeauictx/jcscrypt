@@ -30,13 +30,15 @@ endif
 ifeq ($(shell uname -r | sed -n 's/^[^-]\+-\([a-z]\+\)-.*/\1/p'),co)  # coLinux
  SLOW_OR_LIMITED_RAM := 1
 endif
-ifeq ($(PROFILER),)
- EXECFLAGS ?= -Wall -g
-else
- EXECFLAGS := -Wall -pg -g
+EXECFLAGS ?= -Wall
+DEBUG ?= -Ddebugging=1
+ifneq ($(DEBUG),)
+ EXECFLAGS += -g
+endif
+ifneq ($(PROFILER),)
+ EXECFLAGS += -pg
 endif
 EXTRALIBS += -lcrypto
-DEBUG ?= -Ddebugging=1
 export
 all: rfc7914.py rfc7914 _rfc7914.so testsalsa rfc7914.prof
 	./$(word 2, $+)
