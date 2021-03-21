@@ -41,6 +41,8 @@ export
 all: rfc7914.py rfc7914 _rfc7914.so testsalsa rfc7914.prof
 	./$(word 2, $+)
 	./$<
+fast:
+	$(MAKE) DEBUG= PROFILER= --always-make all
 # override implicit rule to add assembly sources and debugging symbols
 %:	%.c
 %:	%.c $(ASM_SOURCES)
@@ -91,4 +93,8 @@ mine:
 	sleep 3
 	python -OO simpleminer.py
 	kill %%  # terminate ssh forwarding
+testall: testsalsa
+	for implementation in '' unaligned unrolled; do \
+	 time testsalsa 10000000 $$implementation; \
+	done
 .PRECIOUS: gmon.out

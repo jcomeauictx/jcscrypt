@@ -40,8 +40,8 @@ using namespace std;
     #define SALSA salsa20_unrolled
 #endif
 #ifndef debugging  // when debugging, mixer is selectable
-    #warning Setting mixer to RFC-strict code, may be slower.
-    #define mixer 0
+    #warning Setting mixer to optimized code, may be slower.
+    #define mixer 1
 #else
     #warning Adding debugging code, will be slower.
 #endif
