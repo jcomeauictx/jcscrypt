@@ -437,8 +437,6 @@ shuffle:
 	paddd %xmm7, %xmm3
 	movapd %xmm3, 48(%rsi)
 	pop %rbx
-	pop %rsi
-	pop %rdi
 	pop %rbp
 	ret
 # vim: set tabstop=4 expandtab shiftwidth=4 softtabstop=4
