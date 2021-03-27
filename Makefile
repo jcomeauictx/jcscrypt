@@ -1,4 +1,5 @@
 SHELL := /bin/bash
+PYTHON ?= python
 BITS ?= 32
 PROFILER ?= 1
 PY_SOURCES := $(wildcard *.py)
@@ -59,7 +60,7 @@ _%.so: %.cpp $(ASM_SOURCES)
 %.pylint: %.py
 	pylint3 $<
 %.doctest: %.py _rfc7914.so
-	python3 -m doctest $<
+	$(PYTHON) -m doctest $<
 pylint: $(PY_SOURCES:.py=.pylint)
 doctests: $(PY_SOURCES:.py=.doctest)
 env:
@@ -67,7 +68,7 @@ env:
 profile: rfc7914.py _rfc7914.so
 	time ./$< $@
 compare: rfc7914.py _rfc7914.so
-	python -OO ./$< $@
+	$(PYTHON) -OO ./$< $@
 edit: $(PY_SOURCES) $(CPP_SOURCES)
 	vi $+
 gdb: rfc7914
@@ -90,12 +91,13 @@ clean:
 distclean: clean
 	rm -f $(EXECUTABLES) $(LIBRARIES)
 tunnel:
-	ssh -L9057:localhost:9057 jcomeau@amcserver
+	ssh -N -L9057:localhost:9057 jcomeau@amcserver
 mine:
-	ssh -L9057:localhost:9057 jcomeau@amcserver &
+	ssh -N -L9057:localhost:9057 jcomeau@amcserver &
+	# NOTE: `$(MAKE) tunnel &` will not work!
 	@echo Wait a moment for the tunnel to start... >&2
-	sleep 3
-	python -OO simpleminer.py
+	sleep 5
+	$(PYTHON) -OO simpleminer.py
 	kill %%  # terminate ssh forwarding
 testall: testsalsa
 	for implementation in '' unaligned unrolled; do \
