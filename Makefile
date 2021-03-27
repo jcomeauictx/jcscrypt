@@ -93,8 +93,7 @@ distclean: clean
 tunnel:
 	ssh -N -L9057:localhost:9057 jcomeau@amcserver
 mine:
-	ssh -N -L9057:localhost:9057 jcomeau@amcserver &
-	# NOTE: `$(MAKE) tunnel &` will not work!
+	$(MAKE) tunnel &
 	@echo Wait a moment for the tunnel to start... >&2
 	sleep 5
 	$(PYTHON) -OO simpleminer.py
