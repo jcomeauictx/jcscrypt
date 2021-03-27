@@ -91,13 +91,13 @@ clean:
 distclean: clean
 	rm -f $(EXECUTABLES) $(LIBRARIES)
 tunnel:
-	ssh -N -L9057:localhost:9057 jcomeau@amcserver
+	exec -a amctunnel ssh -N -L9057:localhost:9057 $(USER)@amcserver
 mine:
 	$(MAKE) tunnel &
 	@echo Wait a moment for the tunnel to start... >&2
 	sleep 5
-	$(PYTHON) -OO simpleminer.py
-	kill %%  # terminate ssh forwarding
+	# terminate ssh forwarding after ^C out of mining
+	$(PYTHON) -OO simpleminer.py || kill $$(pidof amctunnel)
 testall: testsalsa
 	for implementation in '' unaligned unrolled; do \
 	 time ./testsalsa 10000000 $$implementation; \
