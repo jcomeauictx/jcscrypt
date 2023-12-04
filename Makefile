@@ -1,7 +1,8 @@
 SHELL := /bin/bash
 PYTHON ?= python
-BITS ?= 32
-PROFILER ?= 1
+BITS ?= 64
+HAS_ALIGNED_ALLOC ?= 1
+#PROFILER ?= 1
 PY_SOURCES := $(wildcard *.py)
 CPP_SOURCES := $(wildcard *.cpp)
 C_SOURCES := $(wildcard *.c)
@@ -12,6 +13,9 @@ EXECUTABLES := $(CPP_SOURCES:.cpp=) $(C_SOURCES:.c=)
 LIBRARIES := $(foreach source,$(CPP_SOURCES),_$(basename $(source)).so)
 ARCH := -march=native
 OPTIMIZE := $(ARCH) -m$(BITS) -DBITS=$(BITS)
+ifneq ($(HAS_ALIGNED_ALLOC),)
+ OPTIMIZE += -DHAS_ALIGNED_ALLOC
+endif
 OPTIMIZE += -O3 -Wall -lrt # https://stackoverflow.com/a/10366757/493161
 ifeq ($(shell sed -n '0,/.*\<\(pni\)\>.*/s//\1/p' /proc/cpuinfo),pni)
  OPTIMIZE += -msse3
@@ -28,13 +32,18 @@ endif
 ifeq ($(shell sed -n '0,/.*\<\(sse4_2\)\>.*/s//\1/p' /proc/cpuinfo),sse4_2)
  OPTIMIZE += -msse4.2
 endif
+ifeq ($(BITS),32)
+ OPTIMIZE += -L/usr/lib/gcc/i686-linux-gnu/13 -L/usr/lib/i386-linux-gnu
+else
+ OPTIMIZE += -L/usr/lib/gcc/x86_64-linux-gnu/13 -L/usr/lib/x86_64-linux-gnu
+endif
 ifeq ($(shell uname -r | sed -n 's/^[^-]\+-\([a-z]\+\)-.*/\1/p'),co)  # coLinux
  SLOW_OR_LIMITED_RAM := 1
 endif
 EXECFLAGS ?= -Wall
 $(info Must `make DEBUG= PROFILER= all` to disable -g and -pg flags)
 $(info This cannot be done from within the Makefile, it does not work.)
-DEBUG ?= -Ddebugging=1
+#DEBUG ?= -Ddebugging=1
 ifneq ($(DEBUG),)
  $(warning DEBUG ("$(DEBUG)") is defined, adding -g flag to compiler)
  EXECFLAGS += -g
@@ -43,7 +52,7 @@ ifneq ($(PROFILER),)
  $(warning PROFILER ("$(PROFILER)") is defined, adding -pg flag to compiler)
  EXECFLAGS += -pg
 endif
-EXTRALIBS += -lcrypto
+EXTRALIBS += -lssl -lcrypto
 export
 all: rfc7914.py rfc7914 _rfc7914.so testsalsa rfc7914.prof
 	./$(word 2, $+)

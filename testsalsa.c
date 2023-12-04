@@ -4,11 +4,11 @@
 #include <string.h>
 void *allocate(size_t alignment, size_t size);
 void freeptr(void *pointer);
-#ifndef aligned_alloc
+#ifndef HAS_ALIGNED_ALLOC
     #define scrypt_alloc(alignment, size) allocate(alignment, size)
     #define scrypt_free(pointer) freeptr(pointer)
 #else
-    #define scrypt_alloc(alignment, size) aligned_malloc(alignment, size)
+    #define scrypt_alloc(alignment, size) aligned_alloc(alignment, size)
     #define scrypt_free(pointer) free(pointer)
 #endif
 #if BITS == 64

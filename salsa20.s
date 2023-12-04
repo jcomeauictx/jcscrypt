@@ -47,7 +47,7 @@ salsa20:
 	mov 24(%esp), %edi  # destination (out)
 	mov 28(%esp), %esi  # source (in)
 	testl $0x3f, %edi  # aligned to 64-byte boundary?
-	jne blockmove  # nope, use movsd instead
+	jne blockmove  # nope, use movsl instead
 	testl $0x3f, %esi  # check source pointer as well
 	jne blockmove
 	movdqa (%esi), %xmm0
@@ -61,7 +61,7 @@ salsa20:
 	jmp ready
 blockmove:
 	mov $16, %ecx  # count
-	rep movsd
+	rep movsl
 ready:
 	# restore %esi as pointer for the salsa shuffle
 	mov 24(%esp), %esi  # out, where the work will be done.

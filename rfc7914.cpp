@@ -21,7 +21,7 @@ using namespace std;
 #endif
 
 #define R(a,b) (((a) << (b)) | ((a) >> (32 - (b))))
-#ifndef aligned_alloc
+#ifndef HAS_ALIGNED_ALLOC
  #warning no aligned_alloc provided on this system, program may segfault
  #define aligned_alloc(alignment, size) malloc(size)
 #endif

@@ -47,7 +47,7 @@ salsa20_unaligned:
 	mov 24(%esp), %edi  # destination (out)
 	mov 28(%esp), %esi  # source (in)
 	mov $16, %ecx  # count
-	rep movsd
+	rep movsl
 	# restore %esi as pointer for the salsa shuffle
 	mov 24(%esp), %esi  # out, where the work will be done.
 shuffle:

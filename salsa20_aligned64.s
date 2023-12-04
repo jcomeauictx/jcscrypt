@@ -34,16 +34,16 @@
 #   }
 salsa20_aligned64:
 	# save registers required by calling convention
-	push %rbp
-	push %rbx
-	push $4
+	pushq %rbp
+	pushq %rbx
+	pushq $4
 	# at this point the stack contains:
 	# the 8-byte loop counter (4)
 	# the 16 bytes of the 2 registers we just pushed...
 	# the 8 bytes of the return address, which makes 32 bytes...
 	# the "out" address, and the "in" address, in that order.
-	mov 32(%rsp), %rdi  # destination (out)
-	mov 40(%rsp), %rsi  # source (in)
+	movq 32(%rsp), %rdi  # destination (out)
+	movq 40(%rsp), %rsi  # source (in)
 	movdqa (%rsi), %xmm0
 	movapd %xmm0, (%rdi)
 	movdqa 16(%rsi), %xmm1
@@ -418,7 +418,7 @@ shuffle:
 	mov %ebp, 60(%rsi)
 
 	# loop back
-	sub $1, (%esp)
+	subq $1, (%esp)
 	jnz shuffle
 	pop %rax  # the spent loop counter, now 0
 
