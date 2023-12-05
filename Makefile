@@ -52,7 +52,7 @@ ifneq ($(PROFILER),)
  $(warning PROFILER ("$(PROFILER)") is defined, adding -pg flag to compiler)
  EXECFLAGS += -pg
 endif
-EXTRALIBS += -lssl -lcrypto
+EXTRALIBS += -lcrypto
 export
 all: rfc7914.py rfc7914 _rfc7914.so testsalsa rfc7914.prof
 	./$(word 2, $+)
