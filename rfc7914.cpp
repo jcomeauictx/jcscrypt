@@ -10,6 +10,7 @@ using namespace std;
 #include <openssl/sha.h>
 #include <openssl/crypto.h>
 #include <openssl/hmac.h>
+const EVP_MD *hashfunction = EVP_sha256();
 
 //stackoverflow.com/a/1505839/493161
 #ifndef BITS
@@ -426,15 +427,14 @@ extern "C" {  // prevents name mangling
 
     void hmac(uint8_t *derivedKey, uint32_t dkLen=32,
         char *passphrase=NULL, uint32_t passlength=0,
-        uint8_t *salt=NULL, uint32_t saltlength=0, uint32_t N=1024,
-        const void *hashfunction = EVP_sha256())
+        uint8_t *salt=NULL, uint32_t saltlength=0, uint32_t N=1024)
     {
         if (passphrase == NULL) passphrase = (char *)"";
         if (salt == NULL) salt = (uint8_t *)passphrase;
         if (passlength == 0) passlength = strlen(passphrase);
         if (saltlength == 0) saltlength = strlen((char *)salt);
         PKCS5_PBKDF2_HMAC(passphrase, passlength, (uint8_t *)salt,
-            saltlength, N, EVP_sha256(), dkLen, (uint8_t *)derivedKey);
+            saltlength, N, hashfunction, dkLen, (uint8_t *)derivedKey);
     }
 
     void scrypt(uint32_t *passphrase=NULL, uint32_t passlength=0,
@@ -488,7 +488,7 @@ extern "C" {  // prevents name mangling
         if (passlength == 0) passlength = strlen((const char *)passphrase);
         if (saltlength == 0) saltlength = strlen((const char *)salt);
         PKCS5_PBKDF2_HMAC((char*)passphrase, passlength, (uint8_t *)salt,
-            saltlength, 1, EVP_sha256(), length, (uint8_t *)B);
+            saltlength, 1, hashfunction, length, (uint8_t *)B);
         #ifdef debugging
             if (verbose > 0)
             {
@@ -506,7 +506,7 @@ extern "C" {  // prevents name mangling
                 );
         }
         PKCS5_PBKDF2_HMAC((char *)passphrase, passlength, (uint8_t *)B,
-            length, 1, EVP_sha256(), dkLen, derivedKey);
+            length, 1, hashfunction, dkLen, derivedKey);
         free(B);
     }
 
