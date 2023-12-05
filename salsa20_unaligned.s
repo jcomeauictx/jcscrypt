@@ -414,7 +414,7 @@ shuffle:
 	mov %ebp, 60(%esi)
 
 	# loop back
-	sub $1, (%esp)
+	subl $1, (%esp)
 	jnz shuffle
 	pop %eax  # the spent loop counter, now 0
 
