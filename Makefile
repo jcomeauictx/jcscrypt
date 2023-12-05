@@ -12,7 +12,7 @@ ASM_SOURCES := $(ASM$(BITS)_SOURCES)
 EXECUTABLES := $(CPP_SOURCES:.cpp=) $(C_SOURCES:.c=)
 LIBRARIES := $(foreach source,$(CPP_SOURCES),_$(basename $(source)).so)
 ARCH := -march=native
-OPTIMIZE := $(ARCH) -m$(BITS) -DBITS=$(BITS)
+OPTIMIZE := $(ARCH) -z noexecstack -m$(BITS) -DBITS=$(BITS)
 ifneq ($(HAS_ALIGNED_ALLOC),)
  OPTIMIZE += -DHAS_ALIGNED_ALLOC
 endif
