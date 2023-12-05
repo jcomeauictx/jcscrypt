@@ -426,9 +426,9 @@ extern "C" {  // prevents name mangling
 
     void hmac(uint8_t *derivedKey, uint32_t dkLen=32,
         char *passphrase=NULL, uint32_t passlength=0,
-        uint8_t *salt=NULL, uint32_t saltlength=0, uint32_t N=1024)
+        uint8_t *salt=NULL, uint32_t saltlength=0, uint32_t N=1024,
+        const EVP_MD *hashfunction = EVP_sha256())
     {
-        const EVP_MD *hashfunction = EVP_sha256();
         if (passphrase == NULL) passphrase = (char *)"";
         if (salt == NULL) salt = (uint8_t *)passphrase;
         if (passlength == 0) passlength = strlen(passphrase);
