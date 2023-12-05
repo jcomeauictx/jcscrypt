@@ -60,12 +60,12 @@ all: rfc7914.py rfc7914 _rfc7914.so testsalsa rfc7914.prof
 # override implicit rule to add assembly sources and debugging symbols
 %:	%.c
 %:	%.c $(ASM_SOURCES)
-	gcc $(OPTIMIZE) $(DEBUG) $(EXECFLAGS) $(EXTRALIBS) -o $@ $+
+	gcc $(OPTIMIZE) $(DEBUG) $(EXECFLAGS) -o $@ $+ $(EXTRALIBS)
 %:	%.cpp
 %:	%.cpp $(ASM_SOURCES)
-	g++ $(OPTIMIZE) $(DEBUG) $(EXECFLAGS) $(EXTRALIBS) -o $@ $+
+	g++ $(OPTIMIZE) $(DEBUG) $(EXECFLAGS) -o $@ $+ $(EXTRALIBS)
 _%.so: %.cpp $(ASM_SOURCES)
-	g++ -shared $(OPTIMIZE) $(DEBUG) -fpic $(ARCH) -lm -o $@ $(EXTRALIBS) $+
+	g++ -shared $(OPTIMIZE) $(DEBUG) -fpic $(ARCH) -lm -o $@ $+ $(EXTRALIBS)
 %.pylint: %.py
 	pylint3 $<
 %.doctest: %.py _rfc7914.so
