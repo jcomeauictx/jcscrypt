@@ -10,7 +10,6 @@ using namespace std;
 #include <openssl/sha.h>
 #include <openssl/crypto.h>
 #include <openssl/hmac.h>
-const EVP_MD *hashfunction = EVP_sha256();
 
 //stackoverflow.com/a/1505839/493161
 #ifndef BITS
@@ -429,6 +428,7 @@ extern "C" {  // prevents name mangling
         char *passphrase=NULL, uint32_t passlength=0,
         uint8_t *salt=NULL, uint32_t saltlength=0, uint32_t N=1024)
     {
+        const EVP_MD *hashfunction = EVP_sha256();
         if (passphrase == NULL) passphrase = (char *)"";
         if (salt == NULL) salt = (uint8_t *)passphrase;
         if (passlength == 0) passlength = strlen(passphrase);
@@ -482,6 +482,7 @@ extern "C" {  // prevents name mangling
         */
         uint32_t *B, length = p * 128 * r;
         uint32_t wordlength = length >> 2, chunk = (128 * r) >> 2;
+        const EVP_MD *hashfunction = EVP_sha256();
         if (passphrase == NULL) passphrase = (uint32_t *)"";
         if (salt == NULL) salt = passphrase;  // for Litecoin and derivatives
         B = (uint32_t *)aligned_alloc(64, length);
