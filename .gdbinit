@@ -1,12 +1,16 @@
-def ni
+define ni
 	nexti
-	info reg
-	x/i $eip
+	info registers rax rbx rcx rdx rsi rdi
+	info stack
+	x/8xg $rsp
+	x/i $rip
 	end
-def si
+define si
 	stepi
-	info reg
-	x/i $eip
+	info registers rax rbx rcx rdx rsi rdi
+	info stack
+	x/8xg $rsp
+	x/i $rip
 	end
 echo Using hack to make it stop right after start\n
 break *0

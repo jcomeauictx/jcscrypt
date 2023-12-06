@@ -43,8 +43,7 @@ all: rfc7914.py libsalsa.a rfc7914 _rfc7914.so testsalsa rfc7914.prof
 libsalsa.a: $(ASM_SOURCES:.s=.o)
 	ar cr $@ $+
 %.so: %.cpp libsalsa.a  # for _rfc7914.so using symlink of rfc7914.cpp
-	CXXFLAGS='-fpic' $(MAKE) $*.o
-	LDFLAGS='-shared' $(MAKE) $*
+	CXXFLAGS='-fpic' LDFLAGS='-shared' $(MAKE) $*
 	mv $* $@
 %.pylint: %.py
 	pylint3 $<
