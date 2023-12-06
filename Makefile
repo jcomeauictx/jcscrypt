@@ -11,7 +11,7 @@ ASM32_SOURCES := $(filter-out $(ASM64_SOURCES),$(wildcard *.s))
 ASM_SOURCES := $(ASM$(BITS)_SOURCES)
 EXECUTABLES := $(CPP_SOURCES:.cpp=) $(C_SOURCES:.c=)
 LIBRARIES := $(foreach source,$(CPP_SOURCES),_$(basename $(source)).so)
-ARCH := -march=native
+ARCH ?= -march=native
 OPTIMIZE := $(ARCH) -z noexecstack -m$(BITS) -DBITS=$(BITS)
 ifneq ($(HAS_ALIGNED_ALLOC),)
  OPTIMIZE += -DHAS_ALIGNED_ALLOC
