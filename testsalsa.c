@@ -42,6 +42,8 @@ int main(int argc, char **argv) {
     };
     uint8_t *out = (uint8_t *)scrypt_alloc(64, 64);
     uint32_t result;
+    fprintf(stderr, "salsa_in: %018p, out: %018p, check: %018p\n",
+            &salsa_in, out, &salsa_out);
     #if BITS == 64
     void (*salsahash)() = &salsa20_aligned64;
     char *salsa = "salsa20_aligned64";
