@@ -20,8 +20,10 @@ ifneq ($(HAS_ALIGNED_ALLOC),)
 endif
 ifeq ($(BITS),32)
  LDFLAGS += -L/usr/lib/gcc/i686-linux-gnu/13 -L/usr/lib/i386-linux-gnu
+ TARGET_MACH ?= --32
 else
  LDFLAGS += -L/usr/lib/gcc/x86_64-linux-gnu/13 -L/usr/lib/x86_64-linux-gnu
+ TARGET_MACH ?= --64
 endif
 ifeq ($(shell uname -r | sed -n 's/^[^-]\+-\([a-z]\+\)-.*/\1/p'),co)  # coLinux
  SLOW_OR_LIMITED_RAM := 1
