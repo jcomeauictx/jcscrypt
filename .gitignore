@@ -8,3 +8,5 @@ rfc7914
 gmon.out
 *.prof
 testsalsa
+*.a
+*.log
