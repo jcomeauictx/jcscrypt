@@ -42,7 +42,7 @@ all: rfc7914.py libsalsa.a rfc7914 _rfc7914.so testsalsa rfc7914.prof
 	./$<
 libsalsa.a: $(ASM_SOURCES:.s=.o)
 	ar cr $@ $+
-%.so: %.cpp  # for _rfc7914.so using symlink of rfc7914.cpp
+%.so: %.cpp libsalsa.a  # for _rfc7914.so using symlink of rfc7914.cpp
 	CXXFLAGS='-fpic' $(MAKE) $*.o
 	LDFLAGS='-shared' $(MAKE) $*
 	mv $* $@
@@ -76,7 +76,7 @@ gdb: rfc7914
 gmon.out: rfc7914
 	./$< pleaseletmein SodiumChloride 16348 8 1 64 1
 clean:
-	rm -f *.pyc *pyo gmon.out rfc7914.prof *.log
+	rm -f *.pyc *pyo gmon.out rfc7914.prof *.log *.o
 distclean: clean
 	rm -f $(EXECUTABLES) $(LIBRARIES) *.a
 tunnel:
