@@ -11,6 +11,8 @@ void freeptr(void *pointer);
     #define scrypt_alloc(alignment, size) aligned_alloc(alignment, size)
     #define scrypt_free(pointer) free(pointer)
 #endif
+typedef void salsafunction(uint32_t[], uint32_t[]);
+salsafunction *salsahash;
 void donothing(uint32_t out[16], uint32_t in[16]);
 #if BITS == 64
 void salsa20_aligned64(uint32_t out[16], uint32_t in[16]);
@@ -46,10 +48,10 @@ int main(int argc, char **argv) {
     fprintf(stderr, "salsa_in: %14p, out: %14p, check: %14p\n",
             &salsa_in, out, &salsa_out);
     #if BITS == 64
-    void (*salsahash)() = &salsa20_aligned64;
+    salsahash = salsa20_aligned64;
     char *salsa = "salsa20_aligned64";
     #else
-    void (*salsahash)() = &salsa20;
+    salsahash = salsa20;
     char *salsa = "salsa20";
     #endif
     int i, j, count = 1;
@@ -65,25 +67,25 @@ int main(int argc, char **argv) {
     }
     if (argc > 2) {
         if (strlen(argv[2]) == 0) {
-            salsahash = &donothing;
+            salsahash = donothing;
             fprintf(stderr, "using donothing just to see overhead cost\n");
             salsa = "donothing";
         #if BITS != 64
         } else if (strcmp(argv[2], "salsa20") == 0) {
-            salsahash = &salsa20;
+            salsahash = salsa20;
             fprintf(stderr, "using salsa20\n");
             salsa = "salsa20";
         } else if (strcmp(argv[2], "unaligned") == 0) {
-            salsahash = &salsa20_unaligned;
+            salsahash = salsa20_unaligned;
             fprintf(stderr, "using salsa20_unaligned\n");
             salsa = "salsa20_unaligned";
         } else if (strcmp(argv[2], "unrolled") == 0) {
-            salsahash = &salsa20_unrolled;
+            salsahash = salsa20_unrolled;
             fprintf(stderr, "using salsa20_unrolled\n");
             salsa = "salsa20_unrolled";
         #else
         } else if (strcmp(argv[2], "aligned64") == 0) {
-            salsahash = &salsa20_aligned64;
+            salsahash = salsa20_aligned64;
             salsa = "salsa20_aligned64";
             fprintf(stderr, "using salsa20_aligned64\n");
         #endif
@@ -105,7 +107,7 @@ int main(int argc, char **argv) {
     }
     fprintf(stderr, "running %d repetition(s) of %s\n", count, salsa);
     for (i = 0; i < count; i++) {
-        (*salsahash)((uint32_t *)out, (uint32_t *)salsa_in);
+        salsahash((uint32_t *)out, (uint32_t *)salsa_in);
     }
     fprintf(stderr, "INFO: result:\n");
     for (i = 0; i < 2; i++) {

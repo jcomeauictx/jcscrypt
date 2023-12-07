@@ -97,7 +97,7 @@ mine:
 	# terminate ssh forwarding after ^C out of mining
 	$(PYTHON) -OO simpleminer.py || kill $$(pidof amctunnel)
 testall: testsalsa
-	for implementation in "" salsa20 unaligned unrolled aligned64; do \
-	 time ./testsalsa 10000000 $$implementation; \
+	for implementation in '' salsa20 unaligned unrolled aligned64; do \
+	 time ./testsalsa 10000000 "$$implementation"; \
 	done
 .PRECIOUS: gmon.out
