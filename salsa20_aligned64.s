@@ -72,14 +72,15 @@ shuffle:
 	addl %ecx, %ebx
 	movl 32(%r9), %edi  # x[8]
 	movl %ebx, %eax
-	shrl $25, %ebx
+	movl %ebx, %esi
 	shll $7, %eax
-	orl %eax, %ebx
-	xorl %ebx, %edx
+	shrl $25, %esi
+	movl %ecx, %ebx
+	orl %eax, %esi
+	xorl %esi, %edx
+	movl %edx, 16(%r9)
 
 	# x[ 8] ^= R(x[ 4]+x[ 0], 9)
-	movl %ecx, %ebx
-	movl %edx, 16(%r9)
 	addl %edx, %ebx
 	movl %ebx, %eax
 	shrl $23, %ebx
