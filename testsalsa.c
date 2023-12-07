@@ -84,8 +84,8 @@ int main(int argc, char **argv) {
         #else
         } else if (strcmp(argv[2], "aligned64") == 0) {
             salsahash = &salsa20_aligned64;
-            fprintf(stderr, "using salsa20_aligned64\n");
             salsa = "salsa20_aligned64";
+            fprintf(stderr, "using salsa20_aligned64\n");
         #endif
         } else {
             fprintf(stderr, "ignoring unrecognized option %s\n", argv[2]);
