@@ -56,6 +56,8 @@ typedef void (*block_mix_implementation)(
 extern "C" {  // prevents name mangling
 
     void salsa20_unrolled(uint32_t out[16], uint32_t in[16]);
+    void salsa20_unaligned(uint32_t out[16], uint32_t in[16]);
+    void salsa20(uint32_t out[16], uint32_t in[16]);
 
     void showbytes(const void *addr, const void *bytes,
         uint32_t length=24)

@@ -1,6 +1,13 @@
 SHELL := /bin/bash
-PYTHON ?= python
 BITS ?= 64
+ifeq ($(BITS),32)
+	PYTHON ?= /lib32/ld-linux.so.2 \
+	 --library-path \
+	  /usr/lib/i386-linux-gnu:/opt/buster32/usr/lib/i386-linux-gnu \
+	 /opt/buster32/usr/bin/python3
+else
+	PYTHON ?= python3
+endif
 HAS_ALIGNED_ALLOC ?= 1
 #PROFILER ?= 1
 PY_SOURCES := $(wildcard *.py)
@@ -42,7 +49,7 @@ ifneq ($(PROFILER),)
 endif
 all: rfc7914.py libsalsa.a rfc7914 _rfc7914.so testsalsa rfc7914.prof
 	./rfc7914
-	./$<
+	$(PYTHON) ./$<
 libsalsa.a: $(ASM_SOURCES:.s=.o)
 	ar cr $@ $+
 %.so: %.cpp libsalsa.a  # for _rfc7914.so using symlink of rfc7914.cpp
@@ -57,7 +64,7 @@ doctests: $(PY_SOURCES:.py=.doctest)
 env:
 	$@
 profile: rfc7914.py _rfc7914.so
-	time ./$< $@
+	time $(PYTHON) ./$< $@
 compare: rfc7914.py _rfc7914.so
 	$(PYTHON) -OO ./$< $@
 edit: $(PY_SOURCES) $(CPP_SOURCES)
