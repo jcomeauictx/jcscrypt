@@ -34,9 +34,12 @@
 #       }
 #       for (uint32_t i = 0;i < 16;++i) x[i] += in[i];
 #   }
+# NOTE: try to reorder instructions such that the following doesn't require
+# the result of the previous. See Agner Fog's manuals.
 salsa20_aligned64:
 	# save registers required by calling convention
 	pushq %rbp
+	movq $4, %r10  # use for loop counter
 	pushq %rbx
 	# at this point the stack contains:
 	# the 16 bytes of the 2 registers we just pushed...
@@ -47,16 +50,15 @@ salsa20_aligned64:
 	# gdb shows r13 contains a copy of "out", and r14 of "salsa_in",
 	# but I can't find documentation of that so won't count on it.
 	# I can use r8, r9, and 10 for this without having to restore them.
-	movq $4, %r10  # use for loop counter
 	movq %rdi, %r9 # save "out" for later use
 	movq %rsi, %r8  # in case we need to use esi
 	movdqa (%rsi), %xmm0
-	movapd %xmm0, (%rdi)
 	movdqa 16(%rsi), %xmm1
-	movapd %xmm1, 16(%rdi)
 	movdqa 32(%rsi), %xmm2
-	movapd %xmm2, 32(%rdi)
 	movdqa 48(%rsi), %xmm3
+	movapd %xmm0, (%rdi)
+	movapd %xmm1, 16(%rdi)
+	movapd %xmm2, 32(%rdi)
 	movapd %xmm3, 48(%rdi)
 	# now use %r9 as pointer for the salsa shuffle
 shuffle:
@@ -428,18 +430,18 @@ shuffle:
 
 	# now add IN to OUT before returning
 	movdqa (%r9), %xmm4
+	movdqa 16(%r9), %xmm5
 	paddd %xmm4, %xmm0
 	movapd %xmm0, (%r9)
-	movdqa 16(%r9), %xmm5
 	paddd %xmm5, %xmm1
-	movapd %xmm1, 16(%r9)
 	movdqa 32(%r9), %xmm6
+	movapd %xmm1, 16(%r9)
 	paddd %xmm6, %xmm2
-	movapd %xmm2, 32(%r9)
 	movdqa 48(%r9), %xmm7
-	paddd %xmm7, %xmm3
-	movapd %xmm3, 48(%r9)
+	movapd %xmm2, 32(%r9)
 	popq %rbx
+	paddd %xmm7, %xmm3
 	popq %rbp
+	movapd %xmm3, 48(%r9)
 	ret
 # vim: set tabstop=4 expandtab shiftwidth=4 softtabstop=4
