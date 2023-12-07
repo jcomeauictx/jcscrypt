@@ -117,8 +117,7 @@ int main(int argc, char **argv) {
     }
     int compared = memcmp((void *)salsa_out, (void *)out, 64);
     scrypt_free(out);
-    result = compared & 0x1;  // 0 if same, 1 if not
-    if (result != 0) fprintf(stderr, "WARNING: not the expected results\n");
+    if (compared != 0) fprintf(stderr, "WARNING: not the expected results\n");
     else fprintf(stderr, "INFO: %s returned expected results\n", salsa);
     return result;
 }
