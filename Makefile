@@ -1,6 +1,11 @@
 SHELL := /bin/bash
 PYLINT := $(shell which pylint3 pylint | head -n 1)
-BITS ?= 64
+MACHINE := $(shell uname -m)
+ifeq ($(MACHINE),x86_64)
+	BITS ?= 64
+else
+	BITS ?= 32
+endif
 SALSA64 ?= salsa20_aligned64  # doesn't take effect unless specified on cmdline
 ifeq ($(BITS),32)
 	PYTHON ?= /lib32/ld-linux.so.2 \
