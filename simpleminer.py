@@ -3,7 +3,7 @@
 adaptation of simpleminer for scrypt
 '''
 from __future__ import print_function
-# pylint: disable=multiple-imports
+# pylint: disable=multiple-imports, consider-using-f-string
 import sys, os, time, json, hashlib, struct, re, base64
 import multiprocessing, select, signal, logging
 from binascii import hexlify, unhexlify
@@ -33,7 +33,7 @@ scrypthash = rfc7914.scrypt
 
 # python3 compatibility
 try:
-    long
+    long  # pylint: disable=used-before-assignment
 except NameError:
     long = int  # pylint: disable=invalid-name, redefined-builtin
 
@@ -115,7 +115,7 @@ def parse_config(config_file):
     '''
     parse config file
     '''
-    with open(config_file) as infile:
+    with open(config_file) as infile:  # pylint: disable=unspecified-encoding
         settings = dict(filter(None, map(key_value, infile.readlines())))
     logging.debug('settings from config file: %s', settings)
     return settings
@@ -147,6 +147,7 @@ def init():
         signal.signal(signal.SIGQUIT, finish_up)
         signal.signal(signal.SIGTERM, finish_up)
         signal.signal(signal.SIGALRM, timeout_thread)
+        # pylint: disable=consider-using-with
         PERSISTENT['urandom'] = open('/dev/urandom', 'rb')
         logging.debug('settings now: %s', PERSISTENT)
 
@@ -301,7 +302,7 @@ def scrypt_hash(data, check_bytes='\0\0\0'):
             hashed = scrypthash(data, salt=data, **SCRYPT_PARAMETERS)
         except TypeError as failed:  # different libraries being used
             # these changes are specifically for Python3 hashlib.scrypt
-            logging.warning('call to _rfc7914.scrypt failed, '
+            logging.warning('call to _rfc7914.scrypt failed: %s; %s', failed,
                             'trying with different parameters')
             SCRYPT_PARAMETERS['n'] = SCRYPT_PARAMETERS.pop('N')
             SCRYPT_PARAMETERS['dklen'] = SCRYPT_PARAMETERS.pop('buflen')
@@ -348,13 +349,11 @@ def simpleminer():
         if not work:
             consecutive_errors += 1
             if consecutive_errors == MAX_GETWORK_FAILS:
-                raise Exception('too many getwork() errors, has daemon crashed?')
-            else:
-                print('waiting for work', file=sys.stderr)
-                time.sleep(5)
-                continue
-        else:
-            consecutive_errors = 0
+                raise Exception('too many getwork errors, has daemon crashed?')
+            print('waiting for work', file=sys.stderr)
+            time.sleep(5)
+            continue
+        consecutive_errors = 0
         data = bufreverse(unhexlify(work['data']))[:HEADER_SIZE - INT_SIZE]
         target = unhexlify(work['target'])[::-1]
         algorithm = work.get('algorithm', None)
@@ -481,7 +480,7 @@ def profile():
     '''
     get an idea of where this program spends most of its time
     '''
-    import cProfile
+    import cProfile  # pylint: disable=import-outside-toplevel
     cProfile.run('mine_once()')
 
 if __name__ == '__main__':
