@@ -54,7 +54,7 @@ libsalsa.a: $(ASM_SOURCES:.s=.o)
 	ar cr $@ $+
 %.so: %.cpp libsalsa.a  # for _rfc7914.so using symlink of rfc7914.cpp
 	CXXFLAGS='-fPIC' \
-	 LDFLAGS='-Wl,--undefined=salsa20 -shared' \
+	 LDFLAGS='-Wl,--undefined=salsa20 -shared -Wl,-rpath="."' \
 	 $(MAKE) $*
 	mv $* $@
 %.pylint: %.py
