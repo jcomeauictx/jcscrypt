@@ -6,16 +6,24 @@ from __future__ import print_function
 # pylint: disable=multiple-imports, consider-using-f-string
 import sys, os, time, json, hashlib, struct, re, base64
 import multiprocessing, select, signal, logging
+logging.basicConfig(level=logging.DEBUG if __debug__ else logging.INFO)
+logging.warning('logging level: %s',
+                logging.getLevelName(logging.getLogger().level))
+# pylint: disable=wrong-import-position  # because we set up logging
 from binascii import hexlify, unhexlify
-from rfc7914 import scrypt as scrypthash
 try:
     from httplib import HTTPConnection
 except ImportError:
     from http.client import HTTPConnection
-
-logging.basicConfig(level=logging.DEBUG if __debug__ else logging.INFO)
-logging.warning('logging level: %s',
-                logging.getLevelName(logging.getLogger().level))
+try:
+    from scrypt import hash as scrypthash
+    SCRYPT_PARAMETERS = {'N': 1024, 'r': 1, 'p': 1, 'buflen': 32}  # pip scrypt
+    logging.info('using pip scrypt')
+except ImportError:
+    from rfc7914 import scrypt as scrypthash
+    logging.info('using jcscrypt')
+    SCRYPT_PARAMETERS = {'N': 1024, 'r': 1, 'p': 1, 'dkLen': 32}  # jcscrypt
+#SCRYPT_PARAMETERS = {'n': 1024, 'r': 1, 'p': 1, 'dklen': 32}  # hashlib scrypt
 
 # don't use python3 hashlib.scrypt, it's too slow!
 # get best-guess load directory for _rfc7914.so under any condition
@@ -35,9 +43,6 @@ PERSISTENT = {'quit': False, 'solved': False}  # global for storing settings
 THREAD = {}  # global for threads
 DEFAULTCOIN = 'americancoin'  # one of easiest to mine as of January 2014
 COIN = os.getenv('SIMPLEMINER_COIN', DEFAULTCOIN)
-SCRYPT_PARAMETERS = {'N': 1024, 'r': 1, 'p': 1, 'dkLen': 32}  # jcscrypt
-#SCRYPT_PARAMETERS = {'N': 1024, 'r': 1, 'p': 1, 'buflen': 32}  # pip scrypt
-#SCRYPT_PARAMETERS = {'n': 1024, 'r': 1, 'p': 1, 'dklen': 32}  # hashlib scrypt
 SCRYPT_ALGORITHM = 'scrypt:1024,1,1'
 CONFIGFILE = os.path.expanduser('~/.%s/%s.conf' % (COIN, COIN))
 MULTIPLIER = int(os.getenv('SIMPLEMINER_MULTIPLIER', '1'))
