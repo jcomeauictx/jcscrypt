@@ -1,4 +1,5 @@
 SHELL := /bin/bash
+PYLINT := $(shell which pylint3 pylint | head -n 1)
 BITS ?= 64
 ifeq ($(BITS),32)
 	PYTHON ?= /lib32/ld-linux.so.2 \
@@ -58,7 +59,7 @@ libsalsa.a: $(ASM_SOURCES:.s=.o)
 	 $(MAKE) $*
 	mv $* $@
 %.pylint: %.py
-	pylint3 $<
+	$(PYLINT) $<
 %.doctest: %.py _rfc7914.so
 	$(PYTHON) -m doctest $<
 pylint: $(PY_SOURCES:.py=.pylint)
