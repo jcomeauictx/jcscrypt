@@ -7,26 +7,36 @@ from __future__ import print_function
 import sys, os, time, json, hashlib, struct, re, base64
 import multiprocessing, select, signal, logging
 from binascii import hexlify, unhexlify
+from ctypes import cdll
 try:
     from httplib import HTTPConnection
 except ImportError:
     from http.client import HTTPConnection
-# don't use python3 hashlib.scrypt, it's too slow!
-try:
-    from rfc7914 import scrypt as scrypthash
-except ImportError:
-    print('Requires github.com/jcomeauictx/jcscrypt', file=sys.stderr)
-    sys.exit(1)
 
 logging.basicConfig(level=logging.DEBUG if __debug__ else logging.INFO)
 logging.warning('logging level: %s',
                 logging.getLevelName(logging.getLogger().level))
+
+# don't use python3 hashlib.scrypt, it's too slow!
+try:
+    rfc7914 = cdll.LoadLibrary('_rfc7914.so')
+except OSError:
+    logging.warning('Cannot load _rfc7914.so from default library path,'
+                    ' trying same directory as Python script')
+try:
+    rfc7914 = cdll.LoadLibrary(os.path.join(
+        os.path.dirname(os.path.realpath(sys.argv[0])), '_rfc7914.so'))
+except OSError:
+    print('Requires github.com/jcomeauictx/jcscrypt', file=sys.stderr)
+    raise
+scrypthash = rfc7914.scrypt
 
 # python3 compatibility
 try:
     long
 except NameError:
     long = int  # pylint: disable=invalid-name, redefined-builtin
+
 TIMEOUT = 120  # seconds to wait for server response
 START_TIME = time.time()
 PERSISTENT = {'quit': False, 'solved': False}  # global for storing settings
@@ -291,8 +301,8 @@ def scrypt_hash(data, check_bytes='\0\0\0'):
             hashed = scrypthash(data, salt=data, **SCRYPT_PARAMETERS)
         except TypeError as failed:  # different libraries being used
             # these changes are specifically for Python3 hashlib.scrypt
-            logging.warning('call to rfc7914.scrypt failed, '
-                            'trying with different paramaters')
+            logging.warning('call to _rfc7914.scrypt failed, '
+                            'trying with different parameters')
             SCRYPT_PARAMETERS['n'] = SCRYPT_PARAMETERS.pop('N')
             SCRYPT_PARAMETERS['dklen'] = SCRYPT_PARAMETERS.pop('buflen')
             # try again. if this works, it won't have to be done again,
