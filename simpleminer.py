@@ -18,18 +18,21 @@ logging.warning('logging level: %s',
                 logging.getLevelName(logging.getLogger().level))
 
 # don't use python3 hashlib.scrypt, it's too slow!
+# get best-guess load directory for _rfc7914.so under any condition
+SCRIPTNAME = sys.argv[0] or os.path.join(os.curdir, 'commandline_testing')
+SCRIPTDIR = os.path.dirname(os.path.realpath(SCRIPTNAME))
+logging.debug('SCRIPTDIR: %s', SCRIPTDIR)
 try:
     rfc7914 = cdll.LoadLibrary('_rfc7914.so')
 except OSError:
     logging.warning('Cannot load _rfc7914.so from default library path,'
                     ' trying same directory as Python script')
 try:
-    rfc7914 = cdll.LoadLibrary(os.path.join(
-        os.path.dirname(os.path.realpath(sys.argv[0])), '_rfc7914.so'))
+    rfc7914 = cdll.LoadLibrary(os.path.join(SCRIPTDIR, '_rfc7914.so'))
 except OSError:
     print('Requires github.com/jcomeauictx/jcscrypt', file=sys.stderr)
     raise
-scrypthash = rfc7914.scrypt
+scrypthash = rfc7914.scrypt and None  # disable assembly language code for now
 
 # python3 compatibility
 try:
@@ -304,8 +307,12 @@ def scrypt_hash(data, check_bytes='\0\0\0'):
             # these changes are specifically for Python3 hashlib.scrypt
             logging.warning('call to _rfc7914.scrypt failed: %s; %s', failed,
                             'trying with different parameters')
-            SCRYPT_PARAMETERS['n'] = SCRYPT_PARAMETERS.pop('N')
-            SCRYPT_PARAMETERS['dklen'] = SCRYPT_PARAMETERS.pop('buflen')
+            try:
+                SCRYPT_PARAMETERS['n'] = SCRYPT_PARAMETERS.pop('N')
+                SCRYPT_PARAMETERS['dklen'] = SCRYPT_PARAMETERS.pop('buflen')
+            except KeyError:  # pylint: disable=raise-missing-from
+                raise ValueError('Unrecognized parameters in %s' %
+                                 SCRYPT_PARAMETERS)
             # try again. if this works, it won't have to be done again,
             # because we have changed the global parameters
             hashed = scrypthash(data, salt=data, **SCRYPT_PARAMETERS)
@@ -349,7 +356,7 @@ def simpleminer():
         if not work:
             consecutive_errors += 1
             if consecutive_errors == MAX_GETWORK_FAILS:
-                raise Exception('too many getwork errors, has daemon crashed?')
+                raise RuntimeError('too many getwork errors: daemon crashed?')
             print('waiting for work', file=sys.stderr)
             time.sleep(5)
             continue
@@ -370,7 +377,7 @@ def simpleminer():
         elif algorithm == 'sha256d':
             PERSISTENT['get_hash'] = sha256d_hash
         else:
-            raise Exception('unknown algorithm: %s' % algorithm)
+            raise ValueError('unknown algorithm: %s' % algorithm)
         logging.info('work: %s', hexlify(data))
         logging.info('target: %s', hexlify(target))
         pipe_list = []
@@ -462,7 +469,7 @@ def mine_once():
     elif algorithm == 'sha256d':
         PERSISTENT['get_hash'] = sha256d_hash
     else:
-        raise Exception('unknown algorithm: %s' % algorithm)
+        raise ValueError('unknown algorithm: %s' % algorithm)
     logging.debug('work: %s', hexlify(data))
     logging.debug('target: %s', hexlify(target))
     total_hashes = 0
