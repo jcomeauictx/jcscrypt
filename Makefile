@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 PYLINT := $(shell which pylint3 pylint | head -n 1)
 BITS ?= 64
-SALSA64 ?= salsa20_aligned64
+SALSA64 ?= salsa20_aligned64  # doesn't take effect unless specified on cmdline
 ifeq ($(BITS),32)
 	PYTHON ?= /lib32/ld-linux.so.2 \
 	 --library-path \
@@ -56,7 +56,7 @@ libsalsa.a: $(ASM_SOURCES:.s=.o)
 	ar cr $@ $+
 %.so: %.cpp libsalsa.a  # for _rfc7914.so using symlink of rfc7914.cpp
 	CXXFLAGS='-fPIC' \
-	 LDFLAGS='-Wl,--undefined=salsa20 -shared -Wl,-rpath="."' \
+	 LDFLAGS='-Wl,--undefined=salsa20,--undefined=salsa20_aligned64 -shared -Wl,-rpath="."' \
 	 $(MAKE) $*
 	mv $* $@
 %.pylint: %.py

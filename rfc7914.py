@@ -70,10 +70,12 @@ logging.debug('SCRIPT_DIR: %s, COMMAND: %s, ARGS: %s',
               SCRIPT_DIR, COMMAND, ARGS)
 try:
     LIBRARY = ctypes.cdll.LoadLibrary(os.path.join(SCRIPT_DIR, '_rfc7914.so'))
-    SALSA = LIBRARY.salsa20_word_specification
     if sys.maxsize == 0x7fffffff:
-        SALSA = LIBRARY.salsa20
-        logging.info('NOTE: using assembly language Salsa20 implementation')
+        SALSA = 'salsa20'
+    else:
+        SALSA = os.getenv('SALSA64', 'salsa20_word_specification')
+    logging.info('NOTE: using salsa implementation %s', SALSA)
+    SALSA = getattr(LIBRARY, SALSA)
     SALSA.restype = None  # otherwise it returns contents of return register
     XOR = LIBRARY.array_xor
     XOR.restype = None
