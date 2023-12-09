@@ -7,7 +7,7 @@ from __future__ import print_function
 import sys, os, time, json, hashlib, struct, re, base64
 import multiprocessing, select, signal, logging
 from binascii import hexlify, unhexlify
-from ctypes import cdll
+from rfc7914 import scrypt as scrypthash
 try:
     from httplib import HTTPConnection
 except ImportError:
@@ -22,17 +22,6 @@ logging.warning('logging level: %s',
 SCRIPTNAME = sys.argv[0] or os.path.join(os.curdir, 'commandline_testing')
 SCRIPTDIR = os.path.dirname(os.path.realpath(SCRIPTNAME))
 logging.debug('SCRIPTDIR: %s', SCRIPTDIR)
-try:
-    rfc7914 = cdll.LoadLibrary('_rfc7914.so')
-except OSError:
-    logging.warning('Cannot load _rfc7914.so from default library path,'
-                    ' trying same directory as Python script')
-try:
-    rfc7914 = cdll.LoadLibrary(os.path.join(SCRIPTDIR, '_rfc7914.so'))
-except OSError:
-    print('Requires github.com/jcomeauictx/jcscrypt', file=sys.stderr)
-    raise
-scrypthash = rfc7914.scrypt and None  # disable assembly language code for now
 
 # python3 compatibility
 try:
