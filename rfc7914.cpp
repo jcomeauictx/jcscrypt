@@ -34,10 +34,11 @@ using namespace std;
 #endif
 */
 #define MAX_VERBOSITY 2  // use for the nitty gritty stuff
-#define SALSA salsa20_word_specification
 #if BITS == 32
     #warning Setting SALSA to point to assembly language routine
     #define SALSA salsa20_unrolled
+#else
+    #define SALSA salsa20_word_specification
 #endif
 #ifndef debugging  // when debugging, mixer is selectable
     #warning Setting mixer to optimized code, may be slower.
