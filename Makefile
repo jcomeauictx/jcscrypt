@@ -1,6 +1,7 @@
 SHELL := /bin/bash
 PYLINT := $(shell which pylint3 pylint | head -n 1)
 BITS ?= 64
+SALSA64 ?= salsa20_aligned64
 ifeq ($(BITS),32)
 	PYTHON ?= /lib32/ld-linux.so.2 \
 	 --library-path \
@@ -32,7 +33,7 @@ CPPFLAGS += $(ARCH) -z noexecstack -m$(BITS) -DBITS=$(BITS) -O3 -Wall
 LDLIBS += -lrt -lm -lcrypto -lsalsa
 LDFLAGS += -L.  # for libsalsa.a, which we will create
 ifneq ($(HAS_ALIGNED_ALLOC),)
- CPPFLAGS += -DHAS_ALIGNED_ALLOC
+ CPPFLAGS += -DHAS_ALIGNED_ALLOC -DSALSA64=$(SALSA64)
 endif
 ifeq ($(shell uname -r | sed -n 's/^[^-]\+-\([a-z]\+\)-.*/\1/p'),co)  # coLinux
  SLOW_OR_LIMITED_RAM := 1
