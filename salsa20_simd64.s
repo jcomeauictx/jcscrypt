@@ -440,29 +440,35 @@ shuffle:
 	# loop back
 	subq $1, (%esp)
 	jnz shuffle
-	popq %ecx  # discard empty loop counter
+	popq %rcx  # discard empty loop counter
 
 	# now add IN to OUT before returning
 	.ifdef __AVX__
-	paddd %ymm0, (%rdi)
-	paddd %ymm1, 32(%rdi)
+	paddd (%rdi), %ymm0
 	popq %r15
+	paddd 32(%rdi), %ymm1
 	popq %r14
+	movapd %ymm0, (%rdi)
 	popq %r13
+	movapd %ymm1, 32(%rdi)
 	popq %r12
 	popq %rbx
 	popq %rbp
 	.else
 	popq %r15
-	paddd %xmm0, (%rdi)
+	paddd (%rdi), %xmm0
 	popq %r14
-	paddd %xmm1, 16(%rdi)
+	movapd %xmm0, (%rdi)
 	popq %r13
-	paddd %xmm2, 32(%rdi)
+	paddd 16(%rdi), %xmm1
 	popq %r12
-	paddd %xmm3, 48(%rdi)
+	movapd %xmm1, 16(%rdi)
 	popq %rbx
+	paddd 32(%rdi), %xmm2
 	popq %rbp
+	movapd %xmm2, 32(%rdi)
+	paddd 48(%rdi), %xmm3
+	movapd %xmm3, 48(%rdi)
 	.endif
 	ret
 # vim: set tabstop=4 expandtab shiftwidth=4 softtabstop=4
