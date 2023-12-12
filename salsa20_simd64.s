@@ -73,7 +73,32 @@ salsa20_aligned64:
 	movdqa %xmm2, 32(%rdi)
 	movdqa %xmm3, 48(%rdi)
 	.endif
-	# continue to use %r9d as pointer for the salsa shuffle
+	# continue to use %rdi as pointer for the salsa shuffle
+	# use two general purpose and two mmx registers for scratch space
+	.set scratch_a, %eax
+	.set scratch_b, %ebx
+	.set scratch_0, %mm0
+	.set scratch_1, %mm1
+	# now assign all available registers to hold x[0] through x[15]
+	# there will be some overlap
+	.set mmx15, %mm7
+	.set mmx14, %mm6
+	.set mmx13, %mm5
+	.set mmx12, %mm4
+	.set mmx11, %mm3
+	.set mmx10, %mm2
+	.set x11, %r15d
+	.set x10, %r14d
+	.set x9, %r13d
+	.set x8, %r12d
+	.set x7, %r11d
+	.set x6, %r10d
+	.set x5, %r9d
+	.set x4, %r8d
+	.set x3, %esi
+	.set x2, %ebp
+	.set x1, %edx
+	.set x0, %ecx
 shuffle:
 	# first group of 4 is offsets 0, 4, 8, 12
 	movl 48(%rdi), %ebp  # x[12]
