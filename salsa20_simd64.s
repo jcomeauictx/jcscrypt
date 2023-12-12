@@ -76,7 +76,9 @@ salsa20_aligned64:
 	# continue to use %rdi as pointer for the salsa shuffle
 	# use two general purpose and two mmx registers for scratch space
 	.set scratch_a, %eax
+	.set dscratch_a, %rax
 	.set scratch_b, %ebx
+	.set dscratch_b, %rbx
 	.set scratch_0, %mm0
 	.set scratch_1, %mm1
 	# now assign all available registers to hold x[0] through x[15]
@@ -99,31 +101,48 @@ salsa20_aligned64:
 	.set x2, %ebp
 	.set x1, %edx
 	.set x0, %ecx
+	.macro loadx number, register
+	.ifeq \number
+	movl (%edi), \register
+	.else
+	movl \number*4(%edi), \register
+	.endif
+	.endm
+	.macro rshift number
+	shll \number, scratch_a
+	shrl 32-\number, scratch_b
+	.endm
+	
 shuffle:
 	# first group of 4 is offsets 0, 4, 8, 12
-	movl 48(%rdi), %ebp  # x[12]
-	movl 0(%rdi), %ecx  # x[0]
+	loadx 12, scratch_a
+	loadx 0, x0
+	movd dscratch_a, mmx12
 
 	# x[ 4] ^= R(x[ 0]+x[12], 7)
-	movl %ebp, %ebx
-	movl 16(%rdi), %edx  # x[4]
-	addl %ecx, %ebx
-	movl 32(%rdi), %r9d  # x[8]
-	movl %ebx, %eax
-	shrl $25, %ebx
-	shll $7, %eax
-	orl %eax, %ebx
-	xorl %ebx, %edx
+	loadx 4, x4
+	addl x0, scratch_a
+	loadx 8, x8
+	movl scratch_a, scratch_b
+	loadx 1, x1
+	rshift 7
+	loadx 5, x5
+	orl scratch_b, scratch_a
+	loadx 9, x9
+	xorl scratch_a, x4
 
 	# x[ 8] ^= R(x[ 4]+x[ 0], 9)
-	movl %ecx, %ebx
-	movl %edx, 16(%rdi)
-	addl %edx, %ebx
-	movl %ebx, %eax
-	shrl $23, %ebx
-	shll $9, %eax
-	orl %eax, %ebx
-	xorl %ebx, %r9d
+	movl x0, scratch_b
+	loadx 13, scratch_a
+	addl x4, scratch_b
+	movd dscratch_a, mmx13
+	loadx 2, x2
+	movl scratch_b, scratch_a
+	loadx 6, x6
+	rshift 9
+	orl scratch_a, scratch_b
+	loadx 10, x10
+	xorl scratch_b, x8
 
 	# x[12] ^= R(x[ 8]+x[ 4],13)
 	movl %edx, %ebx
