@@ -25,6 +25,7 @@ ASM32_SOURCES := $(filter-out $(ASM64_SOURCES),$(wildcard *.s))
 ASM_SOURCES := $(ASM$(BITS)_SOURCES)
 EXECUTABLES := $(CPP_SOURCES:.cpp=) $(C_SOURCES:.c=)
 LIBRARIES := $(foreach source,$(CPP_SOURCES),_$(basename $(source)).so)
+ASFLAGS ?= -alsm
 ifeq ($(BITS),32)
  LOADLIBES += -L/usr/lib/gcc/i686-linux-gnu/13 -L/usr/lib/i386-linux-gnu
  TARGET_MACH ?= --32
