@@ -68,10 +68,10 @@ salsa20_aligned64:
 	movdqa %ymm0, (%rdi)
 	movdqa %ymm1, 32(%rdi)
 	.else
-	movapd %xmm0, (%rdi)
-	movapd %xmm1, 16(%rdi)
-	movapd %xmm2, 32(%rdi)
-	movapd %xmm3, 48(%rdi)
+	movdqa %xmm0, (%rdi)
+	movdqa %xmm1, 16(%rdi)
+	movdqa %xmm2, 32(%rdi)
+	movdqa %xmm3, 48(%rdi)
 	.endif
 	# continue to use %r9d as pointer for the salsa shuffle
 shuffle:
@@ -448,9 +448,9 @@ shuffle:
 	popq %r15
 	paddd 32(%rdi), %ymm1
 	popq %r14
-	movapd %ymm0, (%rdi)
+	movdqa %ymm0, (%rdi)
 	popq %r13
-	movapd %ymm1, 32(%rdi)
+	movdqa %ymm1, 32(%rdi)
 	popq %r12
 	popq %rbx
 	popq %rbp
@@ -458,17 +458,17 @@ shuffle:
 	popq %r15
 	paddd (%rdi), %xmm0
 	popq %r14
-	movapd %xmm0, (%rdi)
+	movdqa %xmm0, (%rdi)
 	popq %r13
 	paddd 16(%rdi), %xmm1
 	popq %r12
-	movapd %xmm1, 16(%rdi)
+	movdqa %xmm1, 16(%rdi)
 	popq %rbx
 	paddd 32(%rdi), %xmm2
 	popq %rbp
-	movapd %xmm2, 32(%rdi)
+	movdqa %xmm2, 32(%rdi)
 	paddd 48(%rdi), %xmm3
-	movapd %xmm3, 48(%rdi)
+	movdqa %xmm3, 48(%rdi)
 	.endif
 	ret
 # vim: set tabstop=4 expandtab shiftwidth=4 softtabstop=4
