@@ -74,45 +74,36 @@ salsa20_aligned64:
 	movdqa %xmm3, 48(%rdi)
 	.endif
 	# continue to use %rdi as pointer for the salsa shuffle
-	# use two general purpose and two mmx registers for scratch space
+	# use some general purpose registers for scratch space
 	.set scratch_a, %eax
 	.set dscratch_a, %rax
 	.set scratch_b, %ebx
 	.set dscratch_b, %rbx
-	.set scratch_0, %mm0
-	.set scratch_1, %mm1
 	# now assign all available registers to hold x[0] through x[15]
-	# there will be some overlap
-	.set mmx15, %mm7
-	.set mmx14, %mm6
-	.set mmx13, %mm5
-	.set mmx12, %mm4
-	.set mmx11, %mm3
-	.set mmx10, %mm2
-	.set x11, %r15d
-	.set x11m, %r15
-	.set x10, %r14d
-	.set x10m, %r14
-	.set x9, %r13d
-	.set x9m, %r13
-	.set x8, %r12d
-	.set x8m, %r12
-	.set x7, %r11d
-	.set x7m, %r11
-	.set x6, %r10d
-	.set x6m, %r10
-	.set x5, %r9d
-	.set x5m, %r9
-	.set x4, %r8d
-	.set x4m, %r8
-	.set x3, %esi
-	.set x3m, %rsi
-	.set x2, %ebp
-	.set x2m, %rbp
-	.set x1, %edx
-	.set x1m, %rdx
-	.set x0, %ecx
-	.set x0m, %rcx
+	.set x7m, %mm7
+	.set x6m, %mm6
+	.set x5m, %mm5
+	.set x4m, %mm4
+	.set x3m, %mm3
+	.set x2m, %mm2
+	.set x1m, %mm1
+	.set x0m, %mm0
+	.set x15, %r15d
+	.set x15m, %r15
+	.set x14, %r14d
+	.set x14m, %r14
+	.set x13, %r13d
+	.set x13m, %r13
+	.set x12, %r12d
+	.set x12m, %r12
+	.set x11, %r11d
+	.set x11m, %r11
+	.set x10, %r10d
+	.set x10m, %r10
+	.set x9, %r9d
+	.set x9m, %r9
+	.set x8, %r8d
+	.set x8m, %r8
 	.macro loadx number, register
 	.ifeq \number
 	movl (%edi), \register
