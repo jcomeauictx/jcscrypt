@@ -10,3 +10,4 @@ gmon.out
 testsalsa
 *.a
 *.log
+*.lst
