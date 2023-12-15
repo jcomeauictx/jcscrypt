@@ -107,15 +107,31 @@ salsa20_aligned64:
 	.set dscratch_a, %rax
 	.set scratch_b, %ebx
 	.set dscratch_b, %rbx
+	.set scratch_c, %ecx
+	.set dscratch_c, %rcx
+	.set scratch_d, %edx
+	.set dscratch_d, %rdx
+	.set temp_p, %ebp
+	.set dtemp_p, %rbp
+	.set temp_s, %esi  # OK to use now initialization is complete
+	.set dtemp_s, %rsi
 	# now assign all available registers to hold x[0] through x[15]
 	.set x7m, %mm7
+	.set mmx_x7m, 1
 	.set x6m, %mm6
+	.set mmx_x6m, 1
 	.set x5m, %mm5
+	.set mmx_x5m, 1
 	.set x4m, %mm4
+	.set mmx_x4m, 1
 	.set x3m, %mm3
+	.set mmx_x3m, 1
 	.set x2m, %mm2
+	.set mmx_x2m, 1
 	.set x1m, %mm1
+	.set mmx_x1m, 1
 	.set x0m, %mm0
+	.set mmx_x0m, 1
 	.set x15, %r15d
 	.set x15m, %r15
 	.set x14, %r14d
@@ -132,268 +148,189 @@ salsa20_aligned64:
 	.set x9m, %r9
 	.set x8, %r8d
 	.set x8m, %r8
+	# shift bits alternates 7, 9, 13, 18
+	.set shiftbits,7
+	.set follows_7,9
+	.set follows_9,13
+	.set follows_13,18
+	.set follows_18,7
 	.macro loadx number, register
-	.ifeq \number
-	movl (%edi), \register
+	.endif
+	.iflt \number-8
+	.ifeq mmx_\register-1 # going to mmx register
+	movl \number*4(%edi), temp_s
+	nop
+	movd dtemp_s, \register
+	.else
+	movl \number*4(%edi), \register
+	.endif
 	.else
 	movl \number*4(%edi), \register
 	.endif
 	.endm
-	.macro rshift number
-	shll \number, scratch_a
-	shrl 32-\number, scratch_b
+	.macro storex register, number
+	.ifeq mmx_\register-1
+	movd \register, dtemp_s
+	nop
+	movl temp_s, \number*4(%edi)
+	.else
+	movl \register, \number*4(%edi)
 	.endm
-	.macro rshiftm number
-	pslld \number, scratch_0
-	plrld 32-\number, scratch_1
+	.macro rshift, scratch
+	shll \shiftbits, \scratch
+	shrl 32-\shiftbits, scratch_b
+	.endm
+	.set shiftbits,follows_\shiftbits
+	.macro R, scratch, register, destination
+	addl \register, \scratch
+	nop
+	movl \scratch, scratch_b
+	rshift \scratch
+	nop
+	orl \scratch, scratch_b
+	nop
+	xorl scratch_b, \destination
 	.endm
 	
 shuffle:
 	# first group of 4 is offsets 0, 4, 8, 12
-	loadx 12, scratch_a
-	loadx 0, x0
-	movd dscratch_a, mmx12
+	loadx 12, x12
+	loadx 0, scratch_c
 
 	# x[ 4] ^= R(x[ 0]+x[12], 7)
-	loadx 4, x4
-	addl x0, scratch_a
-	loadx 8, x8
-	movl scratch_a, scratch_b
-	loadx 1, x1
-	rshift 7
-	loadx 5, x5
-	orl scratch_b, scratch_a
+	loadx 4, scratch_d
+	movd dscratch_c, x0m  # save in mmx register
+	R scratch_c, x12, scratch_d
+	# breakup dependencies with future loads as long as we can
+	# after that, have to use nops
 	loadx 9, x9
-	xorl scratch_a, x4
+	movd dscratch_d, x4m
 
 	# x[ 8] ^= R(x[ 4]+x[ 0], 9)
-	movl x0, scratch_b
-	loadx 13, scratch_a
-	addl x4, scratch_b
-	movd dscratch_a, mmx13
-	loadx 2, x2
-	movl scratch_b, scratch_a
-	loadx 6, x6
-	rshift 9
-	orl scratch_a, scratch_b
-	loadx 10, x10
-	xorl scratch_b, x8
+	loadx 8, x8
+	movd x0m, dscratch_a
+	loadx 5, temp_p
+	R scratch_a, scratch_d, x8m
 
 	# x[12] ^= R(x[ 8]+x[ 4],13)
-	movl x4, scratch_a
-	loadx 14, scratch_b
-	addl x8, scratch_a
-	movd dscratch_b, mmx12
-	loadx 3, x3
-	movl scratch_a, scratch_b
-	loadx 7, x7
-	rshift 13
-	loadx 11, x11
-	orl scratch_a, scratch_b
-	# no more moves available to break up dependencies
-	movd dscratch_b, scratch_0
-	loadx 15, scratch_a
-	movd dscratch_a, mmx15
-	pxor scratch_0, mmx12
+	loadx 12, x12
+	R scratch_d, x8, x12
 
 	# x[ 0] ^= R(x[12]+x[ 8],18)
-	movl x8, scratch_a
-	movd mmx12, dscratch_b
-	addl scratch_a, scratch_b
-	rshift 18
-	orl scratch_a, scratch_b
-	xorl scratch_b, x0
+	movl x12, scratch_a
+	movd x0m, dscratch_c
+	R scratch_a, x8, scratch_c
+	loadx 13, x13
+	movd dscratch_c, x0m
 
 	# next group of 4: offsets 1, 5, 9, 13
 
 	# x[ 9] ^= R(x[ 5]+x[ 1], 7)
-	movl x1, scratch_a
-	addl x5, scratch_a
-	movl scratch_a, scratch_b
-	rshift 7
-	orl scratch_a, scratch_b
-	xorl scratch_b, x9
+	movl temp_p, scratch_a
+	loadx 1, temp_s
+	R scratch_a, temp_s, x9
 
 	# x[13] ^= R(x[ 9]+x[ 5], 9)
-	movl x5, scratch_a
-	addl x9, scratch_a
-	movl scratch_a, scratch_b
-	rshift 9
-	orl scratch_a, scratch_b
-	movd dscratch_b, scratch_0
-	pxor scratch_0, mmx13
+	movl temp_p, scratch_a
+	loadx 2, scratch_c
+	R scratch_a, x9, x13
 
 	# x[ 1] ^= R(x[13]+x[ 9],13)
-	movd mmx13, dscratch_a
-	addl x9, scratch_a
-	movl scratch_a, scratch_b
-	rshift 13
-	orl scratch_a, scratch_b
-	xorl scratch_b, x1
+	movl x9, scratch_a
+	loadx 6, scratch_d
+	R scratch_a, x13, temp_s
+	loadx 10, x10
+	movd dtemp_s, x1m
 
 	# x[ 5] ^= R(x[ 1]+x[13],18)
-	movd mmx13, dscratch_b
-	addl x1, scratch_b
-	movl scratch_b, scratch_a
-	rshift 18
-	orl scratch_a, scratch_b
-	xorl scratch_b, x5
+	movl x13, scratch_a
+	R scratch_a, temp_s, temp_p
+	loadx 14, x14
+	movd dtemp_p, x5m
 
 	# next group: offsets 2, 6, 10, 14
 
 	# x[14] ^= R(x[10]+x[ 6], 7)
-	movd x10m, scratch_0
-	movd x6m, scratch_1
-	paddd scratch_1, scratch_0
-	movd scratch_0, scratch_1
-	rshiftm 7
-	por scratch_0, scratch_1
-	pxor scratch_1, mmx14
+	movl scratch_c, temp_s  # X[2]
+	loadx 11, x11
+	R scratch_c, x10, x14
 
 	# x[ 2] ^= R(x[14]+x[10], 9)
-	movd mmx14, dscratch_a
-	addl x10, scratch_a
-	movl scratch_a, scratch_b
-	rshift 9
-	orl scratch_a, scratch_b
-	xorl scratch_b, x2
+	movl x14, scratch_a
+	loadx 15, x15
+	R scratch_a, x14, temp_s
 
 	# x[ 6] ^= R(x[ 2]+x[14],13)
-	movl %ebp, %ebx
-	movl %ecx, 8(%rdi)
-	addl %ecx, %ebx
-	movl %ebx, %eax
-	shrl $19, %ebx
-	shll $13, %eax
-	orl %eax, %ebx
-	xorl %ebx, %edx
+	movl scratch_d, temp_p  # X[6]
+	movl temp_s, scratch_c
+	movd dtemp_s, x2m
+	R scratch_d, temp_s, temp_p
 
 	# x[10] ^= R(x[ 6]+x[ 2],18)
-	addl %edx, %ecx
-	movl %edx, 24(%rdi)
-	movl %ecx, %eax
-	shrl $14, %ecx
-	shll $18, %eax
-	orl %ecx, %eax
-	xorl %eax, %r9d
-	movl %r9d, 40(%rdi)
+	R scratch_c, temp_p, x10
+	movd dtemp_p, x6m
 
 	# next: offsets 3, 7, 11, 15
-	movl 60(%rdi), %ebp  # x[15]
-	movl 44(%rdi), %r9d  # x[11]
+	loadx 3, temp_s
 
 	# x[ 3] ^= R(x[15]+x[11], 7)
-	movl %r9d, %ebx
-	movl 12(%rdi), %ecx  # x[3]
-	addl %ebp, %ebx
-	movl 28(%rdi), %edx  # x[7]
-	movl %ebx, %eax
-	shrl $25, %ebx
-	shll $7, %eax
-	orl %eax, %ebx
-	xorl %ebx, %ecx
+	movl x11, scratch_a
+	loadx 7, temp_p
+	R scratch_a, x15, temp_s
 
 	# x[ 7] ^= R(x[ 3]+x[15], 9)
-	movl %ebp, %ebx
-	movl %ecx, 12(%rdi)
-	addl %ecx, %ebx
-	movl %ebx, %eax
-	shrl $23, %ebx
-	shll $9, %eax
-	orl %eax, %ebx
-	xorl %ebx, %edx
+	movl temp_s, scratch_a
+	movd x1m, dscratch_d
+	R scratch_a, x15, temp_p
 
 	# x[11] ^= R(x[ 7]+x[ 3],13)
-	movl %ecx, %ebx
-	movl %edx, 28(%rdi)
-	addl %edx, %ebx
-	movl %ebx, %eax
-	shrl $19, %ebx
-	shll $13, %eax
-	orl %eax, %ebx
-	xorl %ebx, %r9d
+	movl temp_p, scratch_a
+	movd x0m, dscratch_c
+	R scratch_a, temp_s, x11
 
 	# x[15] ^= R(x[11]+x[ 7],18)
-	addl %r9d, %edx
-	movl %r9d, 44(%rdi)
-	movl %edx, %eax
-	shrl $14, %edx
-	shll $18, %eax
-	orl %eax, %edx
-	xorl %edx, %ebp
-	movl %ebp, 60(%rdi)
+	movl x11, scratch_a
+	movd dtemp_p, x7m
+	R scratch_a, temp_p, x15
 
 	# next group: offsets 0, 1, 2, 3
-	# %ecx still has x[3] from last round, so we break our usual pattern
-	movl 4(%rdi), %edx  # x[1]
-	movl 0(%rdi), %ebp  # x[0]
 
 	# x[ 1] ^= R(x[ 0]+x[ 3], 7)
-	movl %ecx, %ebx
-	movl 8(%rdi), %r9d  # x[2]
-	addl %ebp, %ebx
-	movl %ebx, %eax
-	shrl $25, %ebx
-	shll $7, %eax
-	orl %eax, %ebx
-	xorl %ebx, %edx
+	movl temp_s, scratch_a  # X[3]
+	movd x2m, dtemp_p
+	R scratch_a, scratch_c, scratch_d
 
 	# x[ 2] ^= R(x[ 1]+x[ 0], 9)
-	movl %ebp, %ebx
-	movl %edx, 4(%rdi)
-	addl %edx, %ebx
-	movl %ebx, %eax
-	shrl $23, %ebx
-	shll $9, %eax
-	orl %eax, %ebx
-	xorl %ebx, %r9d
+	movl scratch_c, scratch_a
+	movd dscratch_d, x1m
+	R scratch_a, scratch_d, temp_p
 
 	# x[ 3] ^= R(x[ 2]+x[ 1],13)
-	movl %edx, %ebx
-	movl %r9d, 8(%rdi)
-	addl %r9d, %ebx
-	movl %ebx, %eax
-	shrl $19, %ebx
-	shll $13, %eax
-	orl %eax, %ebx
-	xorl %ebx, %ecx
+	R scratch_d, temp_p, temp_s
 
 	# x[ 0] ^= R(x[ 3]+x[ 2],18)
-	addl %ecx, %r9d
-	movl %ecx, 12(%rdi)
-	movl %r9d, %eax
-	shrl $14, %r9d
-	shll $18, %eax
-	orl %r9d, %eax
-	xorl %eax, %ebp
-	movl %ebp, 0(%rdi)
+	movd dtemp_p, x2m
+	movl temp_s, scratch_a
+	movd dtemp_s, x3m
+	R scratch_a, temp_p, scratch_c
+	movd x4m, temp_s
+	movd dscratch_c, x0m
 
 	# next group shuffles offsets 4, 5, 6, and 7
-	movl 20(%rdi), %edx  # x[5]
-	movl 16(%rdi), %ecx  # x[4]
+	movd x5m, dtemp_p
+	movd x6m, dscratch_c
 
 	# x[ 6] ^= R(x[ 5]+x[ 4], 7)
-	movl %ecx, %ebx
-	movl 24(%rdi), %r9d  # x[6]
-	addl %edx, %ebx
-	movl 28(%rdi), %ebp  # x[7]
-	movl %ebx, %eax
-	shrl $25, %ebx
-	shll $7, %eax
-	orl %eax, %ebx
-	xorl %ebx, %r9d
+	movl temp_s, scratch_a
+	movd x7m, dscratch_d
+	R scratch_a, temp_p, scratch_c
 
 	# x[ 7] ^= R(x[ 6]+x[ 5], 9)
-	movl %edx, %ebx
-	movl %r9d, 24(%rdi)
-	addl %r9d, %ebx
-	movl %ebx, %eax
-	shrl $23, %ebx
-	shll $9, %eax
-	orl %eax, %ebx
-	xorl %ebx, %ebp  # new x[7]
+	movl temp_p, scratch_a
+	nop
+	R scratch_a, scratch_c, scratch_d
 
-	# x[ 4] ^= R(x[ 7]+x[ 6],13)  # %edx:x[4], %r9d:x[6], %ebp:x[7]
+	# x[ 4] ^= R(x[ 7]+x[ 6],13)
 	movl %r9d, %ebx
 	movl %ebp, 28(%rdi)
 	addl %ebp, %ebx
