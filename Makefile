@@ -60,6 +60,8 @@ all: rfc7914.py libsalsa.a rfc7914 _rfc7914.so testsalsa rfc7914.prof
 	$(PYTHON) ./$<
 libsalsa.a: $(ASM_SOURCES:.s=.o)
 	ar cr $@ $+
+%.o: %.s  # unfortunately need to override default to send listing to file
+	as -alsm=$*.lst --$(BITS) -o $@ $<
 %.so: %.cpp libsalsa.a  # for _rfc7914.so using symlink of rfc7914.cpp
 	CXXFLAGS='-fPIC' \
 	 LDFLAGS='-Wl,--undefined=salsa20,--undefined=salsa20_aligned64 -shared -Wl,-rpath="."' \
