@@ -9,6 +9,7 @@
 #define R(a,b) (((a) << (b)) | ((a) >> (32 - (b))))
 #   void salsa20_word_specification(uint32_t out[16], uint32_t in[16])
 	.globl salsa20_aligned64
+	.globl in, out
 #   {
 #       uint32_t *x = out;
 #       //memcpy((void *)x, (void *)in, 64);
@@ -60,7 +61,7 @@
 #   uint8_t *out = (uint8_t *)scrypt_alloc(64, 64);
 out:	.fill 16, 4, 0
 	.text
-main:
+_start:
 	leaq in(%rip), %rsi
 	leaq out(%rip), %rdi
 	call salsa20_macro64
@@ -192,8 +193,8 @@ salsa20_macro64:
 		movl \register, \number*4(%edi)
 	.endm
 	.macro rshift scratch, shiftbits
-	shll \shiftbits, \scratch
-	shrl 32-\shiftbits, scratch_b
+	shll $\shiftbits, \scratch
+	shrl $32-\shiftbits, scratch_b
 	.endm
 	.macro R, scratch, register, shiftbits, destination
 	addl \register, \scratch

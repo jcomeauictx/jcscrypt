@@ -121,12 +121,12 @@ salsa20_aligned64:
 	.endif
 	.endm
 	.macro rshift number
-	shll \number, scratch_a
-	shrl 32-\number, scratch_b
+	shll $\number, scratch_a
+	shrl $32-\number, scratch_b
 	.endm
 	.macro rshiftm number
-	pslld \number, scratch_0
-	plrld 32-\number, scratch_1
+	pslld $\number, scratch_0
+	psrld $32-\number, scratch_1
 	.endm
 	
 shuffle:
@@ -168,7 +168,7 @@ shuffle:
 	loadx 3, x3
 	movl scratch_a, scratch_b
 	loadx 7, x7
-	rshift
+	rshift 13
 	loadx 11, x11
 	orl scratch_a, scratch_b
 	# no more moves available to break up dependencies
