@@ -36,6 +36,7 @@
 # NOTE: try to reorder instructions such that the following doesn't require
 # the result of the previous. See Agner Fog's manuals.
 	.data
+	.align 64
 #   uint8_t salsa_in[64] __attribute((aligned(64))) = {
 	.byte 0x7e, 0x87, 0x9a, 0x21, 0x4f, 0x3e, 0xc9, 0x86
 	.byte 0x7c, 0xa9, 0x40, 0xe6, 0x41, 0x71, 0x8f, 0x26
@@ -62,9 +63,9 @@ out:	.fill 16, 4, 0
 main:
 	leaq in(%rip), %rsi
 	leaq out(%rip), %rdi
-	call salsa20_aligned64
+	call salsa20_macro64
 	ret
-salsa20_aligned64:
+salsa20_macro64:
 	# save registers required by calling convention
 	pushq %rbp
 	pushq %rbx
@@ -80,8 +81,6 @@ salsa20_aligned64:
 	# the two args are *NOT* on the stack according to the
 	# x64 calling convention; they are already where needed,
 	# "out" in rdi and "salsa_in" in rsi.
-	# gdb shows r13 contains a copy of "out", and r14 of "salsa_in",
-	# but I can't find documentation of that so won't count on it.
 	# I can use r8 through r11 without having to restore them.
 	.ifdef __AVX__
 	movdqa (%rsi), %ymm0
@@ -155,32 +154,31 @@ salsa20_aligned64:
 	.set follows_13,18
 	.set follows_18,7
 	.macro loadx number, register
-	.endif
 	.iflt \number-8
-	.ifeq mmx_\register-1 # going to mmx register
-	movl \number*4(%edi), temp_s
-	nop
-	movd dtemp_s, \register
+		.ifeq mmx_\register-1 # going to mmx register
+			movl \number*4(%edi), temp_s
+			nop
+			movd dtemp_s, \register
+		.else
+			movl \number*4(%edi), \register
+		.endif
 	.else
-	movl \number*4(%edi), \register
-	.endif
-	.else
-	movl \number*4(%edi), \register
+		movl \number*4(%edi), \register
 	.endif
 	.endm
 	.macro storex register, number
 	.ifeq mmx_\register-1
-	movd \register, dtemp_s
-	nop
-	movl temp_s, \number*4(%edi)
+		movd \register, dtemp_s
+		nop
+		movl temp_s, \number*4(%edi)
 	.else
-	movl \register, \number*4(%edi)
+		movl \register, \number*4(%edi)
 	.endm
 	.macro rshift, scratch
 	shll \shiftbits, \scratch
 	shrl 32-\shiftbits, scratch_b
-	.endm
 	.set shiftbits,follows_\shiftbits
+	.endm
 	.macro R, scratch, register, destination
 	addl \register, \scratch
 	nop
@@ -313,7 +311,7 @@ shuffle:
 	movl temp_s, scratch_a
 	movd dtemp_s, x3m
 	R scratch_a, temp_p, scratch_c
-	movd x4m, temp_s
+	movd x4m, dtemp_s
 	movd dscratch_c, x0m
 
 	# next group shuffles offsets 4, 5, 6, and 7
@@ -331,114 +329,47 @@ shuffle:
 	R scratch_a, scratch_c, scratch_d
 
 	# x[ 4] ^= R(x[ 7]+x[ 6],13)
-	movl %r9d, %ebx
-	movl %ebp, 28(%rdi)
-	addl %ebp, %ebx
-	movl %ebx, %eax
-	shrl $19, %ebx
-	shll $13, %eax
-	orl %eax, %ebx
-	xorl %ebx, %ecx  # new x[4]
+	# done with X[6] after this, so can use its register as scratch
+	R scratch_c, scratch_d, temp_s
 
 	# x[ 5] ^= R(x[ 4]+x[ 7],18)  # %edx:x[5], %ecx:x[4], %ebp:x[7]
-	addl %ecx, %ebp
-	movl %ecx, 16(%rdi)
-	movl %ebp, %eax
-	shrl $14, %ebp
-	shll $18, %eax
-	orl %eax, %ebp
-	xorl %ebp, %edx
-	movl %edx, 20(%rdi)
+	R scratch_d, temp_s, temp_p
 
 	# next group: offsets 8, 9, 10, 11
-	movl 40(%rdi), %r9d  # x[10]
-	movl 36(%rdi), %edx  # x[9]
+	movl x10, scratch_a
+	movl x11, scratch_d
 
 	# x[11] ^= R(x[10]+x[ 9], 7)
-	movl %edx, %ebx
-	movl 44(%rdi), %ebp  # x[11]
-	addl %r9d, %ebx
-	movl 32(%rdi), %ecx  # x[8]
-	movl %ebx, %eax
-	shrl $25, %ebx
-	shll $7, %eax
-	orl %eax, %ebx
-	xorl %ebx, %ebp  # new x[11]
+	R scratch_a, x9, x11
 
 	# x[ 8] ^= R(x[11]+x[10], 9)
-	movl %r9d, %ebx
-	movl %ebp, 44(%rdi)
-	addl %ebp, %ebx
-	movl %ebx, %eax
-	shrl $23, %ebx
-	shll $9, %eax
-	orl %eax, %ebx
-	xorl %ebx, %ecx  # new x[8]
+	R scratch_d, x10, x8
 
 	# x[ 9] ^= R(x[ 8]+x[11],13)  # reminder: 8:ecx, 9:edx, 10:edi, 11:ebp
-	movl %ebp, %ebx
-	movl %ecx, 32(%rdi)
-	addl %ecx, %ebx
-	movl %ebx, %eax
-	shrl $19, %ebx
-	shll $13, %eax
-	orl %eax, %ebx
-	xorl %ebx, %edx
+	movl x8, scratch_a
+	movl x8, scratch_d
+	R scratch_a, x11, x9
 
 	# x[10] ^= R(x[ 9]+x[ 8],18)
-	addl %edx, %ecx
-	movl %edx, 36(%rdi)
-	movl %ecx, %eax
-	shrl $14, %ecx
-	shll $18, %eax
-	orl %ecx, %eax
-	xorl %eax, %r9d
-	movl %r9d, 40(%rdi)
+	R scratch_d, x9, x10
 
 	# final group: offsets 12, 13, 14, 15
-	movl 60(%rdi), %ebp  # x[15]
-	movl 56(%rdi), %r9d  # x[14]
 
 	# x[12] ^= R(x[15]+x[14], 7)
-	movl %r9d, %ebx
-	movl 48(%rdi), %ecx  # x[12]
-	addl %ebp, %ebx
-	movl 52(%rdi), %edx  # x[13]
-	movl %ebx, %eax
-	shrl $25, %ebx
-	shll $7, %eax
-	orl %eax, %ebx
-	xorl %ebx, %ecx
+	movl x15, scratch_a
+	movl x15, scratch_d
+	R scratch_a, x14, x12
 
 	# x[13] ^= R(x[12]+x[15], 9)  # reminder: 12:ecx,13:edx,14:edi,15:ebp
-	movl %ebp, %ebx
-	movl %ecx, 48(%rdi)
-	addl %ecx, %ebx
-	movl %ebx, %eax
-	shrl $23, %ebx
-	shll $9, %eax
-	orl %eax, %ebx
-	xorl %ebx, %edx
+	R scratch_d, x12, x13
 
 	# x[14] ^= R(x[13]+x[12],13)
-	movl %ecx, %ebx
-	movl %edx, 52(%rdi)
-	addl %edx, %ebx
-	movl %ebx, %eax
-	shrl $19, %ebx
-	shll $13, %eax
-	orl %eax, %ebx
-	xorl %ebx, %r9d
+	movl x13, scratch_a
+	movl x13, scratch_d
+	R scratch_a, x12, x14
 
 	# x[15] ^= R(x[14]+x[13],18)
-	addl %r9d, %edx
-	movl %r9d, 56(%rdi)
-	movl %edx, %eax
-	shrl $14, %edx
-	shll $18, %eax
-	orl %edx, %eax
-	xorl %eax, %ebp
-	movl %ebp, 60(%rdi)
+	R scratch_d, x14, x15
 
 	# loop back
 	subq $1, (%esp)
