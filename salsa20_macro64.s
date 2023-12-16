@@ -9,7 +9,7 @@
 #define R(a,b) (((a) << (b)) | ((a) >> (32 - (b))))
 #   void salsa20_word_specification(uint32_t out[16], uint32_t in[16])
 	.globl salsa20_aligned64
-	.globl in, out
+	.globl data_in, data_out, main
 #   {
 #       uint32_t *x = out;
 #       //memcpy((void *)x, (void *)in, 64);
@@ -38,6 +38,7 @@
 # the result of the previous. See Agner Fog's manuals.
 	.data
 	.align 64
+data_in:
 #   uint8_t salsa_in[64] __attribute((aligned(64))) = {
 	.byte 0x7e, 0x87, 0x9a, 0x21, 0x4f, 0x3e, 0xc9, 0x86
 	.byte 0x7c, 0xa9, 0x40, 0xe6, 0x41, 0x71, 0x8f, 0x26
@@ -59,11 +60,11 @@
 	.byte 0x24, 0xad, 0x67, 0x3d, 0xc7, 0x61, 0x8f, 0x81
 #   };
 #   uint8_t *out = (uint8_t *)scrypt_alloc(64, 64);
-out:	.fill 16, 4, 0
+data_out: .fill 16, 4, 0
 	.text
-_start:
-	leaq in(%rip), %rsi
-	leaq out(%rip), %rdi
+main:
+	leaq data_in(%rip), %rsi
+	leaq data_out(%rip), %rdi
 	call salsa20_macro64
 	ret
 salsa20_macro64:
