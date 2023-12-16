@@ -226,7 +226,7 @@ shuffle:
 	movd x10m, scratch_0
 	movd x6m, scratch_1
 	paddd scratch_1, scratch_0
-	movd scratch_0, scratch_1
+	movq scratch_0, scratch_1
 	rshiftm 7
 	por scratch_0, scratch_1
 	pxor scratch_1, mmx14
