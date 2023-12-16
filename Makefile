@@ -35,9 +35,9 @@ else
  LOADLIBES += -L/usr/lib/gcc/x86_64-linux-gnu/13 -L/usr/lib/x86_64-linux-gnu
  TARGET_MACH ?= --64
 endif
-CPPFLAGS += $(ARCH) -z noexecstack -m$(BITS) -DBITS=$(BITS) -O3 -Wall
+CPPFLAGS += $(ARCH) -m$(BITS) -DBITS=$(BITS) -O3 -Wall
 LDLIBS += -lrt -lm -lcrypto -lsalsa
-LDFLAGS += -L.  # for libsalsa.a, which we will create
+LDFLAGS += -z noexecstack -L.  # for libsalsa.a, which we will create
 ifneq ($(HAS_ALIGNED_ALLOC),)
  CPPFLAGS += -DHAS_ALIGNED_ALLOC -DSALSA64=$(SALSA64)
 endif
