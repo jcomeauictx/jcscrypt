@@ -84,24 +84,24 @@ salsa20_macro64:
 	# x64 calling convention; they are already where needed,
 	# "out" in rdi and "salsa_in" in rsi.
 	# I can use r8 through r11 without having to restore them.
-	.ifdef __AVX__
-	movdqa (%rsi), %ymm0
-	movdqa 32(%rsi), %ymm1
-	.else
+	#ifdef __AVX__
+	vmovdqa (%rsi), %ymm0
+	vmovdqa 32(%rsi), %ymm1
+	#else
 	movdqa (%rsi), %xmm0
 	movdqa 16(%rsi), %xmm1
 	movdqa 32(%rsi), %xmm2
 	movdqa 48(%rsi), %xmm3
-	.endif
-	.ifdef __AVX__
-	movdqa %ymm0, (%rdi)
-	movdqa %ymm1, 32(%rdi)
-	.else
+	#endif
+	#ifdef __AVX__
+	vmovdqa %ymm0, (%rdi)
+	vmovdqa %ymm1, 32(%rdi)
+	#else
 	movdqa %xmm0, (%rdi)
 	movdqa %xmm1, 16(%rdi)
 	movdqa %xmm2, 32(%rdi)
 	movdqa %xmm3, 48(%rdi)
-	.endif
+	#endif
 	# continue to use %rdi as pointer for the salsa shuffle
 	# use some general purpose registers for scratch space
 	.set scratch_a, %eax
@@ -395,18 +395,18 @@ shuffle:
 	popq %rcx  # discard empty loop counter
 
 	# now add IN to OUT before returning
-	.ifdef __AVX__
-	paddd (%rdi), %ymm0
+	#ifdef __AVX__
+	vpaddd (%rdi), %ymm0, %ymm0
 	popq %r15
-	paddd 32(%rdi), %ymm1
+	vpaddd 32(%rdi), %ymm1, %ymm1
 	popq %r14
-	movdqa %ymm0, (%rdi)
+	vmovdqa %ymm0, (%rdi)
 	popq %r13
-	movdqa %ymm1, 32(%rdi)
+	vmovdqa %ymm1, 32(%rdi)
 	popq %r12
 	popq %rbx
 	popq %rbp
-	.else
+	#else
 	popq %r15
 	paddd (%rdi), %xmm0
 	popq %r14
@@ -421,6 +421,6 @@ shuffle:
 	movdqa %xmm2, 32(%rdi)
 	paddd 48(%rdi), %xmm3
 	movdqa %xmm3, 48(%rdi)
-	.endif
+	#endif
 	ret
 # vim: set tabstop=4 expandtab shiftwidth=4 softtabstop=4
