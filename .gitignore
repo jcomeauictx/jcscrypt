@@ -11,3 +11,4 @@ testsalsa
 *.a
 *.log
 *.lst
+salsa20_macro64
