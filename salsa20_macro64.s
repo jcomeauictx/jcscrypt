@@ -175,23 +175,23 @@ salsa20_macro64:
 	.macro loadx number, register
 	.iflt \number-8
 		.ifeq mmx_\register-1  # going to mmx register
-			movl \number*4(%edi), temp_s
+			movl \number*4(%rdi), temp_s
 			nop
 			movd dtemp_s, \register
 		.else
-			movl \number*4(%edi), \register
+			movl \number*4(%rdi), \register
 		.endif
 	.else
-		movl \number*4(%edi), \register
+		movl \number*4(%rdi), \register
 	.endif
 	.endm
 	.macro storex register, number
 	.ifeq mmx_\register-1
 		movd \register, dtemp_s
 		nop
-		movl temp_s, \number*4(%edi)
+		movl temp_s, \number*4(%rdi)
 	.else
-		movl \register, \number*4(%edi)
+		movl \register, \number*4(%rdi)
 	.endm
 	.macro rshift scratch, shiftbits
 	shll $\shiftbits, \scratch
@@ -363,7 +363,7 @@ shuffle:
 	# x[ 8] ^= R(x[11]+x[10], 9)
 	R scratch_d, x10, 9, x8
 
-	# x[ 9] ^= R(x[ 8]+x[11],13)  # reminder: 8:ecx, 9:edx, 10:edi, 11:ebp
+	# x[ 9] ^= R(x[ 8]+x[11],13)
 	movl x8, scratch_a
 	movl x8, scratch_d
 	R scratch_a, x11, 13, x9
@@ -378,7 +378,7 @@ shuffle:
 	movl x15, scratch_d
 	R scratch_a, x14, 7, x12
 
-	# x[13] ^= R(x[12]+x[15], 9)  # reminder: 12:ecx,13:edx,14:edi,15:ebp
+	# x[13] ^= R(x[12]+x[15], 9)
 	R scratch_d, x12, 9, x13
 
 	# x[14] ^= R(x[13]+x[12],13)
@@ -390,7 +390,7 @@ shuffle:
 	R scratch_d, x14, 18, x15
 
 	# loop back
-	subq $1, (%esp)
+	subq $1, (%rsp)
 	jnz shuffle
 	popq %rcx  # discard empty loop counter
 
