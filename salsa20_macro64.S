@@ -84,7 +84,7 @@ salsa20_macro64:
 	# x64 calling convention; they are already where needed,
 	# "out" in rdi and "salsa_in" in rsi.
 	# I can use r8 through r11 without having to restore them.
-	#ifdef __AVX__
+	#ifdef __AVX2__
 	vmovdqa (%rsi), %ymm0
 	vmovdqa 32(%rsi), %ymm1
 	#else
@@ -93,7 +93,7 @@ salsa20_macro64:
 	movdqa 32(%rsi), %xmm2
 	movdqa 48(%rsi), %xmm3
 	#endif
-	#ifdef __AVX__
+	#ifdef __AVX2__
 	vmovdqa %ymm0, (%rdi)
 	vmovdqa %ymm1, 32(%rdi)
 	#else
@@ -395,7 +395,7 @@ shuffle:
 	popq %rcx  # discard empty loop counter
 
 	# now add IN to OUT before returning
-	#ifdef __AVX__
+	#ifdef __AVX2__
 	vpaddd (%rdi), %ymm0, %ymm0
 	popq %r15
 	vpaddd 32(%rdi), %ymm1, %ymm1
