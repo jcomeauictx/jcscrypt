@@ -192,6 +192,7 @@ salsa20_macro64:
 		movl temp_s, \number*4(%rdi)
 	.else
 		movl \register, \number*4(%rdi)
+	.endif
 	.endm
 	.macro rshift scratch, shiftbits
 	shll $\shiftbits, \scratch
@@ -207,38 +208,52 @@ salsa20_macro64:
 	nop
 	xorl scratch_b, \destination
 	.endm
-	
+	# load entire array into registers
+	loadx 7, temp_s
+	loadx 15, x15
+	movd dtemp_s, x7m
+	loadx 6, temp_p
+	loadx 14, x14
+	movd dtemp_p, x6m
+	loadx 5, temp_s
+	loadx 13, x13
+	movd dtemp_s, x5m
+	loadx 4, temp_p
+	loadx 12, x12
+	movd dtemp_p, x4m
+	loadx 3, temp_s
+	loadx 11, x11
+	movd dtemp_s, x3m
+	loadx 2, temp_p
+	loadx 10, x10
+	movd dtemp_p, x2m
+	loadx 1, temp_s
+	loadx 9, x9
+	movd dtemp_s, x1m
+	loadx 0, temp_p
+	loadx 8, x8
+	movd dtemp_p, x0m
 shuffle:
 	# first group of 4 is offsets 0, 4, 8, 12
-	loadx 12, x12
-	loadx 0, scratch_c
-
+	# NOTE can't use dtemp_p for X[0], it's good for only first pass
 	# x[ 4] ^= R(x[ 0]+x[12], 7)
-	loadx 4, scratch_d
-	movd dscratch_c, x0m  # save in mmx register
+	movd x0m, dscratch_c
+	movd x4m, dscratch_d
+	movl scratch_c, scratch_a
+	movl scratch_a, temp_s
 	R scratch_c, x12, 7, scratch_d
-	# breakup dependencies with future loads as long as we can
-	# after that, have to use nops
-	loadx 9, x9
-	movd dscratch_d, x4m
 
 	# x[ 8] ^= R(x[ 4]+x[ 0], 9)
-	loadx 8, x8
-	movd x0m, dscratch_a
-	loadx 5, temp_p
 	R scratch_a, scratch_d, 9, x8
+	movd dscratch_d, x4m  # save modified X[4]
+	movl x12, scratch_a
 
 	# x[12] ^= R(x[ 8]+x[ 4],13)
-	loadx 12, x12
 	R scratch_d, x8, 13, x12
 
 	# x[ 0] ^= R(x[12]+x[ 8],18)
-	movl x12, scratch_a
-	movd x0m, dscratch_c
-	R scratch_a, x8, 18, scratch_c
-	loadx 13, x13
-	movd dscratch_c, x0m
-
+	R scratch_a, x8, 18, temp_s
+	movd dtemp_s, x0m
 	# next group of 4: offsets 1, 5, 9, 13
 
 	# x[ 9] ^= R(x[ 5]+x[ 1], 7)
@@ -392,6 +407,32 @@ shuffle:
 	# loop back
 	subq $1, (%rsp)
 	jnz shuffle
+	# store all registers back into `out` array, updating values
+	movd x7m, dtemp_s
+	storex x15, 15
+	storex temp_s, 7
+	movd x6m, dtemp_p
+	storex x14, 14
+	storex temp_p, 6
+	movd x5m, dtemp_s
+	storex x13, 13
+	storex temp_s, 5
+	movd x4m, dtemp_p
+	storex x12, 12
+	storex temp_p, 4
+	movd x3m, dtemp_s
+	storex x11, 11
+	storex temp_s, 3
+	movd x2m, dtemp_p
+	storex x10, 10
+	storex temp_p, 2
+	movd x1m, dtemp_s
+	storex x9, 9
+	storex temp_s, 1
+	movd x0m, dtemp_p
+	storex x8, 8
+	storex temp_p, 0
+
 	popq %rcx  # discard empty loop counter
 
 	# now add IN to OUT before returning
