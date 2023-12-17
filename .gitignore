@@ -12,3 +12,4 @@ testsalsa
 *.log
 *.lst
 salsa20_macro64
+*.bin
