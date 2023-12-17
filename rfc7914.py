@@ -288,7 +288,7 @@ def slow_salsa(octets):
     >>> testvector = SALSA_TEST_VECTOR
     >>> octets = fromhex(testvector['INPUT'], bytearray)
     >>> shaken = slow_salsa(octets)
-    >>> logging.debug('result of `salsa`: %r', shaken)
+    >>> logging.debug('result of `slow_salsa`: %r', shaken)
     >>> expected = fromhex(testvector['OUTPUT'], bytes)
     >>> logging.debug('expected: %r', expected)
     >>> shaken == expected
@@ -298,10 +298,11 @@ def slow_salsa(octets):
     outbytes = bytearray(octets)
     def longword(array, index, unpack=True):
         chunk = array[index * 4: index * 4 + 4]
-        return struct.unpack('<L', chunk) if unpack else chunk
+        return struct.unpack('<L', chunk)[0] if unpack else chunk
     def R(xa, xb, shift):
+        logging.debug('R(0x%08x, 0x%08x, %d)', xa, xb, shift)
         x = xa + xb
-        return ((x << shift) + (y >> shift)) & 0xffffffff
+        return ((x << shift) + (x >> shift)) & 0xffffffff
 #       for (uint32_t i = 0; i < 4; i++) {
     for iteration in range(4):
         for args in (
@@ -316,7 +317,7 @@ def slow_salsa(octets):
 #           x[14] ^= R(x[10]+x[ 6], 7);  x[ 2] ^= R(x[14]+x[10], 9);
             (14, 10, 6, 7), (2, 14, 10, 9),
 #           x[ 6] ^= R(x[ 2]+x[14],13);  x[10] ^= R(x[ 6]+x[ 2],18);
-            (6, 2, 14, 13), (10, 6, 2, 18)
+            (6, 2, 14, 13), (10, 6, 2, 18),
 #           x[ 3] ^= R(x[15]+x[11], 7);  x[ 7] ^= R(x[ 3]+x[15], 9);
             (3, 15, 11, 7), (7, 3, 15, 9),
 #           x[11] ^= R(x[ 7]+x[ 3],13);  x[15] ^= R(x[11]+x[ 7],18);
@@ -328,7 +329,7 @@ def slow_salsa(octets):
 #           x[ 6] ^= R(x[ 5]+x[ 4], 7);  x[ 7] ^= R(x[ 6]+x[ 5], 9);
             (6, 5, 4, 7), (7, 6, 5, 9),
 #           x[ 4] ^= R(x[ 7]+x[ 6],13);  x[ 5] ^= R(x[ 4]+x[ 7],18);
-            (4, 7, 6, 13), (5, 4, 7, 18)
+            (4, 7, 6, 13), (5, 4, 7, 18),
 #           x[11] ^= R(x[10]+x[ 9], 7);  x[ 8] ^= R(x[11]+x[10], 9);
             (11, 10, 9, 7), (8, 11, 10, 9),
 #           x[ 9] ^= R(x[ 8]+x[11],13);  x[10] ^= R(x[ 9]+x[ 8],18);
@@ -350,9 +351,10 @@ def slow_salsa(octets):
     logging.debug('round %d complete', iteration + 1)
 #       for (uint32_t i = 0;i < 16;++i) x[i] += in[i];
     for i in range(16):
-        summed = (longword(outbytes, i) + longword(octets, i)) ^ 0xffffffff
+        summed = (longword(outbytes, i) + longword(octets, i)) & 0xffffffff
         outbytes[i * 4: i * 4 + 4] = struct.pack('<L', summed)
 #   }
+    logging.debug('outbytes: %s', outbytes)
     return outbytes
 
 def block_mix(octets):
