@@ -259,47 +259,43 @@ shuffle:
 
 	# x[12] ^= R(x[ 8]+x[ 4],13)
 	R scratch_d, x8, 13, x12
-	nop
+	movd x1m, dtemp_p
 	movl x12, scratch_a
 
 	# x[ 0] ^= R(x[12]+x[ 8],18)
 	R scratch_a, x8, 18, temp_s
+	movd x5m, dscratch_c
 	movd dtemp_s, x0m
 	# next group of 4: offsets 1, 5, 9, 13
+	movd x5m, dscratch_d
 
 	# x[ 9] ^= R(x[ 5]+x[ 1], 7)
 	movl temp_p, scratch_a
-	loadx 1, temp_s
-	R scratch_a, temp_s, 7, x9
+	R scratch_a, scratch_c, 7, x9
 
 	# x[13] ^= R(x[ 9]+x[ 5], 9)
-	movl temp_p, scratch_a
-	loadx 2, scratch_c
-	R scratch_a, x9, 9, x13
+	R scratch_c, x9, 9, x13
 
 	# x[ 1] ^= R(x[13]+x[ 9],13)
 	movl x9, scratch_a
-	loadx 6, scratch_d
-	R scratch_a, x13, 13, temp_s
-	loadx 10, x10
-	movd dtemp_s, x1m
+	R scratch_a, x13, 13, temp_p
+	movd dtemp_p, x1m
 
 	# x[ 5] ^= R(x[ 1]+x[13],18)
-	movl x13, scratch_a
-	R scratch_a, temp_s, 18, temp_p
-	loadx 14, x14
-	movd dtemp_p, x5m
+	R temp_p, x13, 18, scratch_d
+	nop
+	movd dscratch_d, x5m
 
 	# next group: offsets 2, 6, 10, 14
+	movd x2m, dscratch_c
+	movd x6m, dscratch_d
 
 	# x[14] ^= R(x[10]+x[ 6], 7)
 	movl scratch_c, temp_s  # X[2]
-	loadx 11, x11
 	R scratch_c, x10, 7, x14
 
 	# x[ 2] ^= R(x[14]+x[10], 9)
 	movl x14, scratch_a
-	loadx 15, x15
 	R scratch_a, x14, 9, temp_s
 
 	# x[ 6] ^= R(x[ 2]+x[14],13)
