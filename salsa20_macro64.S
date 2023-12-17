@@ -9,7 +9,9 @@
 #define R(a,b) (((a) << (b)) | ((a) >> (32 - (b))))
 #   void salsa20_word_specification(uint32_t out[16], uint32_t in[16])
 	.globl salsa20_macro64
+#ifdef BUILD_EXECUTABLE
 	.globl data_in, data_out, main
+#endif
 #   {
 #       uint32_t *x = out;
 #       //memcpy((void *)x, (void *)in, 64);
@@ -63,6 +65,7 @@ data_out: .fill 16, 4, 0
 # NOTE: try to reorder instructions such that the following doesn't require
 # the result of the previous. See Agner Fog's manuals.
 	.text
+#ifdef BUILD_EXECUTABLE
 main:
 	leaq data_in(%rip), %rsi
 	leaq data_out(%rip), %rdi
@@ -76,6 +79,7 @@ main:
 	jz 0f
 	movl $1, %eax
 0:	ret
+#endif
 salsa20_macro64:
 	# save registers required by calling convention
 	pushq %rbp
