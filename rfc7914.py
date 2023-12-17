@@ -348,7 +348,7 @@ def slow_salsa(octets):
             now = longword(outbytes, i)
             xj = longword(outbytes, j)
             xk = longword(outbytes, k)
-            after = now ^ R(xj + xk, shift)
+            after = now ^ R((xj + xk) & 0xffffffff, shift)
             outbytes[i * 4: i * 4 + 4] = struct.pack('<L', after)
             logging.debug('X[%d] after: %r', i, longword(outbytes, i, False))
 #       }
