@@ -250,16 +250,17 @@ shuffle:
 	movd x0m, dscratch_c
 	movd x4m, dscratch_d
 	movl scratch_c, scratch_a
-	movl scratch_a, temp_s
+	movl scratch_c, temp_s
 	R scratch_c, x12, 7, scratch_d
 
 	# x[ 8] ^= R(x[ 4]+x[ 0], 9)
 	R scratch_a, scratch_d, 9, x8
 	movd dscratch_d, x4m  # save modified X[4]
-	movl x12, scratch_a
 
 	# x[12] ^= R(x[ 8]+x[ 4],13)
 	R scratch_d, x8, 13, x12
+	nop
+	movl x12, scratch_a
 
 	# x[ 0] ^= R(x[12]+x[ 8],18)
 	R scratch_a, x8, 18, temp_s
