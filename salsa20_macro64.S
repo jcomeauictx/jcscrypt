@@ -384,10 +384,11 @@ shuffle:
 
 	# next group: offsets 8, 9, 10, 11
 	movl x10, scratch_a
-	movl x11, scratch_d
 
 	# x[11] ^= R(x[10]+x[ 9], 7)
 	R scratch_a, x9, 7, x11
+	nop
+	movl x11, scratch_d
 
 	# x[ 8] ^= R(x[11]+x[10], 9)
 	R scratch_d, x10, 9, x8
