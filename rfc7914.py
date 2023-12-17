@@ -278,6 +278,83 @@ def salsa(octets):
     SALSA(outbytes, inarray)
     return outbytes.raw
 
+def slow_salsa(octets):
+    '''
+    the Salsa20.8 core function in pure Python
+
+    octets here should be a 64-bytearray. the function returns a bytes object.
+
+    >>> logging.debug('doctesting salsa')
+    >>> testvector = SALSA_TEST_VECTOR
+    >>> octets = fromhex(testvector['INPUT'], bytearray)
+    >>> shaken = slow_salsa(octets)
+    >>> logging.debug('result of `salsa`: %r', shaken)
+    >>> expected = fromhex(testvector['OUTPUT'], bytes)
+    >>> logging.debug('expected: %r', expected)
+    >>> shaken == expected
+    True
+    '''
+#       for (uint32_t i = 0;i < 16;++i) x[i] = in[i];
+    outbytes = bytearray(octets)
+    def longword(array, index, unpack=True):
+        chunk = array[index * 4: index * 4 + 4]
+        return struct.unpack('<L', chunk) if unpack else chunk
+    def R(xa, xb, shift):
+        x = xa + xb
+        return ((x << shift) + (y >> shift)) & 0xffffffff
+#       for (uint32_t i = 0; i < 4; i++) {
+    for iteration in range(4):
+        for args in (
+#           x[ 4] ^= R(x[ 0]+x[12], 7);  x[ 8] ^= R(x[ 4]+x[ 0], 9);
+            (4, 0, 12, 7), (8, 4, 0, 9),
+#           x[12] ^= R(x[ 8]+x[ 4],13);  x[ 0] ^= R(x[12]+x[ 8],18);
+            (12, 8, 4, 13), (0, 12, 8, 18),
+#           x[ 9] ^= R(x[ 5]+x[ 1], 7);  x[13] ^= R(x[ 9]+x[ 5], 9);
+            (9, 5, 1, 7), (13, 9, 5, 9),
+#           x[ 1] ^= R(x[13]+x[ 9],13);  x[ 5] ^= R(x[ 1]+x[13],18);
+            (1, 13, 9, 13), (5, 1, 13, 18),
+#           x[14] ^= R(x[10]+x[ 6], 7);  x[ 2] ^= R(x[14]+x[10], 9);
+            (14, 10, 6, 7), (2, 14, 10, 9),
+#           x[ 6] ^= R(x[ 2]+x[14],13);  x[10] ^= R(x[ 6]+x[ 2],18);
+            (6, 2, 14, 13), (10, 6, 2, 18)
+#           x[ 3] ^= R(x[15]+x[11], 7);  x[ 7] ^= R(x[ 3]+x[15], 9);
+            (3, 15, 11, 7), (7, 3, 15, 9),
+#           x[11] ^= R(x[ 7]+x[ 3],13);  x[15] ^= R(x[11]+x[ 7],18);
+            (11, 7, 3, 13), (15, 11, 7, 18),
+#           x[ 1] ^= R(x[ 0]+x[ 3], 7);  x[ 2] ^= R(x[ 1]+x[ 0], 9);
+            (1, 0, 3, 7), (2, 1, 0, 9),
+#           x[ 3] ^= R(x[ 2]+x[ 1],13);  x[ 0] ^= R(x[ 3]+x[ 2],18);
+            (3, 2, 1, 13), (0, 3, 2, 18),
+#           x[ 6] ^= R(x[ 5]+x[ 4], 7);  x[ 7] ^= R(x[ 6]+x[ 5], 9);
+            (6, 5, 4, 7), (7, 6, 5, 9),
+#           x[ 4] ^= R(x[ 7]+x[ 6],13);  x[ 5] ^= R(x[ 4]+x[ 7],18);
+            (4, 7, 6, 13), (5, 4, 7, 18)
+#           x[11] ^= R(x[10]+x[ 9], 7);  x[ 8] ^= R(x[11]+x[10], 9);
+            (11, 10, 9, 7), (8, 11, 10, 9),
+#           x[ 9] ^= R(x[ 8]+x[11],13);  x[10] ^= R(x[ 9]+x[ 8],18);
+            (9, 8, 11, 13), (10, 9, 8, 18),
+#           x[12] ^= R(x[15]+x[14], 7);  x[13] ^= R(x[12]+x[15], 9);
+            (12, 15, 14, 7), (13, 12, 15, 9),
+#           x[14] ^= R(x[13]+x[12],13);  x[15] ^= R(x[14]+x[13],18);
+            (14, 13, 12, 13), (15, 14, 13, 18)
+        ):
+            i, a, b, shift = args
+            logging.debug('X[%d] before: %r', i, longword(outbytes, i, False))
+            now = longword(outbytes, i)
+            xa = longword(outbytes, a)
+            xb = longword(outbytes, b)
+            after = now ^ R(xa, xb, args[3])
+            outbytes[i * 4: i * 4 + 4] = struct.pack('<L', after)
+            logging.debug('X[%d] after: %r', i, longword(outbytes, i, False))
+#       }
+    logging.debug('round %d complete', iteration + 1)
+#       for (uint32_t i = 0;i < 16;++i) x[i] += in[i];
+    for i in range(16):
+        summed = (longword(outbytes, i) + longword(octets, i)) ^ 0xffffffff
+        outbytes[i * 4: i * 4 + 4] = struct.pack('<L', summed)
+#   }
+    return outbytes
+
 def block_mix(octets):
     '''
     octets is taken as 64-octet chunks, and hashed with salsa20
