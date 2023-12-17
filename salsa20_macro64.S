@@ -289,23 +289,24 @@ shuffle:
 	# next group: offsets 2, 6, 10, 14
 	movd x2m, dscratch_c
 	movd x6m, dscratch_d
+	movd x6m, dtemp_p
 
 	# x[14] ^= R(x[10]+x[ 6], 7)
 	movl scratch_c, temp_s  # X[2]
-	R scratch_c, x10, 7, x14
+	R scratch_d, x10, 7, x14
 
 	# x[ 2] ^= R(x[14]+x[10], 9)
 	movl x14, scratch_a
-	R scratch_a, x14, 9, temp_s
+	R scratch_a, x10, 9, temp_s
+	nop
 
 	# x[ 6] ^= R(x[ 2]+x[14],13)
-	movl scratch_d, temp_p  # X[6]
 	movl temp_s, scratch_c
 	movd dtemp_s, x2m
-	R scratch_d, temp_s, 13, temp_p
+	R scratch_c, x14, 13, temp_p
 
 	# x[10] ^= R(x[ 6]+x[ 2],18)
-	R scratch_c, temp_p, 18, x10
+	R temp_s, temp_p, 18, x10
 	movd dtemp_p, x6m
 
 	# next: offsets 3, 7, 11, 15
