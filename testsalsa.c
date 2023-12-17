@@ -16,6 +16,7 @@ salsafunction *salsahash;
 void donothing(uint32_t out[16], uint32_t in[16]);
 #if BITS == 64
 void salsa20_aligned64(uint32_t out[16], uint32_t in[16]);
+void salsa20_macro64(uint32_t out[16], uint32_t in[16]);
 #else
 void salsa20(uint32_t out[16], uint32_t in[16]);
 void salsa20_unaligned(uint32_t out[16], uint32_t in[16]);
@@ -48,8 +49,8 @@ int main(int argc, char **argv) {
     fprintf(stderr, "salsa_in: %14p, out: %14p, check: %14p\n",
             &salsa_in, out, &salsa_out);
     #if BITS == 64
-    salsahash = salsa20_aligned64;
-    char *salsa = "salsa20_aligned64";
+    salsahash = salsa20_macro64;
+    char *salsa = "salsa20_macro64";
     #else
     salsahash = salsa20;
     char *salsa = "salsa20";
@@ -60,8 +61,8 @@ int main(int argc, char **argv) {
         if (count < 1) {
             fprintf(stderr, "Usage: %s COUNT IMPLEMENTATION\n", argv[0]);
             fprintf(stderr, "    where COUNT is any integer greater than 0\n");
-            fprintf(stderr, "    and IMPLEMENTATION is blank or 'unaligned'"
-                            " or 'unrolled'\n");
+            fprintf(stderr, "    and IMPLEMENTATION is blank or"
+                            " one of the salsa20 implementations\n");
             return 1;
         }
     }
@@ -71,26 +72,26 @@ int main(int argc, char **argv) {
             fprintf(stderr, "using donothing just to see overhead cost\n");
             salsa = "donothing";
         #if BITS != 64
+        } else if (strcmp(argv[2], "salsa20_unaligned") == 0) {
+            salsahash = salsa20_unaligned;
+            salsa = argv[2];
+        } else if (strcmp(argv[2], "salsa20_unrolled") == 0) {
+            salsahash = salsa20_unrolled;
+            salsa = argv[2];
         } else if (strcmp(argv[2], "salsa20") == 0) {
             salsahash = salsa20;
-            fprintf(stderr, "using salsa20\n");
-            salsa = "salsa20";
-        } else if (strcmp(argv[2], "unaligned") == 0) {
-            salsahash = salsa20_unaligned;
-            fprintf(stderr, "using salsa20_unaligned\n");
-            salsa = "salsa20_unaligned";
-        } else if (strcmp(argv[2], "unrolled") == 0) {
-            salsahash = salsa20_unrolled;
-            fprintf(stderr, "using salsa20_unrolled\n");
-            salsa = "salsa20_unrolled";
+            salsa = argv[2];
         #else
-        } else if (strcmp(argv[2], "aligned64") == 0) {
+        } else if (strcmp(argv[2], "salsa20_aligned64") == 0) {
             salsahash = salsa20_aligned64;
-            salsa = "salsa20_aligned64";
-            fprintf(stderr, "using salsa20_aligned64\n");
+            salsa = argv[2];
+        } else if (strcmp(argv[2], "salsa20_macro64") == 0) {
+            salsahash = salsa20_macro64;
+            salsa = argv[2];
         #endif
         } else {
             fprintf(stderr, "ignoring unrecognized option %s\n", argv[2]);
+            fprintf(stderr, "using %s\n", salsa);
         }
     }
     fprintf(stderr, "INFO: test vector:\n");

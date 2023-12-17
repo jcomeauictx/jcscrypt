@@ -20,9 +20,11 @@ HAS_ALIGNED_ALLOC ?= 1
 PY_SOURCES := $(wildcard *.py)
 CPP_SOURCES := $(wildcard *.cpp)
 C_SOURCES := $(wildcard *.c)
-ASM64_SOURCES := $(wildcard *64.s)
-ASM32_SOURCES := $(filter-out $(ASM64_SOURCES),$(wildcard *.s))
+ASM64_SOURCES := $(wildcard salsa*64.[Ss])
+ASM32_SOURCES := $(filter-out $(ASM64_SOURCES),$(wildcard salsa*.[Ss]))
 ASM_SOURCES := $(ASM$(BITS)_SOURCES)
+ASM_TARGETS := $(basename $(ASM_SOURCES))
+ASM_OBJECTS := $(addsuffix .o,$(ASM_TARGETS))
 EXECUTABLES := $(CPP_SOURCES:.cpp=) $(C_SOURCES:.c=)
 LIBRARIES := $(foreach source,$(CPP_SOURCES),_$(basename $(source)).so)
 ifeq ($(BITS),32)
@@ -55,7 +57,7 @@ endif
 all: rfc7914.py libsalsa.a rfc7914 _rfc7914.so testsalsa rfc7914.prof
 	./rfc7914
 	$(PYTHON) ./$<
-libsalsa.a: $(ASM_SOURCES:.s=.o)
+libsalsa.a: $(ASM_OBJECTS)
 	ar cr $@ $+
 %.o: %.s  # unfortunately need to override default to send listing to file
 	as -alsm=$*.lst --$(BITS) -o $@ $<
@@ -106,7 +108,7 @@ mine:
 	# terminate ssh forwarding after ^C out of mining
 	$(PYTHON) -OO simpleminer.py || kill $$(pidof amctunnel)
 testall: testsalsa
-	for implementation in '' salsa20 unaligned unrolled aligned64; do \
+	for implementation in '' $(ASM_TARGETS); do \
 	 time ./testsalsa 10000000 "$$implementation"; \
 	done
 %.bin: %.o  # for making a binary one can `incbin` from nasm
