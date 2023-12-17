@@ -110,6 +110,8 @@ mine:
 testall: testsalsa
 	for implementation in '' $(ASM_TARGETS); do \
 	 time ./testsalsa 10000000 "$$implementation"; \
+	 time ./testsalsa 10000000 "$$implementation"; \
+	 time ./testsalsa 10000000 "$$implementation"; \
 	done
 %.bin: %.o  # for making a binary one can `incbin` from nasm
 	# may be useful for testing with Agner Fog's programs
