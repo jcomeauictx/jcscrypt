@@ -66,8 +66,17 @@ data_out: .fill 16, 4, 0
 main:
 	leaq data_in(%rip), %rsi
 	leaq data_out(%rip), %rdi
+	pushq %rsi
+	pushq %rdi
 	call salsa20_macro64
-	ret
+	popq %rdi
+	popq %rsi
+	mov $64, %ecx
+	xorl %eax, %eax
+	repz cmpsl
+	jz 0f
+	movl $1, %eax
+0:	ret
 salsa20_macro64:
 	# save registers required by calling convention
 	pushq %rbp
