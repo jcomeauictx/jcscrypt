@@ -8,7 +8,7 @@
 #
 #define R(a,b) (((a) << (b)) | ((a) >> (32 - (b))))
 #   void salsa20_word_specification(uint32_t out[16], uint32_t in[16])
-	.globl salsa20_aligned64
+	.globl salsa20_macro64
 	.globl data_in, data_out, main
 #   {
 #       uint32_t *x = out;
@@ -36,31 +36,6 @@
 #   }
 # NOTE: try to reorder instructions such that the following doesn't require
 # the result of the previous. See Agner Fog's manuals.
-	.data
-	.align 64
-data_in:
-#   uint8_t salsa_in[64] __attribute((aligned(64))) = {
-	.byte 0x7e, 0x87, 0x9a, 0x21, 0x4f, 0x3e, 0xc9, 0x86
-	.byte 0x7c, 0xa9, 0x40, 0xe6, 0x41, 0x71, 0x8f, 0x26
-	.byte 0xba, 0xee, 0x55, 0x5b, 0x8c, 0x61, 0xc1, 0xb5
-	.byte 0x0d, 0xf8, 0x46, 0x11, 0x6d, 0xcd, 0x3b, 0x1d
-	.byte 0xee, 0x24, 0xf3, 0x19, 0xdf, 0x9b, 0x3d, 0x85
-	.byte 0x14, 0x12, 0x1e, 0x4b, 0x5a, 0xc5, 0xaa, 0x32
-	.byte 0x76, 0x02, 0x1d, 0x29, 0x09, 0xc7, 0x48, 0x29
-	.byte 0xed, 0xeb, 0xc6, 0x8d, 0xb8, 0xb8, 0xc2, 0x5e
-#   };
-#   uint8_t salsa_out[64] __attribute__((aligned(64))) = {
-	.byte 0xa4, 0x1f, 0x85, 0x9c, 0x66, 0x08, 0xcc, 0x99
-	.byte 0x3b, 0x81, 0xca, 0xcb, 0x02, 0x0c, 0xef, 0x05
-	.byte 0x04, 0x4b, 0x21, 0x81, 0xa2, 0xfd, 0x33, 0x7d
-	.byte 0xfd, 0x7b, 0x1c, 0x63, 0x96, 0x68, 0x2f, 0x29
-	.byte 0xb4, 0x39, 0x31, 0x68, 0xe3, 0xc9, 0xe6, 0xbc
-	.byte 0xfe, 0x6b, 0xc5, 0xb7, 0xa0, 0x6d, 0x96, 0xba
-	.byte 0xe4, 0x24, 0xcc, 0x10, 0x2c, 0x91, 0x74, 0x5c
-	.byte 0x24, 0xad, 0x67, 0x3d, 0xc7, 0x61, 0x8f, 0x81
-#   };
-#   uint8_t *out = (uint8_t *)scrypt_alloc(64, 64);
-data_out: .fill 16, 4, 0
 	.text
 main:
 	leaq data_in(%rip), %rsi
@@ -302,71 +277,77 @@ shuffle:
 	movd dtemp_p, x6m
 
 	# next: offsets 3, 7, 11, 15
-	loadx 3, temp_s
+	movd x3m, dtemp_s
 
 	# x[ 3] ^= R(x[15]+x[11], 7)
-	movl x11, scratch_a
-	loadx 7, temp_p
-	R scratch_a, x15, 7, temp_s
+	movl x11, scratch_d
+	movd x7m, dtemp_p
+	movl x15, scratch_c
+	R scratch_d, x15, 7, temp_s
 
 	# x[ 7] ^= R(x[ 3]+x[15], 9)
-	movl temp_s, scratch_a
-	movd x1m, dscratch_d
-	R scratch_a, x15, 9, temp_p
+	R scratch_c, temp_s, 9, temp_p
 
 	# x[11] ^= R(x[ 7]+x[ 3],13)
-	movl temp_p, scratch_a
-	movd x0m, dscratch_c
-	R scratch_a, temp_s, 13, x11
+	movd dtemp_s, x3m
+	movd dtemp_p, x7m
+	R temp_s, temp_p, 13, x11
 
 	# x[15] ^= R(x[11]+x[ 7],18)
-	movl x11, scratch_a
-	movd dtemp_p, x7m
-	R scratch_a, temp_p, 18, x15
+	R temp_p, x11, 18, x15
 
 	# next group: offsets 0, 1, 2, 3
+	movd x0m, dscratch_c
+	movd x3m, dscratch_d
+	movd x1m, dtemp_s
+	movl scratch_d, scratch_a  # another copy of X[3]
+	movd x2m, dtemp_p
 
 	# x[ 1] ^= R(x[ 0]+x[ 3], 7)
-	movl temp_s, scratch_a  # X[3]
-	movd x2m, dtemp_p
-	R scratch_a, scratch_c, 7, scratch_d
+	R scratch_d, scratch_c, 7, temp_s
+	movl scratch_c, scratch_d  # X[0]
+	movd dtemp_s, x1m
 
 	# x[ 2] ^= R(x[ 1]+x[ 0], 9)
-	movl scratch_c, scratch_a
-	movd dscratch_d, x1m
-	R scratch_a, scratch_d, 9, temp_p
-
+	R scratch_d, temp_s, 9, temp_p
+	# current register use:
+	# x[0] in scratch_c
+	# x[1] in temp_s
+	# x[2] in temp_p
+	# x[3] in scratch_a
 	# x[ 3] ^= R(x[ 2]+x[ 1],13)
-	R scratch_d, temp_p, 13, temp_s
-
-	# x[ 0] ^= R(x[ 3]+x[ 2],18)
+	R temp_s, temp_p, 13, scratch_a
 	movd dtemp_p, x2m
-	movl temp_s, scratch_a
-	movd dtemp_s, x3m
+	movd dscratch_a, x3m
+	# now done with temp_s (R[1])
+	# x[ 0] ^= R(x[ 3]+x[ 2],18)
 	R scratch_a, temp_p, 18, scratch_c
-	movd x4m, dtemp_s
 	movd dscratch_c, x0m
 
 	# next group shuffles offsets 4, 5, 6, and 7
-	movd x5m, dtemp_p
-	movd x6m, dscratch_c
+	movd x4m, dscratch_a
+	movd x5m, dscratch_c
+	movd x6m, dtemp_p
+	movd x7m, dtemp_s
+	movl scratch_c, scratch_d  # copy of X[5]
 
 	# x[ 6] ^= R(x[ 5]+x[ 4], 7)
-	movl temp_s, scratch_a
-	movd x7m, dscratch_d
-	R scratch_a, temp_p, 7, scratch_c
+	R scratch_a, scratch_c, 7, temp_p
+	movd x4m, dscratch_a  # reload for later
+	movd dtemp_p, x6m
 
 	# x[ 7] ^= R(x[ 6]+x[ 5], 9)
-	movl temp_p, scratch_a
-	nop
-	R scratch_a, scratch_c, 9, scratch_d
+	R scratch_c, temp_p, 9, temp_s
 
 	# x[ 4] ^= R(x[ 7]+x[ 6],13)
 	# done with X[6] after this, so can use its register as scratch
-	R scratch_c, scratch_d, 13, temp_s
+	R temp_p, temp_s, 13, scratch_a
+	movd dtemp_s, x7m
 
 	# x[ 5] ^= R(x[ 4]+x[ 7],18)  # %edx:x[5], %ecx:x[4], %ebp:x[7]
-	R scratch_d, temp_s, 18, temp_p
+	R temp_s, scratch_a, 18, scratch_d
+	movd dscratch_a, x4m
+	movd dscratch_d, x5m
 
 	# next group: offsets 8, 9, 10, 11
 	movl x10, scratch_a
@@ -464,4 +445,29 @@ shuffle:
 	movdqa %xmm3, 48(%rdi)
 	#endif
 	ret
+	.align 64
+data_in:
+#   uint8_t salsa_in[64] __attribute((aligned(64))) = {
+	.byte 0x7e, 0x87, 0x9a, 0x21, 0x4f, 0x3e, 0xc9, 0x86
+	.byte 0x7c, 0xa9, 0x40, 0xe6, 0x41, 0x71, 0x8f, 0x26
+	.byte 0xba, 0xee, 0x55, 0x5b, 0x8c, 0x61, 0xc1, 0xb5
+	.byte 0x0d, 0xf8, 0x46, 0x11, 0x6d, 0xcd, 0x3b, 0x1d
+	.byte 0xee, 0x24, 0xf3, 0x19, 0xdf, 0x9b, 0x3d, 0x85
+	.byte 0x14, 0x12, 0x1e, 0x4b, 0x5a, 0xc5, 0xaa, 0x32
+	.byte 0x76, 0x02, 0x1d, 0x29, 0x09, 0xc7, 0x48, 0x29
+	.byte 0xed, 0xeb, 0xc6, 0x8d, 0xb8, 0xb8, 0xc2, 0x5e
+#   };
+data_check:
+#   uint8_t salsa_out[64] __attribute__((aligned(64))) = {
+	.byte 0xa4, 0x1f, 0x85, 0x9c, 0x66, 0x08, 0xcc, 0x99
+	.byte 0x3b, 0x81, 0xca, 0xcb, 0x02, 0x0c, 0xef, 0x05
+	.byte 0x04, 0x4b, 0x21, 0x81, 0xa2, 0xfd, 0x33, 0x7d
+	.byte 0xfd, 0x7b, 0x1c, 0x63, 0x96, 0x68, 0x2f, 0x29
+	.byte 0xb4, 0x39, 0x31, 0x68, 0xe3, 0xc9, 0xe6, 0xbc
+	.byte 0xfe, 0x6b, 0xc5, 0xb7, 0xa0, 0x6d, 0x96, 0xba
+	.byte 0xe4, 0x24, 0xcc, 0x10, 0x2c, 0x91, 0x74, 0x5c
+	.byte 0x24, 0xad, 0x67, 0x3d, 0xc7, 0x61, 0x8f, 0x81
+#   };
+#   uint8_t *out = (uint8_t *)scrypt_alloc(64, 64);
+data_out: .fill 16, 4, 0
 # vim: set tabstop=4 expandtab shiftwidth=4 softtabstop=4
