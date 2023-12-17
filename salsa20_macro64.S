@@ -71,7 +71,7 @@ main:
 	call salsa20_macro64
 	popq %rdi
 	popq %rsi
-	mov $64, %ecx
+	mov $16, %ecx
 	xorl %eax, %eax
 	repz cmpsl
 	jz 0f
