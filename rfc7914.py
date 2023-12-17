@@ -294,15 +294,19 @@ def slow_salsa(octets):
     >>> shaken == expected
     True
     '''
+#define R(a,b) (((a) << (b)) | ((a) >> (32 - (b))))
+    def R(a, b):
+        logging.debug('R(0x%08x, %d)', a, b)
+        return ((a << b) | (a >> (32 - b))) & 0xffffffff
+#   void salsa20_word_specification(uint32_t out[16], uint32_t in[16])
+#   {
+#       uint32_t *x = out;
+#       //memcpy((void *)x, (void *)in, 64);
 #       for (uint32_t i = 0;i < 16;++i) x[i] = in[i];
     outbytes = bytearray(octets)
     def longword(array, index, unpack=True):
         chunk = array[index * 4: index * 4 + 4]
         return struct.unpack('<L', chunk)[0] if unpack else chunk
-    def R(xa, xb, shift):
-        logging.debug('R(0x%08x, 0x%08x, %d)', xa, xb, shift)
-        x = xa + xb
-        return ((x << shift) + (x >> shift)) & 0xffffffff
 #       for (uint32_t i = 0; i < 4; i++) {
     for iteration in range(4):
         for args in (
@@ -339,16 +343,16 @@ def slow_salsa(octets):
 #           x[14] ^= R(x[13]+x[12],13);  x[15] ^= R(x[14]+x[13],18);
             (14, 13, 12, 13), (15, 14, 13, 18)
         ):
-            i, a, b, shift = args
+            i, j, k, shift = args
             logging.debug('X[%d] before: %r', i, longword(outbytes, i, False))
             now = longword(outbytes, i)
-            xa = longword(outbytes, a)
-            xb = longword(outbytes, b)
-            after = now ^ R(xa, xb, args[3])
+            xj = longword(outbytes, j)
+            xk = longword(outbytes, k)
+            after = now ^ R(xj + xk, shift)
             outbytes[i * 4: i * 4 + 4] = struct.pack('<L', after)
             logging.debug('X[%d] after: %r', i, longword(outbytes, i, False))
 #       }
-    logging.debug('round %d complete', iteration + 1)
+        logging.debug('round %d complete', iteration + 1)
 #       for (uint32_t i = 0;i < 16;++i) x[i] += in[i];
     for i in range(16):
         summed = (longword(outbytes, i) + longword(octets, i)) & 0xffffffff
