@@ -66,11 +66,10 @@ data_out: .fill 16, 4, 0
 main:
 	leaq data_in(%rip), %rsi
 	leaq data_out(%rip), %rdi
-	pushq %rsi
 	pushq %rdi
 	call salsa20_macro64
 	popq %rdi
-	popq %rsi
+	leaq data_check(%rip), %rsi
 	mov $16, %ecx
 	xorl %eax, %eax
 	repz cmpsl
