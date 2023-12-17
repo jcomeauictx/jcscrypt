@@ -12,6 +12,11 @@
 #ifdef BUILD_EXECUTABLE
 	.globl data_in, data_out, main
 #endif
+#ifdef USE_REAL_NOPS
+	#define NOP nop
+#else
+	#define NOP
+#endif
 #   {
 #       uint32_t *x = out;
 #       //memcpy((void *)x, (void *)in, 64);
@@ -189,7 +194,7 @@ salsa20_macro64:
 	.iflt \number-8
 		.ifeq mmx_\register-1  # going to mmx register
 			movl \number*4(%rdi), temp_s
-			nop
+			NOP
 			movd dtemp_s, \register
 		.else
 			movl \number*4(%rdi), \register
@@ -201,7 +206,7 @@ salsa20_macro64:
 	.macro storex register, number
 	.ifeq mmx_\register-1
 		movd \register, dtemp_s
-		nop
+		NOP
 		movl temp_s, \number*4(%rdi)
 	.else
 		movl \register, \number*4(%rdi)
@@ -213,12 +218,12 @@ salsa20_macro64:
 	.endm
 	.macro R, scratch, register, shiftbits, destination
 	addl \register, \scratch
-	nop
+	NOP
 	movl \scratch, scratch_b
 	rshift \scratch, \shiftbits
-	nop
+	NOP
 	orl \scratch, scratch_b
-	nop
+	NOP
 	xorl scratch_b, \destination
 	.endm
 	# load entire array into registers
@@ -286,7 +291,7 @@ shuffle:
 
 	# x[ 5] ^= R(x[ 1]+x[13],18)
 	R temp_p, x13, 18, scratch_d
-	nop
+	NOP
 	movd dscratch_d, x5m
 
 	# next group: offsets 2, 6, 10, 14
@@ -301,7 +306,7 @@ shuffle:
 	# x[ 2] ^= R(x[14]+x[10], 9)
 	movl x14, scratch_a
 	R scratch_a, x10, 9, temp_s
-	nop
+	NOP
 
 	# x[ 6] ^= R(x[ 2]+x[14],13)
 	movl temp_s, scratch_c
@@ -390,7 +395,7 @@ shuffle:
 
 	# x[11] ^= R(x[10]+x[ 9], 7)
 	R scratch_a, x9, 7, x11
-	nop
+	NOP
 	movl x11, scratch_d
 
 	# x[ 8] ^= R(x[11]+x[10], 9)
