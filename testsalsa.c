@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
         0x24, 0xad, 0x67, 0x3d, 0xc7, 0x61, 0x8f, 0x81
     };
     uint8_t *out = (uint8_t *)scrypt_alloc(64, 64);
-    uint32_t result;
+    uint32_t result = 0;
     fprintf(stderr, "salsa_in: %14p, out: %14p, check: %14p\n",
             &salsa_in, out, &salsa_out);
     #if BITS == 64
