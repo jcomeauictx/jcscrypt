@@ -16,18 +16,18 @@ try:
 except ImportError:
     from http.client import HTTPConnection
 SCRYPT = None
-# NOTE: order these from fastest to slowest
+# NOTE: order these from fastest to slowest, making sure `raise` on *last*
 while SCRYPT is None:
     try:
         from hashlib import scrypt as SCRYPT
-        logging.debug('using hashlib.scrypt')
+        logging.info('using hashlib.scrypt')
         SCRYPT_PARAMETERS = {'n': 1024, 'r': 1, 'p': 1, 'dklen': 32}
         break
     except ImportError:
         logging.debug('hashlib.scrypt unavailable')
     try:
         from scrypt import hash as SCRYPT  # from pip-installed scrypt
-        logging.debug('using pip-installed scrypt')
+        logging.info('using pip-installed scrypt')
         SCRYPT_PARAMETERS = {'N': 1024, 'r': 1, 'p': 1, 'buflen': 32}
         break
     except ImportError:
