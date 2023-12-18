@@ -429,7 +429,7 @@ shuffle:
 	R scratch_d, x14, 18, x15
 
 	# loop back
-	subq $1, (%rsp)
+	decq (%rsp)
 	jnz shuffle
 	# store all registers back into `out` array, updating values
 	movd x7m, dtemp_s
