@@ -5,14 +5,15 @@ testsalsa
 *.bin
 *.a
 *.so
-#clean: generated files that can be safely cleaned up at any time
-*.o
-*.pyc
-*.pyo
-__pycache__
+*.dsm
 crashtest
 gmon.out
 *.prof
 *.log
 *.lst
+#clean: generated files that can be safely cleaned up at any time
+*.o
+*.pyc
+*.pyo
+__pycache__
 #end clean: anything below this is just ignored but not removed by Makefile

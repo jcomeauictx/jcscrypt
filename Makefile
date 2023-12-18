@@ -123,4 +123,8 @@ testall: testsalsa
 %.bin: %.o  # for making a binary one can `incbin` from nasm
 	# may be useful for testing with Agner Fog's programs
 	objcopy -j .text -O binary $< $@
+%.dsm: %.o
+	objdump --disassemble $< | tee $@
+%.o:	%.inc  # just for testing incbin
+	nasm -o $@ -f elf$(BITS) $<
 .PRECIOUS: gmon.out
