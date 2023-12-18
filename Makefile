@@ -1,6 +1,7 @@
 SHELL := /bin/bash
 PYLINT := $(shell which pylint3 pylint | head -n 1)
 MACHINE := $(shell uname -m)
+REALLY ?= echo
 ifeq ($(MACHINE),x86_64)
 	BITS ?= 64
 else
@@ -95,10 +96,12 @@ gdb: rfc7914
 	fi
 gmon.out: rfc7914
 	./$< pleaseletmein SodiumChloride 16348 8 1 64 1
-clean:
-	rm -f *.pyc *pyo gmon.out rfc7914.prof *.log *.o
-distclean: clean
-	rm -f $(EXECUTABLES) $(LIBRARIES) *.a
+clean: .gitignore
+	$(REALLY) rm -rf $$(sed -n '/^#clean/,/^#end/{//!p;}' $<)
+	@if [ "$(REALLY)" ]; then echo NOTE: $(MAKE) REALLY= $@ >&2; fi
+distclean: .gitignore clean
+	$(REALLY) rm -rf $$(sed -n '/^#distclean/,/^#clean/{//!p;}' $<)
+	@if [ "$(REALLY)" ]; then echo NOTE: $(MAKE) REALLY= $@ >&2; fi
 tunnel:
 	exec -a amctunnel ssh -N -L9057:localhost:9057 $(USER)@amcserver
 mine:
@@ -107,6 +110,7 @@ mine:
 	sleep 5
 	# terminate ssh forwarding after ^C out of mining
 	$(PYTHON) -OO simpleminer.py || kill $$(pidof amctunnel)
+testsalsa: libsalsa.a
 testall: testsalsa
 	for implementation in '' $(ASM_TARGETS); do \
 	 time ./testsalsa 10000000 "$$implementation"; \
