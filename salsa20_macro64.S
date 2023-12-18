@@ -12,6 +12,8 @@
 #ifdef BUILD_EXECUTABLE
 	.globl data_in, data_out, main
 #endif
+# Tried inserting NOPs to avoid pipeline stalls (which I don't yet understand)
+# but they slowed the program down a lot. Define USE_REAL_NOPS to enable.
 #ifdef USE_REAL_NOPS
 	#define NOP nop
 #else
@@ -488,6 +490,8 @@ shuffle:
 	paddd 48(%rdi), %xmm3
 	movdqa %xmm3, 48(%rdi)
 	#endif
-	emms  # clear MMX registers before return
+	#ifdef USE_EMMS
+	emms  # clear MMX registers before return (is this really necessary?)
+	#endif
 	ret
 # vim: set tabstop=4 expandtab shiftwidth=4 softtabstop=4
