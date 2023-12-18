@@ -26,6 +26,9 @@ ASM32_SOURCES := $(filter-out $(ASM64_SOURCES),$(wildcard salsa*.[Ss]))
 ASM_SOURCES := $(ASM$(BITS)_SOURCES)
 ASM_TARGETS := $(basename $(ASM_SOURCES))
 ASM_OBJECTS := $(addsuffix .o,$(ASM_TARGETS))
+# there must be a better way to ensure symbols in shared library are visible,
+# but since I don't know, this seems to work
+ENABLED := $(foreach target,$(ASM_TARGETS),"-Wl,--undefined=$(target)")
 EXECUTABLES := $(CPP_SOURCES:.cpp=) $(C_SOURCES:.c=)
 LIBRARIES := $(foreach source,$(CPP_SOURCES),_$(basename $(source)).so)
 ifeq ($(BITS),32)
@@ -64,7 +67,7 @@ libsalsa.a: $(ASM_OBJECTS)
 	as -alsm=$*.lst --$(BITS) -o $@ $<
 %.so: %.cpp libsalsa.a  # for _rfc7914.so using symlink of rfc7914.cpp
 	CXXFLAGS='-fPIC' \
-	 LDFLAGS='-Wl,--undefined=salsa20,--undefined=salsa20_aligned64 -shared -Wl,-rpath="."' \
+	 LDFLAGS='$(ENABLED) -shared -Wl,-rpath="."' \
 	 $(MAKE) $*
 	mv $* $@
 %.pylint: %.py
