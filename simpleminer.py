@@ -15,17 +15,32 @@ try:
     from httplib import HTTPConnection
 except ImportError:
     from http.client import HTTPConnection
-try:
-    from scrypt import hash as scrypthash
-    SCRYPT_PARAMETERS = {'N': 1024, 'r': 1, 'p': 1, 'buflen': 32}  # pip scrypt
-    logging.info('using pip scrypt')
-except ImportError:
-    from rfc7914 import scrypt as scrypthash
-    logging.info('using jcscrypt')
-    SCRYPT_PARAMETERS = {'N': 1024, 'r': 1, 'p': 1, 'dkLen': 32}  # jcscrypt
-#SCRYPT_PARAMETERS = {'n': 1024, 'r': 1, 'p': 1, 'dklen': 32}  # hashlib scrypt
+SCRYPT = None
+# NOTE: order these from fastest to slowest
+while SCRYPT is None:
+    try:
+        from hashlib import scrypt as SCRYPT
+        logging.debug('using hashlib.scrypt')
+        SCRYPT_PARAMETERS = {'n': 1024, 'r': 1, 'p': 1, 'dklen': 32}
+        break
+    except ImportError:
+        logging.debug('hashlib.scrypt unavailable')
+    try:
+        from scrypt import hash as SCRYPT  # from pip-installed scrypt
+        logging.debug('using pip-installed scrypt')
+        SCRYPT_PARAMETERS = {'N': 1024, 'r': 1, 'p': 1, 'buflen': 32}
+        break
+    except ImportError:
+        logging.debug('pip-installed scrypt unavailable')
+    try:
+        from rfc7914 import scrypt as SCRYPT
+        logging.info('using jcscrypt')
+        SCRYPT_PARAMETERS = {'N': 1024, 'r': 1, 'p': 1, 'dkLen': 32}
+        break
+    except ImportError:
+        logging.debug('jcscrypt unavailable')
+        raise
 
-# don't use python3 hashlib.scrypt, it's too slow!
 # get best-guess load directory for _rfc7914.so under any condition
 SCRIPTNAME = sys.argv[0] or os.path.join(os.curdir, 'commandline_testing')
 SCRIPTDIR = os.path.dirname(os.path.realpath(SCRIPTNAME))
@@ -296,7 +311,7 @@ def scrypt_hash(data, check_bytes='\0\0\0'):
         hashed, check_bytes = None, None
     else:
         try:
-            hashed = scrypthash(data, salt=data, **SCRYPT_PARAMETERS)
+            hashed = SCRYPT(data, salt=data, **SCRYPT_PARAMETERS)
         except TypeError as failed:  # different libraries being used
             # these changes are specifically for Python3 hashlib.scrypt
             logging.warning('call to _rfc7914.scrypt failed: %s; %s', failed,
@@ -309,7 +324,7 @@ def scrypt_hash(data, check_bytes='\0\0\0'):
                                  SCRYPT_PARAMETERS)
             # try again. if this works, it won't have to be done again,
             # because we have changed the global parameters
-            hashed = scrypthash(data, salt=data, **SCRYPT_PARAMETERS)
+            hashed = SCRYPT(data, salt=data, **SCRYPT_PARAMETERS)
     return hashed[-len(check_bytes):] == check_bytes if check_bytes else hashed
 
 def check_hash(data=unhexlify(TEST_HEADER), target=None, nonce=None):
