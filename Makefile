@@ -103,11 +103,11 @@ distclean: .gitignore clean
 	$(REALLY) rm -rf $$(sed -n '/^#distclean/,/^#clean/{//!p;}' $<)
 	@if [ "$(REALLY)" ]; then echo NOTE: $(MAKE) REALLY= $@ >&2; fi
 tunnel:
-	exec -a amctunnel ssh -N -L9057:localhost:9057 $(USER)@amcserver
+	$(REALLY) exec -a amctunnel ssh -N -L9057:localhost:9057 amcserver
 mine:
 	$(MAKE) tunnel &
 	@echo Wait a moment for the tunnel to start... >&2
-	sleep 5
+	$(REALLY) sleep 5
 	# terminate ssh forwarding after ^C out of mining
 	$(PYTHON) -OO simpleminer.py || kill $$(pidof amctunnel)
 testsalsa: libsalsa.a
