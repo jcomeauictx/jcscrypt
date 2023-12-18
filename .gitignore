@@ -1,15 +1,18 @@
-*.o
+#distclean: generated files needed for everyday use
+salsa20_macro64
+rfc7914
+testsalsa
+*.bin
+*.a
 *.so
+#clean: generated files that can be safely cleaned up at any time
+*.o
 *.pyc
 *.pyo
 __pycache__
 crashtest
-rfc7914
 gmon.out
 *.prof
-testsalsa
-*.a
 *.log
 *.lst
-salsa20_macro64
-*.bin
+#end clean: anything below this is just ignored but not removed by Makefile
