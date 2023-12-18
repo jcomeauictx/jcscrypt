@@ -87,6 +87,7 @@ main:
 #endif
 salsa20_macro64:
 	# save registers required by calling convention
+	#emms  # not necessary to clear MMX registers, we explicitly set them.
 	pushq %rbp
 	pushq %rbx
 	pushq %r12
@@ -467,6 +468,7 @@ shuffle:
 	vmovdqa %ymm0, (%rdi)
 	popq %r13
 	vmovdqa %ymm1, 32(%rdi)
+	vzeroall  # clear YMM registers before return
 	popq %r12
 	popq %rbx
 	popq %rbp
@@ -486,5 +488,6 @@ shuffle:
 	paddd 48(%rdi), %xmm3
 	movdqa %xmm3, 48(%rdi)
 	#endif
+	emms  # clear MMX registers before return
 	ret
 # vim: set tabstop=4 expandtab shiftwidth=4 softtabstop=4
