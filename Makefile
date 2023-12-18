@@ -112,10 +112,13 @@ mine:
 	$(PYTHON) -OO simpleminer.py || kill $$(pidof amctunnel)
 testsalsa: libsalsa.a
 testall: testsalsa
-	for implementation in '' $(ASM_TARGETS); do \
-	 time ./testsalsa 10000000 "$$implementation"; \
-	 time ./testsalsa 10000000 "$$implementation"; \
-	 time ./testsalsa 10000000 "$$implementation"; \
+	# first a series "do nothing" loops to see overhead costs
+	# `|| true` added because we know the comparison will fail
+	for iteration in 1 2 3; do time ./testsalsa 10000000 ''; done || true
+	for implementation in $(ASM_TARGETS); do \
+	 for iteration in 1 2 3; do \
+	  time ./testsalsa 10000000 "$$implementation"; \
+	 done; \
 	done
 %.bin: %.o  # for making a binary one can `incbin` from nasm
 	# may be useful for testing with Agner Fog's programs
