@@ -249,13 +249,13 @@ salsa20_macro64:
 	movd dtemp_p, x0m
 shuffle:
 	# first group of 4 is offsets 0, 4, 8, 12
-	# NOTE can't use dtemp_p for X[0], it's good for only first pass
-	# x[ 4] ^= R(x[ 0]+x[12], 7)
 	movd x0m, dscratch_c
 	movd x4m, dscratch_d
+	# NOTE can't use dtemp_p for X[0], it's good for only first pass
+	# x[ 4] ^= R(x[ 0]+x[12], 7)
 	movl scratch_c, scratch_a
-	movl scratch_c, temp_s
 	R scratch_c, x12, 7, scratch_d
+	movl scratch_a, scratch_b
 
 	# x[ 8] ^= R(x[ 4]+x[ 0], 9)
 	R scratch_a, scratch_d, 9, x8
@@ -267,9 +267,9 @@ shuffle:
 	movl x12, scratch_a
 
 	# x[ 0] ^= R(x[12]+x[ 8],18)
-	R scratch_a, x8, 18, temp_s
+	R scratch_a, x8, 18, scratch_b
 	movd x5m, dscratch_c
-	movd dtemp_s, x0m
+	movd dscratch_b, x0m
 	# next group of 4: offsets 1, 5, 9, 13
 	movd x5m, dscratch_d
 
@@ -364,13 +364,13 @@ shuffle:
 	# next group shuffles offsets 4, 5, 6, and 7
 	movd x4m, dscratch_a
 	movd x5m, dscratch_c
+	movl scratch_a, scratch_b
 	movd x6m, dtemp_p
 	movd x7m, dtemp_s
 	movl scratch_c, scratch_d  # copy of X[5]
 
 	# x[ 6] ^= R(x[ 5]+x[ 4], 7)
 	R scratch_a, scratch_c, 7, temp_p
-	movd x4m, dscratch_a  # reload for later
 	movd dtemp_p, x6m
 
 	# x[ 7] ^= R(x[ 6]+x[ 5], 9)
@@ -378,12 +378,12 @@ shuffle:
 
 	# x[ 4] ^= R(x[ 7]+x[ 6],13)
 	# done with X[6] after this, so can use its register as scratch
-	R temp_p, temp_s, 13, scratch_a
+	R temp_p, temp_s, 13, scratch_b
 	movd dtemp_s, x7m
 
 	# x[ 5] ^= R(x[ 4]+x[ 7],18)  # %edx:x[5], %ecx:x[4], %ebp:x[7]
-	R temp_s, scratch_a, 18, scratch_d
-	movd dscratch_a, x4m
+	R temp_s, scratch_b, 18, scratch_d
+	movd dscratch_b, x4m
 	movd dscratch_d, x5m
 
 	# next group: offsets 8, 9, 10, 11
