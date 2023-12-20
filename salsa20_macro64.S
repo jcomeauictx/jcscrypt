@@ -215,19 +215,12 @@ salsa20_macro64:
 		movl \register, \number*4(%rdi)
 	.endif
 	.endm
-	.macro rshift scratch, shiftbits
-	shll $\shiftbits, \scratch
-	shrl $32-\shiftbits, scratch_b
-	.endm
 	.macro R, scratch, register, shiftbits, destination
 	addl \register, \scratch
 	NOP
-	movl \scratch, scratch_b
-	rshift \scratch, \shiftbits
+	roll $\shiftbits, \scratch
 	NOP
-	orl \scratch, scratch_b
-	NOP
-	xorl scratch_b, \destination
+	xorl \scratch, \destination
 	.endm
 	# load entire array into registers
 	loadx 7, temp_s
