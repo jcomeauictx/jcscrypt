@@ -19,19 +19,19 @@ SCRYPT = None
 # NOTE: order these from fastest to slowest, making sure `raise` on *last*
 while SCRYPT is None:
     try:
-        from hashlib import scrypt as SCRYPT
-        logging.info('using hashlib.scrypt')
-        SCRYPT_PARAMETERS = {'n': 1024, 'r': 1, 'p': 1, 'dklen': 32}
-        break
-    except ImportError:
-        logging.debug('hashlib.scrypt unavailable')
-    try:
         from scrypt import hash as SCRYPT  # from pip-installed scrypt
         logging.info('using pip-installed scrypt')
         SCRYPT_PARAMETERS = {'N': 1024, 'r': 1, 'p': 1, 'buflen': 32}
         break
     except ImportError:
         logging.debug('pip-installed scrypt unavailable')
+    try:
+        from hashlib import scrypt as SCRYPT
+        logging.info('using hashlib.scrypt')
+        SCRYPT_PARAMETERS = {'n': 1024, 'r': 1, 'p': 1, 'dklen': 32}
+        break
+    except ImportError:
+        logging.debug('hashlib.scrypt unavailable')
     try:
         from rfc7914 import scrypt as SCRYPT
         logging.info('using jcscrypt')
