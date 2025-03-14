@@ -1,4 +1,4 @@
-#!/usr/bin/python2 -OO
+#!/usr/bin/python -OO
 '''
 adaptation of simpleminer for scrypt
 '''
