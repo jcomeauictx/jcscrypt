@@ -693,7 +693,8 @@ def compare():
             end = datetime.now()
             logging.info('%s runtime: %s', function, end - start)
         except(RuntimeError, TypeError) as problem:
-            logging.exception(problem, exc_info=True)
+            logging.exception('failed in function %s: %s',
+                              function, problem, exc_info=True)
             continue
         try:
             assert got == expected
